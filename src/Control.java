@@ -14,7 +14,7 @@ import proyecto2edaii.avl.AVLTree;
 /**
  * Este método contiene la interfaz de usuario para manejar las estructuras de datos Árbol AVL y
  * Árbol B+.
- * @author macosx
+ * @author ArturoAR
  */
 public class Control {
     
