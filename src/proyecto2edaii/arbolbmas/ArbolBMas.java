@@ -1,4 +1,3 @@
-
 package proyecto2edaii.arbolbmas;
 
 import java.util.ArrayList;
@@ -13,7 +12,7 @@ import java.util.Scanner;
  * @author Aguilera Roa Mauricio Arturo
  */
 public class ArbolBMas {
-    
+
     private Pagina raiz;
     private int B;
 
@@ -23,7 +22,12 @@ public class ArbolBMas {
      */
     public ArbolBMas(int B) {
         this.raiz = new Pagina();
-        this.B = B;
+        int MAX_B_SIZE = 10;
+        int MIN_B_SIZE = 2;
+        if (B > MAX_B_SIZE)
+            this.B = MAX_B_SIZE;
+        else
+            this.B = B;
     }
     /**
      * Este método agrega un nodo al árbol con el parámetro clave.
@@ -120,7 +124,7 @@ public class ArbolBMas {
             if (pagActual.esHoja())
                 nuevaPagRaiz.getClaves().add(nuevaPagina.getClave(0));
             else
-                nuevaPagRaiz.getClaves().add(nuevaPagina.getClaves().remove(0));
+                nuevaPagRaiz.getClaves().add(nuevaPagina.getClaves().removeFirst());
             return true;
         }
         else {
@@ -138,7 +142,7 @@ public class ArbolBMas {
                 if (pagActual.esHoja())
                     return divisionCelular(nuevaPagina.getClave(0), pagActual.getPadre());
                 else
-                    return divisionCelular(nuevaPagina.getClaves().remove(0), pagActual.getPadre());
+                    return divisionCelular(nuevaPagina.getClaves().removeFirst(), pagActual.getPadre());
             }
         }
     }
@@ -193,14 +197,14 @@ public class ArbolBMas {
         Pagina pagPrestadora = pagActual.getPadre().getHijo(h + prestador);
         if (prestador == 1) {
             if (pagActual.esHoja()) {
-                pagActual.getClaves().add(pagPrestadora.getClaves().remove(0));
-                pagActual.getNodos().add(pagPrestadora.getNodos().remove(0));
+                pagActual.getClaves().add(pagPrestadora.getClaves().removeFirst());
+                pagActual.getNodos().add(pagPrestadora.getNodos().removeFirst());
                 pagActual.getPadre().getClaves().set(h, pagPrestadora.getClave(0));
             }
             else {
                 pagActual.getClaves().add(pagActual.getPadre().getClave(h));
-                pagActual.getPadre().getClaves().set(h, pagPrestadora.getClaves().remove(0));
-                pagActual.getHijos().add(pagPrestadora.getHijos().remove(0));
+                pagActual.getPadre().getClaves().set(h, pagPrestadora.getClaves().removeFirst());
+                pagActual.getHijos().add(pagPrestadora.getHijos().removeFirst());
             }
         }
         else {
@@ -455,12 +459,13 @@ public class ArbolBMas {
             }
             System.out.print("\n\t\t");
             v.mostrarLlaves();
-            
+
+            paginas.addAll(v.getHijos());
+            /*
             for( int i = 0 ; i < v.getHijos().size() ; i ++ )
-                paginas.add( v.getHijos().get(i) );
+                paginas.add( v.getHijos().get(i) );*/
         }
         System.out.println("\n");
         System.out.println(toString());
-        
     }
 }
