@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package proyecto2edaii;
+package com.arturoar.ui;
 
 import java.util.InputMismatchException;
 import java.util.Scanner;
-import proyecto2edaii.arbolbmas.ArbolBMas;
-import proyecto2edaii.arbolbmas.Nodo;
-import proyecto2edaii.avl.AVLTree;
+
+import com.arturoar.b_plus_tree.Nodo;
+import com.arturoar.b_plus_tree.ArbolBMas;
 
 /**
  * Este método contiene la interfaz de usuario para manejar las estructuras de datos Árbol AVL y
@@ -32,7 +32,7 @@ public class Control {
             System.out.print("Opción: ");
             switch(sc.nextInt()) {
                 case 1:
-                    menuArbolAVL();
+                    System.out.println("Arbol AVL");
                     break;
                 case 2:
                     System.out.print("Ingresa parámetro B: ");
@@ -61,7 +61,7 @@ public class Control {
     /**
      * Método con menu de Árbol AVL
      */
-    public static void menuArbolAVL() {
+   /*  public static void menuArbolAVL() {
         AVLTree arbol = new AVLTree(); 
   
         Scanner sc= new Scanner(System.in);
@@ -125,7 +125,7 @@ public class Control {
             menuArbolAVL();
         } 
     
-    }
+    }*/
     /**
      * Método con menu de Árbol B+.
      * @param arbol arbolBMas

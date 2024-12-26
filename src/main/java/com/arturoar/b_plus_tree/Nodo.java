@@ -1,5 +1,5 @@
 
-package proyecto2edaii.arbolbmas;
+package com.arturoar.b_plus_tree;
 
 /**
  *  Este clase representa la unidad de información a guardar en la estructura.
