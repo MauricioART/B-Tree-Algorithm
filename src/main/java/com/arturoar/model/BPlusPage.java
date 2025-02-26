@@ -7,19 +7,19 @@ import java.util.ArrayList;
  * Esta clase representa las paginas que contienen las claves, hijos, nodos, etc del árbol.
  * @author Aguilera Roa Mauricio Arturo
  */
-public class Pagina {
+public class BPlusPage {
     
     private boolean hoja;
     private ArrayList<Integer> clave;
-    private ArrayList<Nodo> nodo;
-    private Pagina padre;
-    private ArrayList<Pagina> hijo;
-    private Pagina sigPagina;
+    private ArrayList<BPlusNode> nodo;
+    private BPlusPage padre;
+    private ArrayList<BPlusPage> hijo;
+    private BPlusPage sigPagina;
 
     /**
      * Contruye una instancia de la clase Pagina inicializando hoj
      */
-    public Pagina() {
+    public BPlusPage() {
         this.clave = new ArrayList<>();
         this.nodo = new ArrayList<>();
         this.hijo = new ArrayList<>();
@@ -51,7 +51,7 @@ public class Pagina {
     }
 
 
-    public ArrayList<Nodo> getNodos() {
+    public ArrayList<BPlusNode> getNodos() {
         return nodo;
     }
     /**
@@ -63,7 +63,7 @@ public class Pagina {
             return -1;
         }
         else{
-            Pagina padre = this.padre;
+            BPlusPage padre = this.padre;
             for( int i = 0 ; i < padre.hijo.size() ; i++ ){
                 if( padre.hijo.get(i) == this )
                     return i;
@@ -76,24 +76,24 @@ public class Pagina {
      * @param indice Valor del indice del nodo requerido.
      * @return Regresa el nodo en la posición indice
      */
-    public Nodo getNodo(int indice) {
+    public BPlusNode getNodo(int indice) {
         return this.nodo.get(indice);
     }
 
-    public void setNodo(ArrayList<Nodo> nodo) {
+    public void setNodo(ArrayList<BPlusNode> nodo) {
         this.nodo = nodo;
     }
 
-    public Pagina getPadre() {
+    public BPlusPage getPadre() {
         return padre;
     }
 
-    public void setPadre(Pagina padre) {
+    public void setPadre(BPlusPage padre) {
         this.padre = padre;
     }
 
 
-    public ArrayList<Pagina> getHijos() {
+    public ArrayList<BPlusPage> getHijos() {
         return hijo;
     }
     /**
@@ -101,19 +101,19 @@ public class Pagina {
      * @param indice
      * @return 
      */
-    public Pagina getHijo(int indice) {
+    public BPlusPage getHijo(int indice) {
         return this.hijo.get(indice);
     }
 
-    public void setHijo(ArrayList<Pagina> hijo) {
+    public void setHijo(ArrayList<BPlusPage> hijo) {
         this.hijo = hijo;
     }
 
-    public Pagina getSigPagina() {
+    public BPlusPage getSigPagina() {
         return sigPagina;
     }
 
-    public void setSigPagina(Pagina sigPagina) {
+    public void setSigPagina(BPlusPage sigPagina) {
         this.sigPagina = sigPagina;
     }
     /**

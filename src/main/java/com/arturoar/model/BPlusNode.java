@@ -5,7 +5,7 @@ package com.arturoar.model;
  *  Este clase representa la unidad de información a guardar en la estructura.
  * @author Aguilera Roa Mauricio Arturo
  */
-public class Nodo {
+public class BPlusNode {
     
     private String dato1;
     private int dato2;
@@ -15,7 +15,7 @@ public class Nodo {
      * @param dato1 String para inicializar dato1
      * @param dato2 Entero para inicializar dato2
      */
-    public Nodo(String dato1, int dato2) {
+    public BPlusNode(String dato1, int dato2) {
         this.dato1 = dato1;
         this.dato2 = dato2;
     }
@@ -23,7 +23,7 @@ public class Nodo {
      * Construye una instancia de la clase Nodo inicializando a dato1
      * @param dato1 String para inicializar dato1
      */
-    public Nodo(String dato1) {
+    public BPlusNode(String dato1) {
         this.dato1 = dato1;
         this.dato2 = 0;
     }

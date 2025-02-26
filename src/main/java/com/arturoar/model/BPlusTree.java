@@ -11,17 +11,17 @@ import java.util.Scanner;
  * eliminación y busqueda.
  * @author Aguilera Roa Mauricio Arturo
  */
-public class ArbolBMas {
+public class BPlusTree {
 
-    private Pagina raiz;
+    private BPlusPage raiz;
     private int B;
 
     /**
      * Construye una instancia de clase estableciendo el parametro B.
      * @param B Parámetro de mínimo numero de hijos en pagina intermedia.
      */
-    public ArbolBMas(int B) {
-        this.raiz = new Pagina();
+    public BPlusTree(int B) {
+        this.raiz = new BPlusPage();
         int MAX_B_SIZE = 10;
         int MIN_B_SIZE = 2;
         if (B > MAX_B_SIZE)
@@ -35,7 +35,7 @@ public class ArbolBMas {
      * @return True si se logro realizar la inserción y false en caso contrario
      */
     public boolean insertarNodo(int clave){
-        Pagina pagInsercion = buscarPagina(clave);
+        BPlusPage pagInsercion = buscarPagina(clave);
         if (!buscarExistencia(clave)) {
             if (pagInsercion.getClaves().size() < 2*B-1) {
                 int i = 0;
@@ -50,7 +50,7 @@ public class ArbolBMas {
                 Scanner sc = new Scanner(System.in);
                 System.out.print("Ingresa nombre: ");
                 String dato1 = sc.nextLine();
-                Nodo nuevoNodo = new Nodo(dato1);
+                BPlusNode nuevoNodo = new BPlusNode(dato1);
                 pagInsercion.getNodos().add(i, nuevoNodo);
                 return true;
             }
@@ -68,8 +68,8 @@ public class ArbolBMas {
      * @param clave Parámetro con el valor a insertar en la pagina.
      * @param pagActual Pagina actual donde se quiere insertar clave
      */
-    public boolean divisionCelular(int clave, Pagina pagActual) {
-        Pagina nuevaPagina = new Pagina();
+    public boolean divisionCelular(int clave, BPlusPage pagActual) {
+        BPlusPage nuevaPagina = new BPlusPage();
         int i = 0;
         for (int x : pagActual.getClaves()) {
             if (clave > x)
@@ -81,13 +81,13 @@ public class ArbolBMas {
             Scanner sc = new Scanner(System.in);
             System.out.print("Ingresa nombre: ");
             String dato1 = sc.nextLine();
-            Nodo nuevoNodo = new Nodo(dato1);
+            BPlusNode nuevoNodo = new BPlusNode(dato1);
             pagActual.getNodos().add(i, nuevoNodo);
             pagActual.getClaves().add(i, clave);
             int numNodos = pagActual.getNodos().size();
             int numClaves = pagActual.getClaves().size();
-            ArrayList<Nodo> SubListaIzqN = new ArrayList(pagActual.getNodos().subList(0, numNodos/2));
-            ArrayList<Nodo> SubListaDerN = new ArrayList(pagActual.getNodos().subList(numNodos/2, numNodos));
+            ArrayList<BPlusNode> SubListaIzqN = new ArrayList(pagActual.getNodos().subList(0, numNodos/2));
+            ArrayList<BPlusNode> SubListaDerN = new ArrayList(pagActual.getNodos().subList(numNodos/2, numNodos));
             ArrayList<Integer> SubListaIzqC = new ArrayList(pagActual.getClaves().subList(0, numClaves/2));
             ArrayList<Integer> SubListaDerC = new ArrayList(pagActual.getClaves().subList(numClaves/2, numClaves));
             pagActual.setNodo(SubListaIzqN);
@@ -108,13 +108,13 @@ public class ArbolBMas {
             int numHijos = numClaves + 1;
             for (int j = 0; j < B; j++)
                 nuevaPagina.getHijos().add(0,pagActual.getHijos().remove(--numHijos));
-            for (Pagina x : nuevaPagina.getHijos()) {
+            for (BPlusPage x : nuevaPagina.getHijos()) {
                 x.setPadre(nuevaPagina);
             }
         }
         
         if (pagActual == this.raiz) {
-            Pagina nuevaPagRaiz = new Pagina();
+            BPlusPage nuevaPagRaiz = new BPlusPage();
             this.raiz = nuevaPagRaiz;
             this.raiz.setHoja(false);
             pagActual.setPadre(nuevaPagRaiz);
@@ -153,7 +153,7 @@ public class ArbolBMas {
      */
     public boolean eliminarNodo(int clave){
         if (buscarExistencia(clave)) {
-            Pagina pagActual = buscarPagina(clave);
+            BPlusPage pagActual = buscarPagina(clave);
             int i = 0;
             for (int x : pagActual.getClaves()) {
                 if (clave > x)
@@ -192,9 +192,9 @@ public class ArbolBMas {
      * @param prestador Valor que representa que pagina vecina va a prestar. Si se trata del vecino
      * derecho su valor será de 1 y si es el izquierdo sera -1.
      */
-    public boolean prestarClave(Pagina pagActual, int prestador) {
+    public boolean prestarClave(BPlusPage pagActual, int prestador) {
         int h = pagActual.getIndiceHijo();
-        Pagina pagPrestadora = pagActual.getPadre().getHijo(h + prestador);
+        BPlusPage pagPrestadora = pagActual.getPadre().getHijo(h + prestador);
         if (prestador == 1) {
             if (pagActual.esHoja()) {
                 pagActual.getClaves().add(pagPrestadora.getClaves().removeFirst());
@@ -229,15 +229,15 @@ public class ArbolBMas {
      * @param pagActual Pagina con deficit de claves.
      * @return Regresa true si se logra unir las paginas.
      */
-    public boolean unirPaginas(Pagina pagActual) {
+    public boolean unirPaginas(BPlusPage pagActual) {
         int h = pagActual.getIndiceHijo();
         if ( h == pagActual.getPadre().getHijos().size()-1){
             pagActual = pagActual.getPadre().getHijo(h-1);
             h--;
         }
-        Pagina pagSiguiente = pagActual.getPadre().getHijo(h+1);
+        BPlusPage pagSiguiente = pagActual.getPadre().getHijo(h+1);
         if (pagActual.esHoja()) {
-            for ( Nodo x : pagSiguiente.getNodos()) {
+            for ( BPlusNode x : pagSiguiente.getNodos()) {
                 pagActual.getNodos().add(x);
             }
             for (int x : pagSiguiente.getClaves()) {
@@ -246,7 +246,7 @@ public class ArbolBMas {
             pagActual.setSigPagina(pagSiguiente.getSigPagina());
         }
         else {
-            for (Pagina x : pagSiguiente.getHijos()) {
+            for (BPlusPage x : pagSiguiente.getHijos()) {
                 x.setPadre(pagActual);
                 pagActual.getHijos().add(x);
             }
@@ -290,7 +290,7 @@ public class ArbolBMas {
      * @return Regresa -1 si la pagina encontrada es el vecino izquierdo, 1 si es el derecho y 0 
      * si no hay ninguna capaz de prestar.
      */
-    public int buscarPrestador(int indiceHijo, Pagina padre){
+    public int buscarPrestador(int indiceHijo, BPlusPage padre){
         if(indiceHijo > 0 && indiceHijo < padre.getHijos().size()-1){
             int numClavesIzq = padre.getHijo(indiceHijo - 1).getClaves().size();
             int numClavesDer = padre.getHijo(indiceHijo + 1).getClaves().size();
@@ -325,7 +325,7 @@ public class ArbolBMas {
      * @param pagActual Representa la pagina en la que busca la clave en cierta llamada recursiva.
      * @return True si el clave se encontro y false en caso contrario.
      */
-    public boolean buscarExistencia(int clave, Pagina pagActual){
+    public boolean buscarExistencia(int clave, BPlusPage pagActual){
             int i = 0;
             for (int x : pagActual.getClaves()) {
                 if ( clave >= x )
@@ -350,7 +350,7 @@ public class ArbolBMas {
      * @param clave Valor relacionado del nodo a buscar.
      * @return 
      */
-    public Nodo buscarNodo(int clave){
+    public BPlusNode buscarNodo(int clave){
         return buscarNodo(clave, this.raiz);
     }
     
@@ -361,7 +361,7 @@ public class ArbolBMas {
      * @param pagActual Representa la pagina en la que busca la clave en cierta llamada recursiva.
      * @return 
      */
-    public Nodo buscarNodo(int clave, Pagina pagActual){
+    public BPlusNode buscarNodo(int clave, BPlusPage pagActual){
         int i = 0;
         for (int x : pagActual.getClaves()) {
             if ( clave >= x )
@@ -387,7 +387,7 @@ public class ArbolBMas {
      * @param clave Valor relacionado del nodo a buscar.
      * @return Regresa la pagina en donde se encuntra el nodo.
      */
-    public Pagina buscarPagina(int clave){
+    public BPlusPage buscarPagina(int clave){
         return buscarPagina(clave, this.raiz);
     }
     /**
@@ -397,7 +397,7 @@ public class ArbolBMas {
      * @param pagActual Representa la pagina en la que busca la clave en cierta llamada recursiva.
      * @return Regresa la pagina en donde se encuntra el nodo.
      */
-    public Pagina buscarPagina(int clave, Pagina pagActual){
+    public BPlusPage buscarPagina(int clave, BPlusPage pagActual){
             int i = 0;
             for (int x : pagActual.getClaves()) {
                 if ( clave >= x )
@@ -419,7 +419,7 @@ public class ArbolBMas {
     public String toString(){
         int numNodos = 0;
         int altura = 0;
-        Pagina pagBuffer = this.raiz;
+        BPlusPage pagBuffer = this.raiz;
         while(!pagBuffer.esHoja()) {
             altura++;
             pagBuffer = pagBuffer.getHijo(0);
@@ -442,12 +442,12 @@ public class ArbolBMas {
             System.out.println(toString());
             return ;
         }
-        Queue<Pagina> paginas = new LinkedList<>();
+        Queue<BPlusPage> paginas = new LinkedList<>();
         paginas.add(this.raiz);
-        Pagina padre=null;
+        BPlusPage padre=null;
         while( !paginas.isEmpty() ){
             
-            Pagina v = paginas.poll();
+            BPlusPage v = paginas.poll();
             if(v.getPadre()==null){
                 System.out.print("Nodo Raiz: ");
             }
