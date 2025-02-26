@@ -1,4 +1,4 @@
-package com.arturoar.b_plus_tree;
+package com.arturoar.model;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

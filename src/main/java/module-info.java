@@ -5,10 +5,10 @@ module com.arturoar.bplustree {
     // Abre los paquetes para el uso reflexivo por parte de javafx.fxml
     opens com.arturoar.ui to javafx.fxml;
     //opens com.arturoar.exceptions to javafx.fxml;
-    opens com.arturoar.b_plus_tree to javafx.fxml;
+    opens com.arturoar.model to javafx.fxml;
 
     // Exporta los paquetes para que otros módulos puedan usarlos
     exports com.arturoar.ui;
-    exports com.arturoar.b_plus_tree;
+    exports com.arturoar.model;
     //exports com.arturoar.exceptions;
 }

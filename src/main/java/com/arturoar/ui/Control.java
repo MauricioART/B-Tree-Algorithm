@@ -8,8 +8,8 @@ package com.arturoar.ui;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
-import com.arturoar.b_plus_tree.Nodo;
-import com.arturoar.b_plus_tree.ArbolBMas;
+import com.arturoar.model.Nodo;
+import com.arturoar.model.ArbolBMas;
 
 /**
  * Este método contiene la interfaz de usuario para manejar las estructuras de datos Árbol AVL y

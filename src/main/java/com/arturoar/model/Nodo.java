@@ -1,5 +1,5 @@
 
-package com.arturoar.b_plus_tree;
+package com.arturoar.model;
 
 /**
  *  Este clase representa la unidad de información a guardar en la estructura.
