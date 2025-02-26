@@ -42,8 +42,7 @@ public class BPlusTreeUI extends Application {
         linea.setEndX(100.0f);
         linea.setEndY(300.0f);
         gc.strokeLine(0,0,300,100);  
-        Text texto = new Text(10, 50, "Hola mundo");
-        texto.getLayoutBounds()
+        //Text texto = new Text(10, 50, "Hola mundo");
         
         root.getChildren().add(canvas);
        
