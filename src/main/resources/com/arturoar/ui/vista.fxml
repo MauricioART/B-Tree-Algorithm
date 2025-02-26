@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.shape.Circle?>
 <?import javafx.scene.shape.Line?>
+<?import javafx.scene.text.Text?>
 
 <AnchorPane id="AnchorPane" fx:id="anchorPane" prefHeight="643.0" prefWidth="865.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.arturoar.ui.BPlusTreeController">
    <children>
-      <Line endX="453.9000244140625" endY="100.29999542236328" startX="124.89291381835938" startY="67.29288482666016" />
-      <Circle fill="DODGERBLUE" layoutX="262.0" layoutY="206.0" radius="100.0" stroke="BLACK" strokeType="INSIDE" />
+      <Line endX="100.0" layoutX="214.0" layoutY="126.0" startX="-100.0" />
+      <Text layoutX="373.0" layoutY="167.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hello" />
    </children>
 </AnchorPane>
