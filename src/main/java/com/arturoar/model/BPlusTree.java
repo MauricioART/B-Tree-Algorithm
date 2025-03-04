@@ -13,7 +13,7 @@ import java.util.Scanner;
  */
 public class BPlusTree {
 
-    private BPlusPage raiz;
+    private BPlusPage root;
     private int B;
 
     /**
@@ -21,7 +21,7 @@ public class BPlusTree {
      * @param B Parámetro de mínimo numero de hijos en pagina intermedia.
      */
     public BPlusTree(int B) {
-        this.raiz = new BPlusPage();
+        this.root = new BPlusPage();
         int MAX_B_SIZE = 10;
         int MIN_B_SIZE = 2;
         if (B > MAX_B_SIZE)
@@ -30,153 +30,161 @@ public class BPlusTree {
             this.B = B;
     }
     /**
-     * Este método agrega un nodo al árbol con el parámetro clave.
-     * @param clave Sirve para ordenar un nuevo nodo al árbol. 
+     * Este método agrega un nodo al árbol con el parámetro key.
+     * @param key Sirve para ordenar un nuevo nodo al árbol. 
      * @return True si se logro realizar la inserción y false en caso contrario
      */
-    public boolean insertarNodo(int clave){
-        BPlusPage pagInsercion = buscarPagina(clave);
-        if (!buscarExistencia(clave)) {
-            if (pagInsercion.getClaves().size() < 2*B-1) {
+    public boolean insertNode(int key){
+        BPlusPage pagInsercion = searchPage(key);
+        if (!contains(key)) {
+            if (pagInsercion.getKeys().size() < 2*B-1) {
                 int i = 0;
-                for ( int x : pagInsercion.getClaves()) {
-                    if (clave > x)
+                for ( int x : pagInsercion.getKeys()) {
+                    if (key > x)
                         i++;
                     else
                         break;
                 }
-                pagInsercion.getClaves().add(i, clave);
+                pagInsercion.getKeys().add(i, key);
                 
                 Scanner sc = new Scanner(System.in);
                 System.out.print("Ingresa nombre: ");
                 String dato1 = sc.nextLine();
                 BPlusNode nuevoNodo = new BPlusNode(dato1);
-                pagInsercion.getNodos().add(i, nuevoNodo);
+                pagInsercion.getNodes().add(i, nuevoNodo);
                 return true;
             }
             else {
-                return divisionCelular(clave, pagInsercion);
+                return celularDivision
+        (key, pagInsercion);
                 
             }
         }
         else
             return false;
     }
+
+    public BPlusPage getRoot() {
+        return root;
+    }
     /**
-     * Método auxiliar de insertarNodo. Se encarga de crear una nueva pagina si la pagina actual está por encima
-     * del tope de su capacidad y reparte las claves y/o nodos entre ambas paginas.
-     * @param clave Parámetro con el valor a insertar en la pagina.
-     * @param pagActual Pagina actual donde se quiere insertar clave
+     * Método auxiliar de insertNode
+     . Se encarga de crear una nueva pagina si la pagina actual está por encima
+     * del tope de su capacidad y reparte las keys y/o nodos entre ambas paginas.
+     * @param key Parámetro con el valor a insertar en la pagina.
+     * @param currentPage Pagina actual donde se quiere insertar key
      */
-    public boolean divisionCelular(int clave, BPlusPage pagActual) {
+    public boolean celularDivision(int key, BPlusPage currentPage) {
         BPlusPage nuevaPagina = new BPlusPage();
         int i = 0;
-        for (int x : pagActual.getClaves()) {
-            if (clave > x)
+        for (int x : currentPage.getKeys()) {
+            if (key > x)
                 i++;
             else
                 break;
         }
-        if (pagActual.esHoja()) {
+        if (currentPage.isLeaf()) {
             Scanner sc = new Scanner(System.in);
             System.out.print("Ingresa nombre: ");
             String dato1 = sc.nextLine();
             BPlusNode nuevoNodo = new BPlusNode(dato1);
-            pagActual.getNodos().add(i, nuevoNodo);
-            pagActual.getClaves().add(i, clave);
-            int numNodos = pagActual.getNodos().size();
-            int numClaves = pagActual.getClaves().size();
-            ArrayList<BPlusNode> SubListaIzqN = new ArrayList(pagActual.getNodos().subList(0, numNodos/2));
-            ArrayList<BPlusNode> SubListaDerN = new ArrayList(pagActual.getNodos().subList(numNodos/2, numNodos));
-            ArrayList<Integer> SubListaIzqC = new ArrayList(pagActual.getClaves().subList(0, numClaves/2));
-            ArrayList<Integer> SubListaDerC = new ArrayList(pagActual.getClaves().subList(numClaves/2, numClaves));
-            pagActual.setNodo(SubListaIzqN);
-            nuevaPagina.setNodo(SubListaDerN);
-            pagActual.setClave(SubListaIzqC);
-            nuevaPagina.setClave(SubListaDerC);
-            nuevaPagina.setSigPagina(pagActual.getSigPagina());
-            pagActual.setSigPagina(nuevaPagina);
+            currentPage.getNodes().add(i, nuevoNodo);
+            currentPage.getKeys().add(i, key);
+            int numNodos = currentPage.getNodes().size();
+            int numkeys = currentPage.getKeys().size();
+            ArrayList<BPlusNode> SubListaIzqN = new ArrayList(currentPage.getNodes().subList(0, numNodos/2));
+            ArrayList<BPlusNode> SubListaDerN = new ArrayList(currentPage.getNodes().subList(numNodos/2, numNodos));
+            ArrayList<Integer> SubListaIzqC = new ArrayList(currentPage.getKeys().subList(0, numkeys/2));
+            ArrayList<Integer> SubListaDerC = new ArrayList(currentPage.getKeys().subList(numkeys/2, numkeys));
+            currentPage.setNode(SubListaIzqN);
+            nuevaPagina.setNode(SubListaDerN);
+            currentPage.setKey(SubListaIzqC);
+            nuevaPagina.setKey(SubListaDerC);
+            nuevaPagina.setNextPage(currentPage.getNextPage());
+            currentPage.setNextPage(nuevaPagina);
         }
         else {
-            nuevaPagina.setHoja(false);
-            pagActual.getClaves().add(i, clave);
-            int numClaves = pagActual.getClaves().size();
-            ArrayList<Integer> SubListaIzq = new ArrayList(pagActual.getClaves().subList(0, numClaves/2));
-            ArrayList<Integer> SubListaDer = new ArrayList(pagActual.getClaves().subList(numClaves/2, numClaves));
-            pagActual.setClave(SubListaIzq);
-            nuevaPagina.setClave(SubListaDer);
-            int numHijos = numClaves + 1;
+            nuevaPagina.setLeaf(false);
+            currentPage.getKeys().add(i, key);
+            int numkeys = currentPage.getKeys().size();
+            ArrayList<Integer> SubListaIzq = new ArrayList(currentPage.getKeys().subList(0, numkeys/2));
+            ArrayList<Integer> SubListaDer = new ArrayList(currentPage.getKeys().subList(numkeys/2, numkeys));
+            currentPage.setKey(SubListaIzq);
+            nuevaPagina.setKey(SubListaDer);
+            int numHijos = numkeys + 1;
             for (int j = 0; j < B; j++)
-                nuevaPagina.getHijos().add(0,pagActual.getHijos().remove(--numHijos));
-            for (BPlusPage x : nuevaPagina.getHijos()) {
-                x.setPadre(nuevaPagina);
+                nuevaPagina.getChildren().add(0,currentPage.getChildren().remove(--numHijos));
+            for (BPlusPage x : nuevaPagina.getChildren()) {
+                x.setFather(nuevaPagina);
             }
         }
         
-        if (pagActual == this.raiz) {
-            BPlusPage nuevaPagRaiz = new BPlusPage();
-            this.raiz = nuevaPagRaiz;
-            this.raiz.setHoja(false);
-            pagActual.setPadre(nuevaPagRaiz);
-            nuevaPagina.setPadre(nuevaPagRaiz);
-            nuevaPagRaiz.getHijos().add(pagActual);
-            nuevaPagRaiz.getHijos().add(nuevaPagina);
-            if (pagActual.esHoja())
-                nuevaPagRaiz.getClaves().add(nuevaPagina.getClave(0));
+        if (currentPage == this.root) {
+            BPlusPage nuevaPagroot = new BPlusPage();
+            this.root = nuevaPagroot;
+            this.root.setLeaf(false);
+            currentPage.setFather(nuevaPagroot);
+            nuevaPagina.setFather(nuevaPagroot);
+            nuevaPagroot.getChildren().add(currentPage);
+            nuevaPagroot.getChildren().add(nuevaPagina);
+            if (currentPage.isLeaf())
+                nuevaPagroot.getKeys().add(nuevaPagina.getKey(0));
             else
-                nuevaPagRaiz.getClaves().add(nuevaPagina.getClaves().removeFirst());
+                nuevaPagroot.getKeys().add(nuevaPagina.getKeys().removeFirst());
             return true;
         }
         else {
-            int indicePagActual = pagActual.getIndiceHijo();
-            nuevaPagina.setPadre(pagActual.getPadre());
-            pagActual.getPadre().getHijos().add(indicePagActual + 1, nuevaPagina);
-            if (pagActual.getPadre().getClaves().size() < 2*B-1) {
-                if (pagActual.esHoja())
-                    pagActual.getPadre().getClaves().add(indicePagActual, nuevaPagina.getClave(0));
+            int indicePagActual = currentPage.getChildrenIndex();
+            nuevaPagina.setFather(currentPage.getFather());
+            currentPage.getFather().getChildren().add(indicePagActual + 1, nuevaPagina);
+            if (currentPage.getFather().getKeys().size() < 2*B-1) {
+                if (currentPage.isLeaf())
+                    currentPage.getFather().getKeys().add(indicePagActual, nuevaPagina.getKey(0));
                 else
-                    pagActual.getPadre().getClaves().add(indicePagActual, nuevaPagina.getClaves().remove(0));
+                    currentPage.getFather().getKeys().add(indicePagActual, nuevaPagina.getKeys().remove(0));
                 return true;
             }
             else {
-                if (pagActual.esHoja())
-                    return divisionCelular(nuevaPagina.getClave(0), pagActual.getPadre());
+                if (currentPage.isLeaf())
+                    return celularDivision
+            (nuevaPagina.getKey(0), currentPage.getFather());
                 else
-                    return divisionCelular(nuevaPagina.getClaves().removeFirst(), pagActual.getPadre());
+                    return celularDivision
+            (nuevaPagina.getKeys().removeFirst(), currentPage.getFather());
             }
         }
     }
     /**
-     * Este método elimina el nodo que está guardado en el árbol con el valor clave
-     * @param clave Valor con el que está guardado el nodo a eliminar.
-     * @return True si clave se encuentra en el arbol y false en caso contrario 
+     * Este método elimina el nodo que está guardado en el árbol con el valor key
+     * @param key Valor con el que está guardado el nodo a eliminar.
+     * @return True si key se encuentra en el arbol y false en caso contrario 
      */
-    public boolean eliminarNodo(int clave){
-        if (buscarExistencia(clave)) {
-            BPlusPage pagActual = buscarPagina(clave);
+    public boolean removeNode(int key){
+        if (contains(key)) {
+            BPlusPage currentPage = searchPage(key);
             int i = 0;
-            for (int x : pagActual.getClaves()) {
-                if (clave > x)
+            for (int x : currentPage.getKeys()) {
+                if (key > x)
                     i++;
                 else 
                     break;
             }
-            pagActual.getClaves().remove(i);
-            pagActual.getNodos().remove(i);
-            if (pagActual.getClaves().size() >= B-1) {    
+            currentPage.getKeys().remove(i);
+            currentPage.getNodes().remove(i);
+            if (currentPage.getKeys().size() >= B-1) {    
                 return true;
             }
             else {
-                if (pagActual == this.raiz) 
+                if (currentPage == this.root) 
                     return true;
                 else {
-                    int indicePagActual = pagActual.getIndiceHijo();
-                    int prestador = buscarPrestador(indicePagActual, pagActual.getPadre());
+                    int indicePagActual = currentPage.getChildrenIndex();
+                    int prestador = searchBorrower(indicePagActual, currentPage.getFather());
                     if ( prestador != 0) {
-                        return prestarClave(pagActual, prestador);
+                        return borrowKey(currentPage, prestador);
                     }
                     else {
-                        return unirPaginas(pagActual);
+                        return mergePages(currentPage);
                     }
                 }
             }   
@@ -185,96 +193,96 @@ public class BPlusTree {
             return false;
     }
     /**
-     * Método auxiliar de eliminarNodo. Se encarga de realizar las rotaciones de claves y/o nodos
-     * cuando una pagina se encuentra con un menor número de claves y/o nodos y existe algúna
+     * Método auxiliar de removeNode. Se encarga de realizar las rotaciones de keys y/o nodos
+     * cuando una pagina se encuentra con un menor número de keys y/o nodos y existe algúna
      * pagina vecina con suficientes para prestar.
-     * @param pagActual Representa la pagina con un deficit de claves.
+     * @param pagActual Representa la pagina con un deficit de keys.
      * @param prestador Valor que representa que pagina vecina va a prestar. Si se trata del vecino
      * derecho su valor será de 1 y si es el izquierdo sera -1.
      */
-    public boolean prestarClave(BPlusPage pagActual, int prestador) {
-        int h = pagActual.getIndiceHijo();
-        BPlusPage pagPrestadora = pagActual.getPadre().getHijo(h + prestador);
+    public boolean borrowKey(BPlusPage pagActual, int prestador) {
+        int h = pagActual.getChildrenIndex();
+        BPlusPage pagPrestadora = pagActual.getFather().getChild(h + prestador);
         if (prestador == 1) {
-            if (pagActual.esHoja()) {
-                pagActual.getClaves().add(pagPrestadora.getClaves().removeFirst());
-                pagActual.getNodos().add(pagPrestadora.getNodos().removeFirst());
-                pagActual.getPadre().getClaves().set(h, pagPrestadora.getClave(0));
+            if (pagActual.isLeaf()) {
+                pagActual.getKeys().add(pagPrestadora.getKeys().removeFirst());
+                pagActual.getNodes().add(pagPrestadora.getNodes().removeFirst());
+                pagActual.getFather().getKeys().set(h, pagPrestadora.getKey(0));
             }
             else {
-                pagActual.getClaves().add(pagActual.getPadre().getClave(h));
-                pagActual.getPadre().getClaves().set(h, pagPrestadora.getClaves().removeFirst());
-                pagActual.getHijos().add(pagPrestadora.getHijos().removeFirst());
+                pagActual.getKeys().add(pagActual.getFather().getKey(h));
+                pagActual.getFather().getKeys().set(h, pagPrestadora.getKeys().removeFirst());
+                pagActual.getChildren().add(pagPrestadora.getChildren().removeFirst());
             }
         }
         else {
-            int numClavesPrestador = pagPrestadora.getClaves().size();
-            if (pagActual.esHoja()) {
-                pagActual.getClaves().add(0, pagPrestadora.getClaves().remove(numClavesPrestador-1));
-                pagActual.getNodos().add(0, pagPrestadora.getNodos().remove(numClavesPrestador-1));
-                pagActual.getPadre().getClaves().set(h-1, pagActual.getClave(0));
+            int numkeysPrestador = pagPrestadora.getKeys().size();
+            if (pagActual.isLeaf()) {
+                pagActual.getKeys().add(0, pagPrestadora.getKeys().remove(numkeysPrestador-1));
+                pagActual.getNodes().add(0, pagPrestadora.getNodes().remove(numkeysPrestador-1));
+                pagActual.getFather().getKeys().set(h-1, pagActual.getKey(0));
             }
             else {
-                pagActual.getClaves().add(pagActual.getPadre().getClave(h-1));
-                pagActual.getPadre().getClaves().set(h-1, pagPrestadora.getClaves().remove(numClavesPrestador-1));
-                pagActual.getHijos().add(0, pagPrestadora.getHijos().remove(numClavesPrestador));
-                pagActual.getHijo(0).setPadre(pagActual);
+                pagActual.getKeys().add(pagActual.getFather().getKey(h-1));
+                pagActual.getFather().getKeys().set(h-1, pagPrestadora.getKeys().remove(numkeysPrestador-1));
+                pagActual.getChildren().add(0, pagPrestadora.getChildren().remove(numkeysPrestador));
+                pagActual.getChild(0).setFather(pagActual);
             }
         }
         return true;
     }
     /**
-     * Método auxiliar de eliminarNodo. Se encarga de unir paginas vecinas debido a un deficit de claves 
-     * en pagActual y no hay nodos vecinos capacez de prestar claves.
-     * @param pagActual Pagina con deficit de claves.
+     * Método auxiliar de removeNode. Se encarga de unir paginas vecinas debido a un deficit de keys 
+     * en pagActual y no hay nodos vecinos capacez de prestar keys.
+     * @param pagActual Pagina con deficit de keys.
      * @return Regresa true si se logra unir las paginas.
      */
-    public boolean unirPaginas(BPlusPage pagActual) {
-        int h = pagActual.getIndiceHijo();
-        if ( h == pagActual.getPadre().getHijos().size()-1){
-            pagActual = pagActual.getPadre().getHijo(h-1);
+    public boolean mergePages(BPlusPage pagActual) {
+        int h = pagActual.getChildrenIndex();
+        if ( h == pagActual.getFather().getChildren().size()-1){
+            pagActual = pagActual.getFather().getChild(h-1);
             h--;
         }
-        BPlusPage pagSiguiente = pagActual.getPadre().getHijo(h+1);
-        if (pagActual.esHoja()) {
-            for ( BPlusNode x : pagSiguiente.getNodos()) {
-                pagActual.getNodos().add(x);
+        BPlusPage pagSiguiente = pagActual.getFather().getChild(h+1);
+        if (pagActual.isLeaf()) {
+            for ( BPlusNode x : pagSiguiente.getNodes()) {
+                pagActual.getNodes().add(x);
             }
-            for (int x : pagSiguiente.getClaves()) {
-                pagActual.getClaves().add(x);
+            for (int x : pagSiguiente.getKeys()) {
+                pagActual.getKeys().add(x);
             }
-            pagActual.setSigPagina(pagSiguiente.getSigPagina());
+            pagActual.setNextPage(pagSiguiente.getNextPage());
         }
         else {
-            for (BPlusPage x : pagSiguiente.getHijos()) {
-                x.setPadre(pagActual);
-                pagActual.getHijos().add(x);
+            for (BPlusPage x : pagSiguiente.getChildren()) {
+                x.setFather(pagActual);
+                pagActual.getChildren().add(x);
             }
-            pagActual.getClaves().add(pagActual.getPadre().getClave(h));
-            for (int x : pagSiguiente.getClaves()) {
-                pagActual.getClaves().add(x);
+            pagActual.getKeys().add(pagActual.getFather().getKey(h));
+            for (int x : pagSiguiente.getKeys()) {
+                pagActual.getKeys().add(x);
             }
-            if (pagActual.getPadre() == this.raiz && this.raiz.getClaves().size() == 0) {
-                this.raiz = pagActual;
-                this.raiz.setPadre(null);
-                pagActual = pagActual.getHijo(0);
+            if (pagActual.getFather() == this.root && this.root.getKeys().size() == 0) {
+                this.root = pagActual;
+                this.root.setFather(null);
+                pagActual = pagActual.getChild(0);
             }
         }
-        pagActual.getPadre().getClaves().remove(h);
-        pagActual.getPadre().getHijos().remove(h+1);
-        if (pagActual.getPadre() == this.raiz && pagActual.getPadre().getClaves().isEmpty()) {
-            this.raiz = pagActual;
-            this.raiz.setPadre(null);
+        pagActual.getFather().getKeys().remove(h);
+        pagActual.getFather().getChildren().remove(h+1);
+        if (pagActual.getFather() == this.root && pagActual.getFather().getKeys().isEmpty()) {
+            this.root = pagActual;
+            this.root.setFather(null);
             return true;
         }
         else {
-            if (pagActual.getPadre().getClaves().size() < B-1) {
-                int prestador = buscarPrestador(pagActual.getPadre().getIndiceHijo(),pagActual.getPadre().getPadre());
+            if (pagActual.getFather().getKeys().size() < B-1) {
+                int prestador = searchBorrower(pagActual.getFather().getChildrenIndex(),pagActual.getFather().getFather());
                 if (prestador != 0) {
-                    return prestarClave(pagActual.getPadre(),prestador);
+                    return borrowKey(pagActual.getFather(),prestador);
                 }
                 else {
-                    return unirPaginas(pagActual.getPadre());
+                    return mergePages(pagActual.getFather());
                 }
             }
             else {
@@ -283,133 +291,133 @@ public class BPlusTree {
         }
     }
     /**
-     * Este método se encarga de buscar una pagina vecina capaz de prestar claves.
-     * @param indiceHijo Indice que tiene la pagina con deficit de claves en la lista de hijos
+     * Este método se encarga de buscar una pagina vecina capaz de prestar keys.
+     * @param indiceHijo Indice que tiene la pagina con deficit de keys en la lista de hijos
      * de su pagina padre.
-     * @param padre Pagina padre de la pagina con deficit de claves.
+     * @param padre Pagina padre de la pagina con deficit de keys.
      * @return Regresa -1 si la pagina encontrada es el vecino izquierdo, 1 si es el derecho y 0 
      * si no hay ninguna capaz de prestar.
      */
-    public int buscarPrestador(int indiceHijo, BPlusPage padre){
-        if(indiceHijo > 0 && indiceHijo < padre.getHijos().size()-1){
-            int numClavesIzq = padre.getHijo(indiceHijo - 1).getClaves().size();
-            int numClavesDer = padre.getHijo(indiceHijo + 1).getClaves().size();
-            if (numClavesIzq >= numClavesDer){
-                if(numClavesIzq > B-1)
+    public int searchBorrower(int indiceHijo, BPlusPage padre){
+        if(indiceHijo > 0 && indiceHijo < padre.getChildren().size()-1){
+            int numkeysIzq = padre.getChild(indiceHijo - 1).getKeys().size();
+            int numkeysDer = padre.getChild(indiceHijo + 1).getKeys().size();
+            if (numkeysIzq >= numkeysDer){
+                if(numkeysIzq > B-1)
                     return - 1;
             }else{
-                if(numClavesDer > B-1)
+                if(numkeysDer > B-1)
                     return 1;
             }
             return 0;
         }
-        if(indiceHijo == 0 && padre.getHijo(indiceHijo + 1).getClaves().size() > B-1)
+        if(indiceHijo == 0 && padre.getChild(indiceHijo + 1).getKeys().size() > B-1)
             return 1;
-        if(indiceHijo == padre.getHijos().size()-1 && padre.getHijo(indiceHijo - 1).getClaves().size() > B-1)
+        if(indiceHijo == padre.getChildren().size()-1 && padre.getChild(indiceHijo - 1).getKeys().size() > B-1)
             return -1;
         return 0;        
     }
     /**
      * Este método utiliza el método homonimo para buscar en la estructura si se encuentra algún nodo guardado con 
-     * el valor de clave.
-     * @param clave Valor relacionado del nodo a buscar.
+     * el valor de key.
+     * @param key Valor relacionado del nodo a buscar.
      * @return True si se encuntra en la estructura y false en caso contrario.
      */
-    public boolean buscarExistencia(int clave){
-        return buscarExistencia(clave, this.raiz);
+    public boolean contains(int key){
+        return contains(key, this.root);
     }
     /**
      * Este método se encarga de buscar en la estructura si se encuentra algún nodo guardado con 
-     * el valor de clave, usando recursividad.
-     * @param clave Valor relacionado del nodo a buscar.
-     * @param pagActual Representa la pagina en la que busca la clave en cierta llamada recursiva.
-     * @return True si el clave se encontro y false en caso contrario.
+     * el valor de key, usando recursividad.
+     * @param key Valor relacionado del nodo a buscar.
+     * @param pagActual Representa la pagina en la que busca la key en cierta llamada recursiva.
+     * @return True si el key se encontro y false en caso contrario.
      */
-    public boolean buscarExistencia(int clave, BPlusPage pagActual){
+    public boolean contains(int key, BPlusPage pagActual){
             int i = 0;
-            for (int x : pagActual.getClaves()) {
-                if ( clave >= x )
+            for (int x : pagActual.getKeys()) {
+                if ( key >= x )
                     i++;
                 else 
                     break;
             }
-            if (pagActual.esHoja()) {
-                for (int x : pagActual.getClaves()) {
-                    if (clave == x)
+            if (pagActual.isLeaf()) {
+                for (int x : pagActual.getKeys()) {
+                    if (key == x)
                         return true;
                 }
                 return false;
             }
             else
-                return buscarExistencia(clave, pagActual.getHijo(i));
+                return contains(key, pagActual.getChild(i));
     }
     
     /**
      * Este método utiliza el método homonimo para buscar en la estructura si se encuentra algún nodo guardado con 
-     * el valor de clave.
-     * @param clave Valor relacionado del nodo a buscar.
+     * el valor de key.
+     * @param key Valor relacionado del nodo a buscar.
      * @return 
      */
-    public BPlusNode buscarNodo(int clave){
-        return buscarNodo(clave, this.raiz);
+    public BPlusNode searchKey(int key){
+        return searchKey(key, this.root);
     }
     
     /**
      * Este método se encarga de buscar en la estructura si se encuentra algún nodo guardado con 
-     * el valor de clave, usando recursividad.
-     * @param clave Valor relacionado del nodo a buscar.
-     * @param pagActual Representa la pagina en la que busca la clave en cierta llamada recursiva.
+     * el valor de key, usando recursividad.
+     * @param key Valor relacionado del nodo a buscar.
+     * @param currentPage Representa la pagina en la que busca la key en cierta llamada recursiva.
      * @return 
      */
-    public BPlusNode buscarNodo(int clave, BPlusPage pagActual){
+    public BPlusNode searchKey(int key, BPlusPage currentPage){
         int i = 0;
-        for (int x : pagActual.getClaves()) {
-            if ( clave >= x )
+        for (int x : currentPage.getKeys()) {
+            if ( key >= x )
                 i++;
             else 
                 break;
         }
-        if (pagActual.esHoja()) {
-            if (pagActual.getClaves().isEmpty())
+        if (currentPage.isLeaf()) {
+            if (currentPage.getKeys().isEmpty())
                 return null;
-            if (pagActual.getClave(i-1) == clave)
-                return pagActual.getNodo(i-1);
+            if (currentPage.getKey(i-1) == key)
+                return currentPage.getNode(i-1);
             else
                 return null;
         }
         else
-            return buscarNodo(clave, pagActual.getHijo(i));
+            return searchKey(key, currentPage.getChild(i));
      
     }
     /**
      * Este método utiliza el método homonimo para buscar en la estructura si se encuentra algún nodo guardado con 
-     * el valor de clave.
-     * @param clave Valor relacionado del nodo a buscar.
+     * el valor de key.
+     * @param key Valor relacionado del nodo a buscar.
      * @return Regresa la pagina en donde se encuntra el nodo.
      */
-    public BPlusPage buscarPagina(int clave){
-        return buscarPagina(clave, this.raiz);
+    public BPlusPage searchPage(int key){
+        return searchPage(key, this.root);
     }
     /**
      * Este método se encarga de buscar en la estructura si se encuentra algún nodo guardado con 
-     * el valor de clave, usando recursividad.
-     * @param clave Valor relacionado del nodo a buscar.
-     * @param pagActual Representa la pagina en la que busca la clave en cierta llamada recursiva.
+     * el valor de key, usando recursividad.
+     * @param key Valor relacionado del nodo a buscar.
+     * @param currentPage Representa la pagina en la que busca la key en cierta llamada recursiva.
      * @return Regresa la pagina en donde se encuntra el nodo.
      */
-    public BPlusPage buscarPagina(int clave, BPlusPage pagActual){
+    public BPlusPage searchPage(int key, BPlusPage currentPage){
             int i = 0;
-            for (int x : pagActual.getClaves()) {
-                if ( clave >= x )
+            for (int x : currentPage.getKeys()) {
+                if ( key >= x )
                     i++;
                 else 
                     break;
             }
-            if (pagActual.esHoja()) {
-                return pagActual;
+            if (currentPage.isLeaf()) {
+                return currentPage;
             }
             else
-                return buscarPagina(clave, pagActual.getHijo(i));
+                return searchPage(key, currentPage.getChild(i));
     }
     /**
      * En este método se sobrescribe toString() para poder imprimir en pantalla las
@@ -419,48 +427,48 @@ public class BPlusTree {
     public String toString(){
         int numNodos = 0;
         int altura = 0;
-        BPlusPage pagBuffer = this.raiz;
-        while(!pagBuffer.esHoja()) {
+        BPlusPage pagBuffer = this.root;
+        while(!pagBuffer.isLeaf()) {
             altura++;
-            pagBuffer = pagBuffer.getHijo(0);
+            pagBuffer = pagBuffer.getChild(0);
         }
         do {
-            numNodos += pagBuffer.getNodos().size();
-            pagBuffer = pagBuffer.getSigPagina();
+            numNodos += pagBuffer.getNodes().size();
+            pagBuffer = pagBuffer.getNextPage();
         }while(pagBuffer != null);
-        return "◆◆◆◆◆◆◆◆◆ Datos Arbol ◆◆◆◆◆◆◆◆◆\nParametro B:" + B + "\nMinimo claves: " 
-                + (B-1) + "\nMaximo claves: " + (2*B-1) + "\nAltura: " + altura + "\nNúmero de nodos: "
+        return "◆◆◆◆◆◆◆◆◆ Datos Arbol ◆◆◆◆◆◆◆◆◆\nParametro B:" + B + "\nMinimo keys: " 
+                + (B-1) + "\nMaximo keys: " + (2*B-1) + "\nAltura: " + altura + "\nNúmero de nodos: "
                 + numNodos + "\n";
     }
     /**
-     * Este método se encraga de mostrar la estructura de árbol B+.
+     * Este método se encarga de mostrar la estructura de árbol B+.
      */
     public void mostrarArbol(){
         System.out.println("◆◆◆◆◆◆◆◆◆◆◆ Árbol ◆◆◆◆◆◆◆◆◆◆◆");
-        if(this.raiz.getHijos().isEmpty()==true && this.raiz.getClaves().isEmpty()==true){
+        if(this.root.getChildren().isEmpty()==true && this.root.getKeys().isEmpty()==true){
             System.out.println("No hay elementos aun");
             System.out.println(toString());
             return ;
         }
         Queue<BPlusPage> paginas = new LinkedList<>();
-        paginas.add(this.raiz);
+        paginas.add(this.root);
         BPlusPage padre=null;
         while( !paginas.isEmpty() ){
             
             BPlusPage v = paginas.poll();
-            if(v.getPadre()==null){
-                System.out.print("Nodo Raiz: ");
+            if(v.getFather()==null){
+                System.out.print("Nodo root: ");
             }
-            if(padre!=v.getPadre()){
+            if(padre!=v.getFather()){
                 System.out.print("\n\n\nNodo Padre: ");
-                v.getPadre().mostrarLlaves();
-                padre=v.getPadre();
+                v.getFather().showKeys();
+                padre=v.getFather();
                 System.out.print("\n\t\tNodos:");
             }
             System.out.print("\n\t\t");
-            v.mostrarLlaves();
+            v.showKeys();
 
-            paginas.addAll(v.getHijos());
+            paginas.addAll(v.getChildren());
             /*
             for( int i = 0 ; i < v.getHijos().size() ; i ++ )
                 paginas.add( v.getHijos().get(i) );*/

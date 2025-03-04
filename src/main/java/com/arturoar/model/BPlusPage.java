@@ -1,4 +1,3 @@
-
 package com.arturoar.model;
 
 import java.util.ArrayList;
@@ -9,63 +8,63 @@ import java.util.ArrayList;
  */
 public class BPlusPage {
     
-    private boolean hoja;
-    private ArrayList<Integer> clave;
-    private ArrayList<BPlusNode> nodo;
-    private BPlusPage padre;
-    private ArrayList<BPlusPage> hijo;
-    private BPlusPage sigPagina;
+    private boolean isLeaf;
+    private ArrayList<Integer> key;
+    private ArrayList<BPlusNode> node;
+    private BPlusPage father;
+    private ArrayList<BPlusPage> children;
+    private BPlusPage nextPage;
 
     /**
      * Contruye una instancia de la clase Pagina inicializando hoj
      */
     public BPlusPage() {
-        this.clave = new ArrayList<>();
-        this.nodo = new ArrayList<>();
-        this.hijo = new ArrayList<>();
-        this.hoja = true;
+        this.key = new ArrayList<>();
+        this.node = new ArrayList<>();
+        this.children = new ArrayList<>();
+        this.isLeaf = true;
     }
     
-    public boolean esHoja() {
-        return hoja;
+    public boolean isLeaf() {
+        return isLeaf;
     }
     
-    public void setHoja(boolean hoja) {
-        this.hoja = hoja;
+    public void setLeaf(boolean hoja) {
+        this.isLeaf = hoja;
     }
     /**
      * Esta clase regresa el entero guardado en la posicion i de la lista clave.
      * @param i Indice del elemento.
      * @return Entero en posicion i de clave.
      */
-    public int getClave(int i) {
-        return this.clave.get(i);
+    public int getKey(int i) {
+        return this.key.get(i);
     }
     
-    public ArrayList<Integer> getClaves() {
-        return this.clave;
+    public ArrayList<Integer> getKeys() {
+        return this.key;
     }
 
-    public void setClave(ArrayList<Integer> clave) {
-        this.clave = clave;
+    public void setKey(ArrayList<Integer> clave) {
+        this.key = clave;
     }
 
 
-    public ArrayList<BPlusNode> getNodos() {
-        return nodo;
+    public ArrayList<BPlusNode> getNodes() {
+        return node;
     }
     /**
      * Este método regresa el indice que ocupa esta instancia en la lista de hijos de su padre.
      * @return Indice de la lista de hijos de pagina padre.
      */
-    public int getIndiceHijo(){
-        if( this.padre == null ){
+    public int getChildrenIndex(){
+        if( this.father == null ){
             return -1;
         }
         else{
-            BPlusPage padre = this.padre;
-            for( int i = 0 ; i < padre.hijo.size() ; i++ ){
-                if( padre.hijo.get(i) == this )
+            BPlusPage padre = this.father;
+            for( int i = 0 ; i < padre.children.size() ; i++ ){
+                if( padre.children.get(i) == this )
                     return i;
             }     
             return -1;
@@ -76,52 +75,52 @@ public class BPlusPage {
      * @param indice Valor del indice del nodo requerido.
      * @return Regresa el nodo en la posición indice
      */
-    public BPlusNode getNodo(int indice) {
-        return this.nodo.get(indice);
+    public BPlusNode getNode(int indice) {
+        return this.node.get(indice);
     }
 
-    public void setNodo(ArrayList<BPlusNode> nodo) {
-        this.nodo = nodo;
+    public void setNode(ArrayList<BPlusNode> nodo) {
+        this.node = nodo;
     }
 
-    public BPlusPage getPadre() {
-        return padre;
+    public BPlusPage getFather() {
+        return father;
     }
 
-    public void setPadre(BPlusPage padre) {
-        this.padre = padre;
+    public void setFather(BPlusPage padre) {
+        this.father = padre;
     }
 
 
-    public ArrayList<BPlusPage> getHijos() {
-        return hijo;
+    public ArrayList<BPlusPage> getChildren() {
+        return children;
     }
     /**
      * 
      * @param indice
      * @return 
      */
-    public BPlusPage getHijo(int indice) {
-        return this.hijo.get(indice);
+    public BPlusPage getChild(int indice) {
+        return this.children.get(indice);
     }
 
-    public void setHijo(ArrayList<BPlusPage> hijo) {
-        this.hijo = hijo;
+    public void setChildren(ArrayList<BPlusPage> hijo) {
+        this.children = hijo;
     }
 
-    public BPlusPage getSigPagina() {
-        return sigPagina;
+    public BPlusPage getNextPage() {
+        return nextPage;
     }
 
-    public void setSigPagina(BPlusPage sigPagina) {
-        this.sigPagina = sigPagina;
+    public void setNextPage(BPlusPage sigPagina) {
+        this.nextPage = sigPagina;
     }
     /**
      * Este método imprime en pantalla las claves de la lista clave
      */
-    public void mostrarLlaves(){
-        for( int i = 0 ; i < this.clave.size() ; i++ )
-            System.out.print( this.clave.get(i) + " " );
+    public void showKeys(){
+        for( int i = 0 ; i < this.key.size() ; i++ )
+            System.out.print( this.key.get(i) + " " );
     }
 }
 
