@@ -34,7 +34,7 @@ public class BPlusTree {
      * @param key Sirve para ordenar un nuevo nodo al árbol. 
      * @return True si se logro realizar la inserción y false en caso contrario
      */
-    public boolean insertNode(int key){
+    public boolean insertNode(int key, String data1) {
         BPlusPage pagInsercion = searchPage(key);
         if (!contains(key)) {
             if (pagInsercion.getKeys().size() < 2*B-1) {
@@ -47,10 +47,7 @@ public class BPlusTree {
                 }
                 pagInsercion.getKeys().add(i, key);
                 
-                Scanner sc = new Scanner(System.in);
-                System.out.print("Ingresa nombre: ");
-                String dato1 = sc.nextLine();
-                BPlusNode nuevoNodo = new BPlusNode(dato1);
+                BPlusNode nuevoNodo = new BPlusNode(data1);
                 pagInsercion.getNodes().add(i, nuevoNodo);
                 return true;
             }
@@ -74,7 +71,7 @@ public class BPlusTree {
      * @param key Parámetro con el valor a insertar en la pagina.
      * @param currentPage Pagina actual donde se quiere insertar key
      */
-    public boolean celularDivision(int key, BPlusPage currentPage) {
+    private boolean celularDivision(int key, BPlusPage currentPage) {
         BPlusPage nuevaPagina = new BPlusPage();
         int i = 0;
         for (int x : currentPage.getKeys()) {
@@ -200,7 +197,7 @@ public class BPlusTree {
      * @param prestador Valor que representa que pagina vecina va a prestar. Si se trata del vecino
      * derecho su valor será de 1 y si es el izquierdo sera -1.
      */
-    public boolean borrowKey(BPlusPage pagActual, int prestador) {
+    private boolean borrowKey(BPlusPage pagActual, int prestador) {
         int h = pagActual.getChildrenIndex();
         BPlusPage pagPrestadora = pagActual.getFather().getChild(h + prestador);
         if (prestador == 1) {
@@ -237,7 +234,7 @@ public class BPlusTree {
      * @param pagActual Pagina con deficit de keys.
      * @return Regresa true si se logra unir las paginas.
      */
-    public boolean mergePages(BPlusPage pagActual) {
+    private boolean mergePages(BPlusPage pagActual) {
         int h = pagActual.getChildrenIndex();
         if ( h == pagActual.getFather().getChildren().size()-1){
             pagActual = pagActual.getFather().getChild(h-1);
@@ -298,7 +295,7 @@ public class BPlusTree {
      * @return Regresa -1 si la pagina encontrada es el vecino izquierdo, 1 si es el derecho y 0 
      * si no hay ninguna capaz de prestar.
      */
-    public int searchBorrower(int indiceHijo, BPlusPage padre){
+    private int searchBorrower(int indiceHijo, BPlusPage padre){
         if(indiceHijo > 0 && indiceHijo < padre.getChildren().size()-1){
             int numkeysIzq = padre.getChild(indiceHijo - 1).getKeys().size();
             int numkeysDer = padre.getChild(indiceHijo + 1).getKeys().size();
@@ -309,7 +306,7 @@ public class BPlusTree {
                 if(numkeysDer > B-1)
                     return 1;
             }
-            return 0;
+            return 0; 
         }
         if(indiceHijo == 0 && padre.getChild(indiceHijo + 1).getKeys().size() > B-1)
             return 1;
@@ -333,7 +330,7 @@ public class BPlusTree {
      * @param pagActual Representa la pagina en la que busca la key en cierta llamada recursiva.
      * @return True si el key se encontro y false en caso contrario.
      */
-    public boolean contains(int key, BPlusPage pagActual){
+    private boolean contains(int key, BPlusPage pagActual){
             int i = 0;
             for (int x : pagActual.getKeys()) {
                 if ( key >= x )
@@ -369,7 +366,7 @@ public class BPlusTree {
      * @param currentPage Representa la pagina en la que busca la key en cierta llamada recursiva.
      * @return 
      */
-    public BPlusNode searchKey(int key, BPlusPage currentPage){
+    private BPlusNode searchKey(int key, BPlusPage currentPage){
         int i = 0;
         for (int x : currentPage.getKeys()) {
             if ( key >= x )
@@ -405,7 +402,7 @@ public class BPlusTree {
      * @param currentPage Representa la pagina en la que busca la key en cierta llamada recursiva.
      * @return Regresa la pagina en donde se encuntra el nodo.
      */
-    public BPlusPage searchPage(int key, BPlusPage currentPage){
+    private BPlusPage searchPage(int key, BPlusPage currentPage){
             int i = 0;
             for (int x : currentPage.getKeys()) {
                 if ( key >= x )
@@ -440,6 +437,7 @@ public class BPlusTree {
                 + (B-1) + "\nMaximo keys: " + (2*B-1) + "\nAltura: " + altura + "\nNúmero de nodos: "
                 + numNodos + "\n";
     }
+
     /**
      * Este método se encarga de mostrar la estructura de árbol B+.
      */
