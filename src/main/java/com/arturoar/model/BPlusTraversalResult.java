@@ -14,6 +14,10 @@ public class BPlusTraversalResult<T> {
         this.result = null;
         this.visitedNodes = visiteNodes;
     }
+    public BPlusTraversalResult(ArrayList<BPlusNode> visiteNodes, T result){
+        this.result = result;
+        this.visitedNodes = visiteNodes;
+    }
 
     public BPlusTraversalResult(T result){
         this.result = result;
