@@ -8,8 +8,8 @@ package com.arturoar.ui;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
-import com.arturoar.model.Nodo;
-import com.arturoar.model.ArbolBMas;
+import com.arturoar.model.BPlusLeafNode;
+import com.arturoar.model.BPlusTree;
 
 /**
  * Este método contiene la interfaz de usuario para manejar las estructuras de datos Árbol AVL y
@@ -38,7 +38,7 @@ public class Control {
                     System.out.print("Ingresa parámetro B: ");
                     int B = sc2.nextInt();
                     if (B >= 2)
-                        menuArbolBMas(new ArbolBMas(B));
+                        menuArbolBMas(new BPlusTree(B));
                     else
                         System.out.println(">>>>>Valor invalido");
                     break;
@@ -130,7 +130,7 @@ public class Control {
      * Método con menu de Árbol B+.
      * @param arbol arbolBMas
      */
-    public static void menuArbolBMas(ArbolBMas arbol) {
+    public static void menuArbolBMas(BPlusTree arbol) {
         boolean seguir = true;
         do {
             try {
@@ -146,22 +146,22 @@ public class Control {
                 switch(sc.nextInt()) {
                     case 1:
                         System.out.print("Clave: ");
-                        if(arbol.insertarNodo(sc2.nextInt()))
+                        if(!arbol.insertNode(sc2.nextInt(), "Data").getResult().isEmpty())
                             System.out.println("◆◆◆◆◆ Inserción exitosa ◆◆◆◆◆");
                         else
                             System.out.println("◆◆◆◆◆◆◆ Clave repetida ◆◆◆◆◆◆◆");
                         break;
                     case 2:
                         System.out.print("Clave: ");
-                        if (arbol.eliminarNodo(sc2.nextInt()))
+                        if (arbol.removeNode(sc2.nextInt()).getResult() != null)
                             System.out.println("◆◆◆◆◆ Eliminación exitosa ◆◆◆◆◆");
                         else
                             System.out.println("◆◆◆◆◆ Clave no encontrada ◆◆◆◆◆");
                         break;
                     case 3:
                         System.out.print("Clave: ");
-                        Nodo nodoEncontrado;
-                        if ((nodoEncontrado = arbol.buscarNodo(sc2.nextInt())) != null)
+                        BPlusLeafNode nodoEncontrado;
+                        if ((nodoEncontrado = arbol.searchKey(sc2.nextInt())) != null)
                             System.out.println(nodoEncontrado);
                         else
                             System.out.println("◆◆◆◆◆ Clave no encontrada ◆◆◆◆◆");
