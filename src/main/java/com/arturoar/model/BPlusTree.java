@@ -3,6 +3,7 @@ package com.arturoar.model;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 /**
@@ -11,17 +12,21 @@ import java.util.Queue;
  * eliminación y busqueda.
  * @author Aguilera Roa Mauricio Arturo
  */
-public class BPlusTree {
+public class BPlusTree  {
 
     private BPlusPage root;
     private int B;
+    private ArrayList<BPlusPage> pages;
 
     /**
      * Construye una instancia de clase estableciendo el parametro B.
      * @param B Parámetro de mínimo numero de hijos en pagina intermedia.
      */
     public BPlusTree(int B) {
-        this.root = new BPlusPage();
+        this.root = new BPlusPage(0);
+        this.pages = new ArrayList<>();
+        this.pages.add(root);
+
         int MAX_B_SIZE = 10;
         this.B = B > MAX_B_SIZE ? MAX_B_SIZE : B;
     }
@@ -31,11 +36,10 @@ public class BPlusTree {
      * @param key Sirve para ordenar un nuevo nodo al árbol. 
      * @return True si se logro realizar la inserción y false en caso contrario
      */
-    public boolean insertNode(int key, String data) {
+    public BPlusTraversalResult<ArrayList<BPlusNode>>  insertNode(int key, String data) {
         BPlusPage pagInsercion = searchPage(key);
         BPlusTraversalResult<Boolean> containResult = this.contains(key);
-        BPlusTraversalResult<BPlusNode> insertResult = new BPlusTraversalResult<>(containResult.getVisitedNodes());
-        ArrayList<BPlusNode> createdNodes = new ArrayList<>();
+        BPlusTraversalResult<ArrayList<BPlusNode>> insertResult = new BPlusTraversalResult<>(containResult.getVisitedNodes(),new ArrayList<BPlusNode>());
         if (!containResult.getResult()) {
             if (pagInsercion.getKeys().size() < 2*B-1) {
                 int i = 0;
@@ -48,16 +52,17 @@ public class BPlusTree {
                 pagInsercion.getKeys().add(i, new BPlusNode(key));
                 
                 BPlusLeafNode newNode = new BPlusLeafNode(key,data);
-                insertResult.setResult(newNode);
+                insertResult.getResult().add(newNode);
                 pagInsercion.getNodes().add(i, newNode);
-                return true;
+                return insertResult;
             }
             else {
-                return celularDivision(key, pagInsercion, data);
+                celularDivision(key, pagInsercion, data, insertResult.getResult() );
+                return insertResult;
             }
         }
         else
-            return false;
+            return insertResult;
     }
 
     public BPlusPage getRoot() {
@@ -70,8 +75,9 @@ public class BPlusTree {
      * @param key Parámetro con el valor a insertar en la pagina.
      * @param currentPage Pagina actual donde se quiere insertar key
      */
-    private boolean celularDivision(int key, BPlusPage currentPage, String data) {
-        BPlusPage newPage = new BPlusPage();
+    private boolean celularDivision(int key, BPlusPage currentPage, String data, ArrayList<BPlusNode> createdNodes) {
+        BPlusPage newPage = new BPlusPage(currentPage.getLevel());
+        pages.add(newPage);
         int i = 0;
         for (BPlusNode node : currentPage.getKeys()) {
             if (key > node.getKey())
@@ -83,10 +89,10 @@ public class BPlusTree {
             BPlusLeafNode newNode = new BPlusLeafNode(key,data);
             currentPage.getNodes().add(i, newNode);
             currentPage.getKeys().add(i, new BPlusNode(key));
-            int numNodos = currentPage.getNodes().size();
+            int numNodes = currentPage.getNodes().size();
             int numkeys = currentPage.getKeys().size();
-            ArrayList<BPlusLeafNode> SubListaIzqN = new ArrayList(currentPage.getNodes().subList(0, numNodos/2));
-            ArrayList<BPlusLeafNode> SubListaDerN = new ArrayList(currentPage.getNodes().subList(numNodos/2, numNodos));
+            ArrayList<BPlusLeafNode> SubListaIzqN = new ArrayList(currentPage.getNodes().subList(0, numNodes/2));
+            ArrayList<BPlusLeafNode> SubListaDerN = new ArrayList(currentPage.getNodes().subList(numNodes/2, numNodes));
             ArrayList<BPlusNode> SubListaIzqC = new ArrayList(currentPage.getKeys().subList(0, numkeys/2));
             ArrayList<BPlusNode> SubListaDerC = new ArrayList(currentPage.getKeys().subList(numkeys/2, numkeys));
             currentPage.setNodes(SubListaIzqN);
@@ -95,10 +101,14 @@ public class BPlusTree {
             newPage.setKeys(SubListaDerC);
             newPage.setNextPage(currentPage.getNextPage());
             currentPage.setNextPage(newPage);
+
+            //For visual effects
+            createdNodes.add(newNode);
         }
         else {
             newPage.setLeaf(false);
-            currentPage.getKeys().add(i,new BPlusNode(key));
+            BPlusNode internalNode = new BPlusNode(key);
+            currentPage.getKeys().add(i, internalNode);
             int numOfKeys = currentPage.getKeys().size();
             ArrayList<BPlusNode> SubListaIzq = new ArrayList(currentPage.getKeys().subList(0, numOfKeys/2));
             ArrayList<BPlusNode> SubListaDer = new ArrayList(currentPage.getKeys().subList(numOfKeys/2, numOfKeys));
@@ -110,38 +120,50 @@ public class BPlusTree {
             for (BPlusPage x : newPage.getChildren()) {
                 x.setParent(newPage);
             }
+
+            createdNodes.add(internalNode);
         }
+
+        this.notifyNodeSplit();
         
         if (currentPage == this.root) {
-            BPlusPage nuevaPagroot = new BPlusPage();
-            this.root = nuevaPagroot;
+            BPlusPage newRootPage = new BPlusPage(0);
+            this.pages.add(newRootPage);
+            this.setRoot(newRootPage);
             this.root.setLeaf(false);
-            currentPage.setParent(nuevaPagroot);
-            newPage.setParent(nuevaPagroot);
-            nuevaPagroot.getChildren().add(currentPage);
-            nuevaPagroot.getChildren().add(newPage);
-            if (currentPage.isLeaf())
-                nuevaPagroot.getKeys().add(new BPlusNode(newPage.getKey(0)));
-            else
-                nuevaPagroot.getKeys().add(newPage.getKeys().removeFirst());
+            currentPage.setParent(newRootPage);
+            newPage.setParent(newRootPage);
+            newRootPage.getChildren().add(currentPage);
+            newRootPage.getChildren().add(newPage);
+            if (currentPage.isLeaf()){
+                BPlusNode internalNode = new BPlusNode(newPage.getKey(0));
+                newRootPage.getKeys().add(internalNode);
+                createdNodes.add(internalNode);
+            }else
+                newRootPage.getKeys().add(newPage.getKeys().removeFirst());
+            notifyNodeSplit();
             return true;
         }
         else {
-            int indicePagActual = currentPage.getChildrenIndex();
+            int currentPageIndex = currentPage.getChildrenIndex();
             newPage.setParent(currentPage.getParent());
-            currentPage.getParent().getChildren().add(indicePagActual + 1, newPage);
+            currentPage.getParent().getChildren().add(currentPageIndex + 1, newPage);
             if (currentPage.getParent().getKeys().size() < 2*B-1) {
-                if (currentPage.isLeaf())
-                    currentPage.getParent().getKeys().add(indicePagActual, new BPlusNode(newPage.getKey(0)));
+                if (currentPage.isLeaf()){
+                    BPlusNode internalNode = new BPlusNode(newPage.getKey(0));
+                    currentPage.getParent().getKeys().add(currentPageIndex, internalNode);
+                    createdNodes.add(internalNode);
+                }
                 else
-                    currentPage.getParent().getKeys().add(indicePagActual, newPage.getKeys().remove(0));
+                    currentPage.getParent().getKeys().add(currentPageIndex, newPage.getKeys().remove(0));
+                notifyNodeSplit();
                 return true;
             }
             else {
                 if (currentPage.isLeaf())
-                    return celularDivision(newPage.getKey(0), currentPage.getParent(), data);
+                    return celularDivision(newPage.getKey(0), currentPage.getParent(), data, createdNodes);
                 else
-                    return celularDivision(newPage.getKeys().removeFirst().getKey(), currentPage.getParent(), data);
+                    return celularDivision(newPage.getKeys().removeFirst().getKey(), currentPage.getParent(), data, createdNodes);
             }
         }
     }
@@ -154,6 +176,9 @@ public class BPlusTree {
 
         BPlusTraversalResult<Boolean> containsResult = this.contains(key);
         BPlusTraversalResult<ArrayList<BPlusNode>> removeResult = new BPlusTraversalResult<>( containsResult.getVisitedNodes());
+        
+        ArrayList<BPlusNode> removedNodes = new ArrayList<>(); 
+        removeResult.setResult(removedNodes);
 
         if (containsResult.getResult()) {
             BPlusPage currentPage = searchPage(key);
@@ -165,10 +190,7 @@ public class BPlusTree {
                     break;
             }
 
-            ArrayList<BPlusNode> removedNodes = new ArrayList<>(); 
-            removedNodes.add(currentPage.getKeys().remove(i));
             removedNodes.add(currentPage.getNodes().remove(i));
-            removeResult.setResult(removedNodes);
 
             if (currentPage.getKeys().size() >= B-1) {    
                 return removeResult;
@@ -177,11 +199,10 @@ public class BPlusTree {
                 if (currentPage == this.root) 
                     return removeResult;
                 else {
-                    int indicePagActual = currentPage.getChildrenIndex();
-                    int prestador = searchBorrower(indicePagActual, currentPage.getParent());
-                    if ( prestador != 0) {
-
-                        borrowKey(currentPage, prestador);
+                    int currentPageIndex = currentPage.getChildrenIndex();
+                    int borrower = searchBorrower(currentPageIndex, currentPage.getParent());
+                    if ( borrower != 0) {
+                        borrowKey(currentPage, borrower);
                     }
                     else {
                         mergePages(currentPage);
@@ -197,37 +218,37 @@ public class BPlusTree {
      * Método auxiliar de removeNode. Se encarga de realizar las rotaciones de keys y/o nodos
      * cuando una pagina se encuentra con un menor número de keys y/o nodos y existe algúna
      * pagina vecina con suficientes para prestar.
-     * @param pagActual Representa la pagina con un deficit de keys.
-     * @param prestador Valor que representa que pagina vecina va a prestar. Si se trata del vecino
+     * @param currentPage Representa la pagina con un deficit de keys.
+     * @param borrower Valor que representa que pagina vecina va a prestar. Si se trata del vecino
      * derecho su valor será de 1 y si es el izquierdo sera -1.
      */
-    private boolean borrowKey(BPlusPage pagActual, int prestador) {
-        int h = pagActual.getChildrenIndex();
-        BPlusPage pagPrestadora = pagActual.getParent().getChild(h + prestador);
-        if (prestador == 1) {
-            if (pagActual.isLeaf()) {
-                pagActual.getKeys().add(pagPrestadora.getKeys().removeFirst());
-                pagActual.getNodes().add(pagPrestadora.getNodes().removeFirst());
-                pagActual.getParent().getKeys().set(h, new BPlusNode(pagPrestadora.getKey(0)));
+    private boolean borrowKey(BPlusPage currentPage, int borrower) {
+        int h = currentPage.getChildrenIndex();
+        BPlusPage pagPrestadora = currentPage.getParent().getChild(h + borrower);
+        if (borrower == 1) {
+            if (currentPage.isLeaf()) {
+                currentPage.getKeys().add(pagPrestadora.getKeys().removeFirst());
+                currentPage.getNodes().add(pagPrestadora.getNodes().removeFirst());
+                currentPage.getParent().getKeys().set(h, new BPlusNode(pagPrestadora.getKey(0)));
             }
             else {
-                pagActual.getKeys().add(new BPlusNode(pagActual.getParent().getKey(h)));
-                pagActual.getParent().getKeys().set(h, pagPrestadora.getKeys().removeFirst());
-                pagActual.getChildren().add(pagPrestadora.getChildren().removeFirst());
+                currentPage.getKeys().add(new BPlusNode(currentPage.getParent().getKey(h)));
+                currentPage.getParent().getKeys().set(h, pagPrestadora.getKeys().removeFirst());
+                currentPage.getChildren().add(pagPrestadora.getChildren().removeFirst());
             }
         }
         else {
             int numkeysPrestador = pagPrestadora.getKeys().size();
-            if (pagActual.isLeaf()) {
-                pagActual.getKeys().add(0, pagPrestadora.getKeys().remove(numkeysPrestador-1));
-                pagActual.getNodes().add(0, pagPrestadora.getNodes().remove(numkeysPrestador-1));
-                pagActual.getParent().getKeys().set(h-1,new BPlusNode( pagActual.getKey(0)));
+            if (currentPage.isLeaf()) {
+                currentPage.getKeys().add(0, pagPrestadora.getKeys().remove(numkeysPrestador-1));
+                currentPage.getNodes().add(0, pagPrestadora.getNodes().remove(numkeysPrestador-1));
+                currentPage.getParent().getKeys().set(h-1,new BPlusNode( currentPage.getKey(0)));
             }
             else {
-                pagActual.getKeys().add(new BPlusNode(pagActual.getParent().getKey(h-1)));
-                pagActual.getParent().getKeys().set(h-1, pagPrestadora.getKeys().remove(numkeysPrestador-1));
-                pagActual.getChildren().add(0, pagPrestadora.getChildren().remove(numkeysPrestador));
-                pagActual.getChild(0).setParent(pagActual);
+                currentPage.getKeys().add(new BPlusNode(currentPage.getParent().getKey(h-1)));
+                currentPage.getParent().getKeys().set(h-1, pagPrestadora.getKeys().remove(numkeysPrestador-1));
+                currentPage.getChildren().add(0, pagPrestadora.getChildren().remove(numkeysPrestador));
+                currentPage.getChild(0).setParent(currentPage);
             }
         }
         return true;
@@ -411,7 +432,6 @@ public class BPlusTree {
                         break;
                     }
                 }
-
                 pageDeque.add(currentPage.getChild(i));
             }
             
@@ -537,11 +557,34 @@ public class BPlusTree {
             v.showKeys();
 
             paginas.addAll(v.getChildren());
-            /*
-            for( int i = 0 ; i < v.getHijos().size() ; i ++ )
-                paginas.add( v.getHijos().get(i) );*/
         }
         System.out.println("\n");
         System.out.println(toString());
     }
+    private void setRoot(BPlusPage newRoot){
+        this.root = newRoot;
+        for (BPlusPage page: this.pages){
+            if (!page.equals(this.root)){
+                page.updateLevel();
+            }
+        }
+
+    }
+
+    private ArrayList<BPlusTreeObserver> observers = new ArrayList<>();
+
+    public void addObserver(BPlusTreeObserver observer) {
+        observers.add(observer);
+    }
+
+    public void removeObserver(BPlusTreeObserver observer) {
+        observers.remove(observer);
+    }
+
+    private void notifyNodeSplit( ) {
+        for (BPlusTreeObserver observer : observers) {
+            observer.onNodeSplit();
+        }
+    }
+
 }

@@ -42,7 +42,6 @@ public class BPlusLeafNode extends BPlusNode {
 
     @Override
     public String toString() {
-        return "◆◆◆◆◆◆◆◆◆ Node Data ◆◆◆◆◆◆◆◆◆\nName: " + this.data 
-                + "\nAge: " + super.getKey();
+        return " " + super.getKey();
     }
 }
