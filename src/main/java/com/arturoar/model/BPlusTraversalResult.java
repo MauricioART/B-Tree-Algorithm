@@ -2,19 +2,19 @@ package com.arturoar.model;
 
 import java.util.ArrayList;
 
-public class BPlusTraversalResult<T> {
+public class BPlusTraversalResult<T, K extends Comparable<K>> {
     private T result;
-    private ArrayList<BPlusNode> visitedNodes;
+    private ArrayList<K> visitedNodes;
 
     public BPlusTraversalResult() {
         this.result = null;
         this.visitedNodes = new ArrayList<>();
     }
-    public BPlusTraversalResult(ArrayList<BPlusNode> visiteNodes) {
+    public BPlusTraversalResult(ArrayList<K> visiteNodes) {
         this.result = null;
         this.visitedNodes = visiteNodes;
     }
-    public BPlusTraversalResult(ArrayList<BPlusNode> visiteNodes, T result){
+    public BPlusTraversalResult(ArrayList<K> visiteNodes, T result){
         this.result = result;
         this.visitedNodes = visiteNodes;
     }
@@ -24,14 +24,14 @@ public class BPlusTraversalResult<T> {
         this.visitedNodes = new ArrayList<>();
     }
 
-    public void addVisitedNode(BPlusNode node) {
+    public void addVisitedNode(K node) {
         this.visitedNodes.add(node);
     }
 
-    public void setVisitedNodes(ArrayList<BPlusNode> nodes){
+    public void setVisitedNodes(ArrayList<K> nodes){
         this.visitedNodes = nodes;
     }
-    public ArrayList<BPlusNode> getVisitedNodes() {
+    public ArrayList<K> getVisitedNodes() {
         return visitedNodes;
     }
 

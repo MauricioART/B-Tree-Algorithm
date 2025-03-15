@@ -2,574 +2,444 @@ package com.arturoar.model;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
 
-/**
- * Está clase representa la estructura de datos no lineal conocida como
- * Árbol B+, contiene los métodos basicos de un árbol como inserción,
- * eliminación y busqueda.
- * @author Aguilera Roa Mauricio Arturo
- */
-public class BPlusTree  {
+public class BPlusTree<K extends Comparable<K>,V> {
+    
 
-    private BPlusPage root;
+    private BPlusNode<K,V> root;
     private int B;
-    private ArrayList<BPlusPage> pages;
+    private ArrayList<BPlusNode<K,V>> nodes;
 
-    /**
-     * Construye una instancia de clase estableciendo el parametro B.
-     * @param B Parámetro de mínimo numero de hijos en pagina intermedia.
-     */
-    public BPlusTree(int B) {
-        this.root = new BPlusPage(0);
-        this.pages = new ArrayList<>();
-        this.pages.add(root);
-
-        int MAX_B_SIZE = 10;
-        this.B = B > MAX_B_SIZE ? MAX_B_SIZE : B;
+    public BPlusTree(int B){
+        this.B = B;
+        this.root = new BPlusLeafNode<K,V>(true, B, 0, null);
     }
 
-    /**
-     * Este método agrega un nodo al árbol con el parámetro key.
-     * @param key Sirve para ordenar un nuevo nodo al árbol. 
-     * @return True si se logro realizar la inserción y false en caso contrario
-     */
-    public BPlusTraversalResult<ArrayList<BPlusNode>>  insertNode(int key, String data) {
-        BPlusPage pagInsercion = searchPage(key);
-        BPlusTraversalResult<Boolean> containResult = this.contains(key);
-        BPlusTraversalResult<ArrayList<BPlusNode>> insertResult = new BPlusTraversalResult<>(containResult.getVisitedNodes(),new ArrayList<BPlusNode>());
+    public BPlusNode<K,V> getRoot(){
+        return this.root;
+    }
+
+    public int getB(){
+        return this.B;
+    }
+
+    public void setRoot(BPlusNode<K,V> newRoot){
+        this.root = newRoot;
+        for (BPlusNode<K,V> node: this.nodes){
+            if (!node.equals(this.root)){
+                node.updateLevel();
+            }
+        }
+    }
+    
+    public BPlusTraversalResult<Boolean,K> insert(K key, V data){
+        BPlusLeafNode<K,V> leafNode = searchLeafNode(key);
+        BPlusTraversalResult<Boolean,K> containResult = this.contains(key);
+        BPlusTraversalResult<Boolean,K> insertResult = new BPlusTraversalResult<>(containResult.getVisitedNodes(),false);
         if (!containResult.getResult()) {
-            if (pagInsercion.getKeys().size() < 2*B-1) {
-                int i = 0;
-                for ( BPlusNode node : pagInsercion.getKeys()) {
-                    if (key > node.getKey())
-                        i++;
-                    else
-                        break;
-                }
-                pagInsercion.getKeys().add(i, new BPlusNode(key));
-                
-                BPlusLeafNode newNode = new BPlusLeafNode(key,data);
-                insertResult.getResult().add(newNode);
-                pagInsercion.getNodes().add(i, newNode);
+            int keyIndex = findNodeIndex(key, leafNode);
+            leafNode.getKeys().add(keyIndex, key);
+            leafNode.getData().add(keyIndex, data);
+            insertResult.setResult(true);
+
+            if(!leafNode.isOverFlow()){
+                return insertResult;
+            }else {
+                splitNode(key, leafNode, data);
                 return insertResult;
             }
-            else {
-                celularDivision(key, pagInsercion, data, insertResult.getResult() );
-                return insertResult;
-            }
-        }
-        else
+        }else
             return insertResult;
-    }
+    } 
 
-    public BPlusPage getRoot() {
-        return root;
-    }
-    /**
-     * Método auxiliar de insertNode
-     . Se encarga de crear una nueva pagina si la pagina actual está por encima
-     * del tope de su capacidad y reparte las keys y/o nodos entre ambas paginas.
-     * @param key Parámetro con el valor a insertar en la pagina.
-     * @param currentPage Pagina actual donde se quiere insertar key
-     */
-    private boolean celularDivision(int key, BPlusPage currentPage, String data, ArrayList<BPlusNode> createdNodes) {
-        BPlusPage newPage = new BPlusPage(currentPage.getLevel());
-        pages.add(newPage);
-        int i = 0;
-        for (BPlusNode node : currentPage.getKeys()) {
-            if (key > node.getKey())
-                i++;
-            else
-                break;
-        }
-        if (currentPage.isLeaf()) {
-            BPlusLeafNode newNode = new BPlusLeafNode(key,data);
-            currentPage.getNodes().add(i, newNode);
-            currentPage.getKeys().add(i, new BPlusNode(key));
-            int numNodes = currentPage.getNodes().size();
-            int numkeys = currentPage.getKeys().size();
-            ArrayList<BPlusLeafNode> SubListaIzqN = new ArrayList(currentPage.getNodes().subList(0, numNodes/2));
-            ArrayList<BPlusLeafNode> SubListaDerN = new ArrayList(currentPage.getNodes().subList(numNodes/2, numNodes));
-            ArrayList<BPlusNode> SubListaIzqC = new ArrayList(currentPage.getKeys().subList(0, numkeys/2));
-            ArrayList<BPlusNode> SubListaDerC = new ArrayList(currentPage.getKeys().subList(numkeys/2, numkeys));
-            currentPage.setNodes(SubListaIzqN);
-            newPage.setNodes(SubListaDerN);
-            currentPage.setKeys(SubListaIzqC);
-            newPage.setKeys(SubListaDerC);
-            newPage.setNextPage(currentPage.getNextPage());
-            currentPage.setNextPage(newPage);
+    public BPlusTraversalResult<V,K> remove(K key){
+        BPlusTraversalResult<Boolean,K> containsResult = this.contains(key);
+        BPlusTraversalResult<V,K> removeResult = new BPlusTraversalResult<>( containsResult.getVisitedNodes());
 
-            //For visual effects
-            createdNodes.add(newNode);
-        }
-        else {
-            newPage.setLeaf(false);
-            BPlusNode internalNode = new BPlusNode(key);
-            currentPage.getKeys().add(i, internalNode);
-            int numOfKeys = currentPage.getKeys().size();
-            ArrayList<BPlusNode> SubListaIzq = new ArrayList(currentPage.getKeys().subList(0, numOfKeys/2));
-            ArrayList<BPlusNode> SubListaDer = new ArrayList(currentPage.getKeys().subList(numOfKeys/2, numOfKeys));
-            currentPage.setKeys(SubListaIzq);
-            newPage.setKeys(SubListaDer);
-            int numHijos = numOfKeys + 1;
-            for (int j = 0; j < B; j++)
-                newPage.getChildren().add(0,currentPage.getChildren().remove(--numHijos));
-            for (BPlusPage x : newPage.getChildren()) {
-                x.setParent(newPage);
-            }
+        if (!containsResult.getResult()) {
+            return null;
+        }else{
+            BPlusLeafNode<K,V> currentNode = searchLeafNode(key);
 
-            createdNodes.add(internalNode);
-        }
+            int keyIndex = findNodeIndex(key, currentNode);
 
-        this.notifyNodeSplit();
-        
-        if (currentPage == this.root) {
-            BPlusPage newRootPage = new BPlusPage(0);
-            this.pages.add(newRootPage);
-            this.setRoot(newRootPage);
-            this.root.setLeaf(false);
-            currentPage.setParent(newRootPage);
-            newPage.setParent(newRootPage);
-            newRootPage.getChildren().add(currentPage);
-            newRootPage.getChildren().add(newPage);
-            if (currentPage.isLeaf()){
-                BPlusNode internalNode = new BPlusNode(newPage.getKey(0));
-                newRootPage.getKeys().add(internalNode);
-                createdNodes.add(internalNode);
-            }else
-                newRootPage.getKeys().add(newPage.getKeys().removeFirst());
-            notifyNodeSplit();
-            return true;
-        }
-        else {
-            int currentPageIndex = currentPage.getChildrenIndex();
-            newPage.setParent(currentPage.getParent());
-            currentPage.getParent().getChildren().add(currentPageIndex + 1, newPage);
-            if (currentPage.getParent().getKeys().size() < 2*B-1) {
-                if (currentPage.isLeaf()){
-                    BPlusNode internalNode = new BPlusNode(newPage.getKey(0));
-                    currentPage.getParent().getKeys().add(currentPageIndex, internalNode);
-                    createdNodes.add(internalNode);
-                }
-                else
-                    currentPage.getParent().getKeys().add(currentPageIndex, newPage.getKeys().remove(0));
-                notifyNodeSplit();
-                return true;
-            }
-            else {
-                if (currentPage.isLeaf())
-                    return celularDivision(newPage.getKey(0), currentPage.getParent(), data, createdNodes);
-                else
-                    return celularDivision(newPage.getKeys().removeFirst().getKey(), currentPage.getParent(), data, createdNodes);
-            }
-        }
-    }
-    /**
-     * Este método elimina el nodo que está guardado en el árbol con el valor key
-     * @param key Valor con el que está guardado el nodo a eliminar.
-     * @return True si key se encuentra en el arbol y false en caso contrario 
-     */
-    public BPlusTraversalResult<ArrayList<BPlusNode>> removeNode(int key){
+            currentNode.getKeys().remove(keyIndex);
+            removeResult.setResult(currentNode.getData().remove(keyIndex));
 
-        BPlusTraversalResult<Boolean> containsResult = this.contains(key);
-        BPlusTraversalResult<ArrayList<BPlusNode>> removeResult = new BPlusTraversalResult<>( containsResult.getVisitedNodes());
-        
-        ArrayList<BPlusNode> removedNodes = new ArrayList<>(); 
-        removeResult.setResult(removedNodes);
-
-        if (containsResult.getResult()) {
-            BPlusPage currentPage = searchPage(key);
-            int i = 0;
-            for (BPlusNode node : currentPage.getKeys()) {
-                if (key > node.getKey())
-                    i++;
-                else 
-                    break;
-            }
-
-            removedNodes.add(currentPage.getNodes().remove(i));
-
-            if (currentPage.getKeys().size() >= B-1) {    
+            if (!currentNode.isUnderFlow()) {    
                 return removeResult;
             }
             else {
-                if (currentPage == this.root) 
+                if (currentNode == this.root) 
                     return removeResult;
                 else {
-                    int currentPageIndex = currentPage.getChildrenIndex();
-                    int borrower = searchBorrower(currentPageIndex, currentPage.getParent());
+                    int currentPageIndex = currentNode.getChildrenIndex();
+                    int borrower = searchBorrower(currentPageIndex, currentNode.getParent());
                     if ( borrower != 0) {
-                        borrowKey(currentPage, borrower);
+                        borrowKey(currentNode, borrower);
                     }
                     else {
-                        mergePages(currentPage);
+                        mergeNodes(currentNode);
                     }
                     return removeResult;
                 }
             }   
         }
-        else
-            return removeResult;
     }
+
+    private int findNodeIndex(K key, BPlusLeafNode<K,V> currentNode){
+        int keyIndex = 0;
+        for (K storedKey : currentNode.getKeys()) {
+            if (storedKey.compareTo(key) >= 0)
+                keyIndex++;
+            else 
+                break;
+        } 
+        return keyIndex;
+    }
+
     /**
-     * Método auxiliar de removeNode. Se encarga de realizar las rotaciones de keys y/o nodos
-     * cuando una pagina se encuentra con un menor número de keys y/o nodos y existe algúna
-     * pagina vecina con suficientes para prestar.
-     * @param currentPage Representa la pagina con un deficit de keys.
-     * @param borrower Valor que representa que pagina vecina va a prestar. Si se trata del vecino
-     * derecho su valor será de 1 y si es el izquierdo sera -1.
+     * Searches for a key in the B+ tree.
+     * 
+     * @param key The key to search for.
+     * @return A BPlusTraversalResult containing the data associated with the key if found.
      */
-    private boolean borrowKey(BPlusPage currentPage, int borrower) {
-        int h = currentPage.getChildrenIndex();
-        BPlusPage pagPrestadora = currentPage.getParent().getChild(h + borrower);
-        if (borrower == 1) {
-            if (currentPage.isLeaf()) {
-                currentPage.getKeys().add(pagPrestadora.getKeys().removeFirst());
-                currentPage.getNodes().add(pagPrestadora.getNodes().removeFirst());
-                currentPage.getParent().getKeys().set(h, new BPlusNode(pagPrestadora.getKey(0)));
+    public BPlusTraversalResult<V,K> search(K key) {
+        BPlusTraversalResult<V,K> result = new BPlusTraversalResult<>();
+        
+        if (this.root == null) {
+            throw new IllegalStateException("The B+ tree is empty.");
+        }
+        
+        ArrayDeque<BPlusNode<K,V>> nodesQueue = new ArrayDeque<>();
+        nodesQueue.addLast(this.root);
+        
+        while (!nodesQueue.isEmpty()) {
+            BPlusNode<K, V> currentNode = nodesQueue.poll();
+            
+            if (currentNode.isLeaf()) {
+                processLeafNode(currentNode, key, result);
+                if (result.getResult() != null) {
+                    return result;
+                }
+            } else {
+                int childIndex = findChildIndex(currentNode, key);
+                nodesQueue.addLast(((BPlusInternalNode<K, V>) currentNode).getChild(childIndex));
             }
-            else {
-                currentPage.getKeys().add(new BPlusNode(currentPage.getParent().getKey(h)));
-                currentPage.getParent().getKeys().set(h, pagPrestadora.getKeys().removeFirst());
-                currentPage.getChildren().add(pagPrestadora.getChildren().removeFirst());
+        }
+        
+        return result;
+    }
+
+    /**
+     * Processes the leaf node to search for the key and set the result if found.
+     * 
+     * @param currentNode The current leaf node.
+     * @param key The key to search for.
+     * @param result The result that will contain the data if the key is found.
+     */
+    private void processLeafNode(BPlusNode<K, V> currentNode, K key, BPlusTraversalResult<V,K> result) {
+        for (K storedKey : currentNode.getKeys()) {
+            if (key.compareTo(storedKey) == 0) {
+                int index = currentNode.getKeys().lastIndexOf(key);
+                result.setResult(((BPlusLeafNode<K, V>) currentNode).getData(index));
+                break;
             }
+        }
+    }
+
+    /**
+     * Finds the index of the child node to traverse based on the key.
+     * 
+     * @param currentNode The current internal node.
+     * @param key The key to search for.
+     * @return The index of the child node to traverse.
+     */
+    private int findChildIndex(BPlusNode<K, V> currentNode, K key) {
+        int childIndex = 0;
+        for (K storedKey : currentNode.getKeys()) {
+            if (key.compareTo(storedKey) >= 0) {
+                childIndex++;
+            } else {
+                break;
+            }
+        }
+        return childIndex;
+    }
+
+
+
+    public BPlusTraversalResult<Boolean,K> contains(K key){
+        BPlusTraversalResult<Boolean,K> returnValue = new BPlusTraversalResult<>();
+        
+        BPlusTraversalResult<V,K> data = this.search(key);
+
+        //returnValue.addVisitedNode(data.getVisitedNodes());----------------------------------------------------------------
+
+        returnValue.setResult( data.getResult() != null );
+
+        return returnValue;
+
+    }
+
+     /**
+     * Método auxiliar de insertNode
+     . Se encarga de crear una nueva pagina si la pagina actual está por encima
+     * del tope de su capacidad y reparte las keys y/o nodos entre ambas paginas.
+     * @param key Parámetro con el valor a insertar en la pagina.
+     * @param node Pagina actual donde se quiere insertar key
+     */
+    private void splitNode(K key, BPlusNode<K,V> node, V data) {
+        BPlusNode<K,V> newNode;
+
+        if (node.isLeaf()){
+            newNode = new BPlusLeafNode<>(true, this.B, node.getLevel(), node.getParent());
+            ((BPlusLeafNode<K,V>)newNode).setNextLeafNode(((BPlusLeafNode<K,V>)node).getNextLeafNode());
+            ((BPlusLeafNode<K,V>)node).setNextLeafNode((BPlusLeafNode<K,V>)newNode);
+        }else{
+            newNode = new BPlusInternalNode<>(false, this.B, node.getLevel(), node.getParent());
+        }
+        this.nodes.add(newNode);
+
+        int keyIndex = 0;
+        for (K storedKey : node.getKeys()) {
+            if (storedKey.compareTo(key) >= 0)
+                keyIndex++;
+            else
+                break;
+        }
+
+        
+        node.getKeys().add(keyIndex, key);
+
+        ArrayList<K> leftKeys = new ArrayList<>(node.getKeys().subList(0, node.size()/2));
+        ArrayList<K> rightKeys = new ArrayList<>(node.getKeys().subList(node.size()/2, node.size()));
+        
+        node.setKeys(leftKeys);
+        newNode.setKeys(rightKeys);
+        
+
+        if (node.isLeaf()) {
+
+            ((BPlusLeafNode<K,V>)node).getData().add(keyIndex, data);
+
+            ArrayList<V> leftData = new ArrayList<>(((BPlusLeafNode<K,V>)node).getData().subList(0, node.size()/2));
+            ArrayList<V> rightData = new ArrayList<>(((BPlusLeafNode<K,V>)node).getData().subList(node.size()/2, node.size()));
+
+            ((BPlusLeafNode<K,V>)node).setData(leftData);
+            ((BPlusLeafNode<K,V>)newNode).setData(rightData);
+
+
         }
         else {
-            int numkeysPrestador = pagPrestadora.getKeys().size();
-            if (currentPage.isLeaf()) {
-                currentPage.getKeys().add(0, pagPrestadora.getKeys().remove(numkeysPrestador-1));
-                currentPage.getNodes().add(0, pagPrestadora.getNodes().remove(numkeysPrestador-1));
-                currentPage.getParent().getKeys().set(h-1,new BPlusNode( currentPage.getKey(0)));
+
+            int numOfChildren = node.size() + 1;
+
+            for (int j = 0; j < B; j++){
+                ((BPlusInternalNode<K,V>)newNode).getChildren().addFirst(((BPlusInternalNode<K,V>)node).getChildren().remove(--numOfChildren));
             }
-            else {
-                currentPage.getKeys().add(new BPlusNode(currentPage.getParent().getKey(h-1)));
-                currentPage.getParent().getKeys().set(h-1, pagPrestadora.getKeys().remove(numkeysPrestador-1));
-                currentPage.getChildren().add(0, pagPrestadora.getChildren().remove(numkeysPrestador));
-                currentPage.getChild(0).setParent(currentPage);
+
+            for (BPlusNode<K,V> sibling : ((BPlusInternalNode<K,V>)newNode).getChildren()) {
+                sibling.setParent((BPlusInternalNode<K,V>)newNode);
             }
         }
-        return true;
+        
+        if (node == this.root) {
+
+            BPlusInternalNode<K,V> newRoot = new BPlusInternalNode<>(false, keyIndex, keyIndex, null);
+            this.nodes.add(newRoot);
+            setRoot(newRoot);
+            node.setParent(newRoot);
+            newNode.setParent(newRoot);
+            newRoot.getChildren().add(node);
+            newRoot.getChildren().add(newNode);
+
+            if (node.isLeaf()){
+                newRoot.getKeys().add(newNode.getKey(0));
+            }else{
+                newRoot.getKeys().add(newNode.getKeys().removeFirst());
+            }
+            return;
+        }
+        else {
+            int currentNodeIndex = node.getChildrenIndex();
+            newNode.setParent(node.getParent());
+            node.getParent().getChildren().add(currentNodeIndex + 1, newNode);
+            if ( !node.getParent().isOverFlow()){
+                if (node.isLeaf()){
+                    node.getParent().getKeys().add(currentNodeIndex, newNode.getKey(0));
+                }else{
+                    node.getParent().getKeys().add(currentNodeIndex, newNode.getKeys().removeFirst());
+                }
+            }else{
+                if (node.isLeaf()){
+                    splitNode(newNode.getKey(0), node.getParent(), data);
+                }else{
+                    splitNode(newNode.getKeys().removeFirst(), node.getParent(), data);
+                }
+
+            }
+        }
     }
+
     /**
      * Método auxiliar de removeNode. Se encarga de unir paginas vecinas debido a un deficit de keys 
      * en pagActual y no hay nodos vecinos capacez de prestar keys.
-     * @param pagActual Pagina con deficit de keys.
+     * @param currentNode Pagina con deficit de keys.
      * @return Regresa true si se logra unir las paginas.
      */
-    private boolean mergePages(BPlusPage pagActual) {
-        int h = pagActual.getChildrenIndex();
-        if ( h == pagActual.getParent().getChildren().size()-1){
-            pagActual = pagActual.getParent().getChild(h-1);
-            h--;
+    private void mergeNodes(BPlusNode<K,V> currentNode) {
+        int siblingIndex = currentNode.getChildrenIndex();
+        if ( siblingIndex == currentNode.getParent().getChildren().size()-1 ){
+            currentNode = currentNode.getParent().getChild(--siblingIndex);
         }
-        BPlusPage pagSiguiente = pagActual.getParent().getChild(h+1);
-        if (pagActual.isLeaf()) {
-            for ( BPlusLeafNode x : pagSiguiente.getNodes()) {
-                pagActual.getNodes().add(x);
+        BPlusNode<K,V> nextNode = currentNode.getParent().getChild(siblingIndex+1);
+        if (currentNode.isLeaf()) {
+            for (int i=0; i < nextNode.size(); i++){
+                currentNode.getKeys().add(nextNode.getKey(i));
+                ((BPlusLeafNode<K,V>)currentNode).getData().add(((BPlusLeafNode<K,V>)nextNode).getData(i));
             }
-            for (BPlusNode node : pagSiguiente.getKeys()) {
-                pagActual.getKeys().add(new BPlusNode(node.getKey()));
-            }
-            pagActual.setNextPage(pagSiguiente.getNextPage());
+            ((BPlusLeafNode<K,V>)currentNode).setNextLeafNode(((BPlusLeafNode<K,V>)nextNode).getNextLeafNode());
         }
         else {
-            for (BPlusPage x : pagSiguiente.getChildren()) {
-                x.setParent(pagActual);
-                pagActual.getChildren().add(x);
+            for (BPlusNode<K,V> child : ((BPlusInternalNode<K,V>)nextNode).getChildren()) {
+                child.setParent((BPlusInternalNode<K,V>)currentNode);
+                ((BPlusInternalNode<K,V>)currentNode).getChildren().add(child);
             }
-            pagActual.getKeys().add(new BPlusNode(pagActual.getParent().getKey(h)));
-            for (BPlusNode x : pagSiguiente.getKeys()) {
-                pagActual.getKeys().add(x);
+            currentNode.getKeys().add(currentNode.getParent().getKey(siblingIndex));
+            for ( K key : nextNode.getKeys()) {
+                currentNode.getKeys().add(key);
             }
-            if (pagActual.getParent() == this.root && this.root.getKeys().size() == 0) {
-                this.root = pagActual;
+            if (currentNode.getParent() == this.root && this.root.getKeys().size() == 0) {
+                this.root = currentNode;
                 this.root.setParent(null);
-                pagActual = pagActual.getChild(0);
+                currentNode = ((BPlusInternalNode<K,V>)currentNode).getChild(0);
             }
         }
-        pagActual.getParent().getKeys().remove(h);
-        pagActual.getParent().getChildren().remove(h+1);
-        if (pagActual.getParent() == this.root && pagActual.getParent().getKeys().isEmpty()) {
-            this.root = pagActual;
+        currentNode.getParent().getKeys().remove(siblingIndex);
+        currentNode.getParent().getChildren().remove(siblingIndex+1);
+        if (currentNode.getParent() == this.root && currentNode.getParent().getKeys().isEmpty()) {
+            this.root = currentNode;
             this.root.setParent(null);
-            return true;
         }
         else {
-            if (pagActual.getParent().getKeys().size() < B-1) {
-                int prestador = searchBorrower(pagActual.getParent().getChildrenIndex(),pagActual.getParent().getParent());
-                if (prestador != 0) {
-                    return borrowKey(pagActual.getParent(),prestador);
+            if (currentNode.getParent().isUnderFlow()) {
+                int lendingNode = searchBorrower(currentNode.getParent().getChildrenIndex(),currentNode.getParent().getParent());
+                if (lendingNode != 0) {
+                    borrowKey(currentNode.getParent(),lendingNode);
                 }
                 else {
-                    return mergePages(pagActual.getParent());
+                    mergeNodes(currentNode.getParent());
                 }
             }
-            else {
-                return true;
+        } 
+    }
+    
+
+    /**
+     * Searches for the leaf node that contains the specified key.
+     * This method initiates the recursive search starting from the root node.
+     *
+     * @param key The key to search for in the B+ tree.
+     * @return The leaf node containing the specified key, or null if not found.
+     */
+    private BPlusLeafNode<K,V> searchLeafNode(K key) {
+        return searchLeafNodeRecursive(this.root, key);
+    }
+
+    /**
+     * Recursively searches through the B+ tree to find the leaf node that contains the specified key.
+     * This method is called recursively for internal nodes until a leaf node is found.
+     *
+     * @param currentNode The current node being examined in the tree.
+     * @param key The key to search for in the B+ tree.
+     * @return The leaf node containing the specified key.
+     */
+
+    private BPlusLeafNode<K,V> searchLeafNodeRecursive(BPlusNode<K,V> currentNode, K key) {
+    
+        if (currentNode.isLeaf()) {
+            return (BPlusLeafNode<K,V>) currentNode;
+        } else {
+            int childIndex = 0;
+
+            for (K storedKey : currentNode.getKeys()) {
+                if (storedKey.compareTo(key) >= 0) {
+                    break;
+                }
+                childIndex++; 
             }
+
+            return searchLeafNodeRecursive(((BPlusInternalNode<K,V>) currentNode).getChild(childIndex), key);
         }
     }
+
     /**
-     * Este método se encarga de buscar una pagina vecina capaz de prestar keys.
-     * @param childIndex Indice que tiene la pagina con deficit de keys en la lista de hijos
-     * de su pagina padre.
-     * @param parent Pagina padre de la pagina con deficit de keys.
-     * @return Regresa -1 si la pagina encontrada es el vecino izquierdo, 1 si es el derecho y 0 
-     * si no hay ninguna capaz de prestar.
+     * This method is responsible for finding a neighboring page capable of lending keys.
+     * @param childIndex The index of the page with a key deficit in the parent's child list.
+     * @param parent The parent page of the page with the key deficit.
+     * @return Returns -1 if the found page is the left neighbor, 1 if it's the right neighbor,
+     * and 0 if neither neighbor can lend keys.
      */
-    private int searchBorrower(int childIndex, BPlusPage parent){
-        if(childIndex > 0 && childIndex < parent.getChildren().size()-1){
-            int numkeysIzq = parent.getChild(childIndex - 1).getKeys().size();
-            int numkeysDer = parent.getChild(childIndex + 1).getKeys().size();
-            if (numkeysIzq >= numkeysDer){
-                if(numkeysIzq > B-1)
-                    return - 1;
-            }else{
-                if(numkeysDer > B-1)
+    private int searchBorrower(int childIndex, BPlusInternalNode<K,V> parent){
+        
+        if(childIndex > 0 && childIndex < parent.getChildren().size() - 1){
+
+            BPlusNode<K,V> leftSibling = parent.getChild(childIndex - 1); 
+            BPlusNode<K,V> rightSibling = parent.getChild(childIndex + 1); 
+        
+            if (leftSibling.size() >= rightSibling.size()){
+                if(!leftSibling.isUnderFlow())
+                    return -1;
+            } else {
+                if(!rightSibling.isUnderFlow()) 
                     return 1;
             }
-            return 0; 
+            return 0;
         }
-        if(childIndex == 0 && parent.getChild(childIndex + 1).getKeys().size() > B-1)
+
+        // Special case for the first child: check if the right neighbor can lend keys
+        if(childIndex == 0 && !parent.getChild(childIndex + 1).isUnderFlow())
             return 1;
-        if(childIndex == parent.getChildren().size()-1 && parent.getChild(childIndex - 1).getKeys().size() > B-1)
+        
+        // Special case for the last child: check if the left neighbor can lend keys
+        if(childIndex == parent.getChildren().size() - 1 && !parent.getChild(childIndex - 1).isUnderFlow())
             return -1;
-        return 0;        
-    }
-    /**
-     * Este método utiliza el método homonimo para buscar en la estructura si se encuentra algún nodo guardado con 
-     * el valor de key.
-     * @param key Valor relacionado del nodo a buscar.
-     * @return True si se encuntra en la estructura y false en caso contrario.
-     */
-    /**
-    public boolean contains(int key){
-        return contains(key, this.root);
-    }*/
-    /**
-     * Este método se encarga de buscar en la estructura si se encuentra algún nodo guardado con 
-     * el valor de key, usando recursividad.
-     * @param key Valor relacionado del nodo a buscar.
-     * @param currentPage Representa la pagina en la que busca la key en cierta llamada recursiva.
-     * @return True si el key se encontro y false en caso contrario.
-     */
-    /* 
-    private boolean contains(int key, BPlusPage currentPage){
-            int i = 0;
-            for (BPlusNode x : currentPage.getKeys()) {
-                if ( key >= x.getKey() )
-                    i++;
-                else 
-                    break;
-            }
-            if (currentPage.isLeaf()) {
-                for (BPlusNode x : currentPage.getKeys()) {
-                    if (key == x.getKey())
-                        return true;
-                }
-                return false;
-            }
-            else
-                return contains(key, currentPage.getChild(i));
-    }*/
-
-    private BPlusTraversalResult<Boolean> contains(int key){
-        BPlusTraversalResult<Boolean> result = new BPlusTraversalResult<>(false);
-        ArrayDeque<BPlusPage> pageDeque = new ArrayDeque<>();
-        pageDeque.add(this.root);
-        while(!pageDeque.isEmpty()){
-            int i = 0;
-            BPlusPage currentPage = pageDeque.pop();
-            if (currentPage.isLeaf()){
-                for (BPlusLeafNode leafNode : currentPage.getNodes()) {
-                    result.addVisitedNode(leafNode);
-                    if (key == leafNode.getKey())
-                        result.setResult(true);
-                }
-                return result;
-            }else{
-                for (BPlusNode intNode: currentPage.getKeys()){
-                    result.addVisitedNode(intNode);
-                    if (key >= intNode.getKey()){
-                        i++;
-                    }else{
-                        break;
-                    }
-                }
-
-                pageDeque.add(currentPage.getChild(i));
-            }
-        }
         
-        return result;
+        // If no suitable neighbor can lend keys, return 0
+        return 0;
     }
-    
-    public BPlusTraversalResult<BPlusLeafNode> searchKeyIterativo(int key){
-        BPlusTraversalResult<BPlusLeafNode> result = new BPlusTraversalResult<>();
-        ArrayDeque<BPlusPage> pageDeque = new ArrayDeque<>();
-        pageDeque.add(this.root);
-        while(!pageDeque.isEmpty()){
-            int i = 0;
-            BPlusPage currentPage = pageDeque.pop();
-            if (currentPage.isLeaf()){
-                for (BPlusLeafNode leafNode : currentPage.getNodes()) {
-                    result.addVisitedNode(leafNode);
-                    if (key == leafNode.getKey()){
-                        result.setResult(leafNode);
-                        return result;
-                    }
-                }
-            }else{
 
-                for (BPlusNode intNode: currentPage.getKeys()){
-                    result.addVisitedNode(intNode);
-                    if (key >= intNode.getKey()){
-                        i++;
-                    }else{
-                        break;
-                    }
+
+    private void borrowKey(BPlusNode<K,V> currentNode, int borrower) {
+
+        int h = currentNode.getChildrenIndex();
+        BPlusNode<K,V> lendingNode = currentNode.getParent().getChild(h + borrower);
+
+        switch(borrower){
+            case -1:
+                currentNode.getKeys().addFirst(lendingNode.getKeys().removeLast());
+                currentNode.getParent().getKeys().set(h-1,currentNode.getKey(0));
+
+                if (currentNode.isLeaf()){
+                    ((BPlusLeafNode<K,V>)currentNode).getData().addFirst(((BPlusLeafNode<K,V>)lendingNode).getData().removeLast());
+                }else{
+                    ((BPlusInternalNode<K,V>)currentNode).getChildren().addFirst(((BPlusInternalNode<K,V>)lendingNode).getChildren().removeLast());
+                    ((BPlusInternalNode<K,V>)currentNode).getChild(0).setParent((BPlusInternalNode<K,V>)currentNode);
                 }
-                pageDeque.add(currentPage.getChild(i));
-            }
-            
-        }
-        return result;
-        
-    } 
-    /**
-     * Este método utiliza el método homonimo para buscar en la estructura si se encuentra algún nodo guardado con 
-     * el valor de key.
-     * @param key Valor relacionado del nodo a buscar.
-     * @return 
-     */
-    public BPlusLeafNode searchKey(int key){
-        return searchKey(key, this.root);
-    }
-    
-    /**
-     * Este método se encarga de buscar en la estructura si se encuentra algún nodo guardado con 
-     * el valor de key, usando recursividad.
-     * @param key Valor relacionado del nodo a buscar.
-     * @param currentPage Representa la pagina en la que busca la key en cierta llamada recursiva.
-     * @return 
-     */
-    private BPlusLeafNode searchKey(int key, BPlusPage currentPage){
-        int i = 0;
-        for (BPlusNode x : currentPage.getKeys()) {
-            if ( key >= x.getKey() )
-                i++;
-            else 
+            case 1:
+                currentNode.getKeys().add(lendingNode.getKeys().removeFirst()); //---------------------------Key-Borrowed--------------------------// 
+                currentNode.getParent().getKeys().set(h, lendingNode.getKeys().removeFirst()); //------------Key Borrowed--------------------------//
+                if (currentNode.isLeaf()){
+                    ((BPlusLeafNode<K,V>) currentNode).getData().addLast(((BPlusLeafNode<K,V>)lendingNode).getData().removeFirst());
+                }else{
+                    ((BPlusInternalNode<K,V>)currentNode).getChildren().addLast(((BPlusInternalNode<K,V>)lendingNode).getChildren().removeFirst());
+                }
+            default:
                 break;
         }
-        if (currentPage.isLeaf()) {
-            if (currentPage.getKeys().isEmpty())
-                return null;
-            if (currentPage.getKey(i-1) == key)
-                return currentPage.getNode(i-1);
-            else
-                return null;
-        }
-        else
-            return searchKey(key, currentPage.getChild(i));
-     
     }
-    /**
-     * Este método utiliza el método homonimo para buscar en la estructura si se encuentra algún nodo guardado con 
-     * el valor de key.
-     * @param key Valor relacionado del nodo a buscar.
-     * @return Regresa la pagina en donde se encuntra el nodo.
-     */
-    public BPlusPage searchPage(int key){
-        return searchPage(key, this.root);
-    }
-    /**
-     * Este método se encarga de buscar en la estructura si se encuentra algún nodo guardado con 
-     * el valor de key, usando recursividad.
-     * @param key Valor relacionado del nodo a buscar.
-     * @param currentPage Representa la pagina en la que busca la key en cierta llamada recursiva.
-     * @return Regresa la pagina en donde se encuntra el nodo.
-     */
-    private BPlusPage searchPage(int key, BPlusPage currentPage){
-            int i = 0;
-            for (BPlusNode x : currentPage.getKeys()) {
-                if ( key >= x.getKey() )
-                    i++;
-                else 
-                    break;
-            }
-            if (currentPage.isLeaf()) {
-                return currentPage;
-            }
-            else
-                return searchPage(key, currentPage.getChild(i));
-    }
-    /**
-     * En este método se sobrescribe toString() para poder imprimir en pantalla las
-     * caracteristicas del árbol.
-     */
-    @Override
-    public String toString(){
-        int numNodos = 0;
-        int altura = 0;
-        BPlusPage pagBuffer = this.root;
-        while(!pagBuffer.isLeaf()) {
-            altura++;
-            pagBuffer = pagBuffer.getChild(0);
-        }
-        do {
-            numNodos += pagBuffer.getNodes().size();
-            pagBuffer = pagBuffer.getNextPage();
-        }while(pagBuffer != null);
-        return "◆◆◆◆◆◆◆◆◆ Datos Arbol ◆◆◆◆◆◆◆◆◆\nParametro B:" + B + "\nMinimo keys: " 
-                + (B-1) + "\nMaximo keys: " + (2*B-1) + "\nAltura: " + altura + "\nNúmero de nodos: "
-                + numNodos + "\n";
-    }
-
-    /**
-     * Este método se encarga de mostrar la estructura de árbol B+.
-     */
-    public void mostrarArbol(){
-        System.out.println("◆◆◆◆◆◆◆◆◆◆◆ Árbol ◆◆◆◆◆◆◆◆◆◆◆");
-        if(this.root.getChildren().isEmpty()==true && this.root.getKeys().isEmpty()==true){
-            System.out.println("No hay elementos aun");
-            System.out.println(toString());
-            return ;
-        }
-        Queue<BPlusPage> paginas = new LinkedList<>();
-        paginas.add(this.root);
-        BPlusPage padre=null;
-        while( !paginas.isEmpty() ){
-            
-            BPlusPage v = paginas.poll();
-            if(v.getParent()==null){
-                System.out.print("Nodo root: ");
-            }
-            if(padre!=v.getParent()){
-                System.out.print("\n\n\nNodo Padre: ");
-                v.getParent().showKeys();
-                padre=v.getParent();
-                System.out.print("\n\t\tNodos:");
-            }
-            System.out.print("\n\t\t");
-            v.showKeys();
-
-            paginas.addAll(v.getChildren());
-        }
-        System.out.println("\n");
-        System.out.println(toString());
-    }
-    private void setRoot(BPlusPage newRoot){
-        this.root = newRoot;
-        for (BPlusPage page: this.pages){
-            if (!page.equals(this.root)){
-                page.updateLevel();
-            }
-        }
-
-    }
+   
 
     private ArrayList<BPlusTreeObserver> observers = new ArrayList<>();
 
@@ -581,10 +451,9 @@ public class BPlusTree  {
         observers.remove(observer);
     }
 
-    private void notifyNodeSplit( ) {
+    private void notifyObservers(BPlusTreeEvent event) {
         for (BPlusTreeObserver observer : observers) {
-            observer.onNodeSplit();
+            observer.onTreeChanged(event);
         }
     }
-
 }

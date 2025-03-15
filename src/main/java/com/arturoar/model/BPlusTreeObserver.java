@@ -1,5 +1,5 @@
 package com.arturoar.model;
 
 public interface BPlusTreeObserver {
-    void onNodeSplit();
+    void onTreeChanged(BPlusTreeEvent event);
 }
