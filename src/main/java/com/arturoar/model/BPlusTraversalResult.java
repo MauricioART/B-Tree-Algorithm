@@ -4,35 +4,35 @@ import java.util.ArrayList;
 
 public class BPlusTraversalResult<T, K extends Comparable<K>> {
     private T result;
-    private ArrayList<K> visitedNodes;
+    private ArrayList<Key<K>> visitedKeys;
 
     public BPlusTraversalResult() {
         this.result = null;
-        this.visitedNodes = new ArrayList<>();
+        this.visitedKeys = new ArrayList<>();
     }
-    public BPlusTraversalResult(ArrayList<K> visiteNodes) {
+    public BPlusTraversalResult(ArrayList<Key<K>> visiteNodes) {
         this.result = null;
-        this.visitedNodes = visiteNodes;
+        this.visitedKeys = visiteNodes;
     }
-    public BPlusTraversalResult(ArrayList<K> visiteNodes, T result){
+    public BPlusTraversalResult(ArrayList<Key<K>> visiteNodes, T result){
         this.result = result;
-        this.visitedNodes = visiteNodes;
+        this.visitedKeys = visiteNodes;
     }
 
     public BPlusTraversalResult(T result){
         this.result = result;
-        this.visitedNodes = new ArrayList<>();
+        this.visitedKeys = new ArrayList<>();
     }
 
-    public void addVisitedNode(K node) {
-        this.visitedNodes.add(node);
+    public void addVisitedKey(Key<K> node) {
+        this.visitedKeys.add(node);
     }
 
-    public void setVisitedNodes(ArrayList<K> nodes){
-        this.visitedNodes = nodes;
+    public void setVisitedKeys(ArrayList<Key<K>> nodes){
+        this.visitedKeys = nodes;
     }
-    public ArrayList<K> getVisitedNodes() {
-        return visitedNodes;
+    public ArrayList<Key<K>> getVisitedKeys() {
+        return visitedKeys;
     }
 
     public void setResult(T result){

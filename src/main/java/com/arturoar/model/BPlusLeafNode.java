@@ -37,4 +37,11 @@ public class BPlusLeafNode<K extends Comparable<K>, V> extends BPlusNode<K,V>{
     public void setNextLeafNode(BPlusLeafNode<K,V> nextLeaf){
         this.nextLeafNode = nextLeaf;
     }
+/*
+    @Override
+    public Key<K> deleteKey(int index){
+        this.data.remove(index);
+        return super.deleteKey(index);
+    }
+ */
 }
