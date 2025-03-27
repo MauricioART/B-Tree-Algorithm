@@ -1,5 +1,5 @@
 package com.arturoar.model;
 
-public interface BPlusTreeObserver {
-    void onTreeChanged(BPlusTreeEvent event);
+public interface BPlusTreeObserver<K extends Comparable<K>,V> {
+    void onTreeChanged(BPlusTreeEvent<K,V> event);
 }
