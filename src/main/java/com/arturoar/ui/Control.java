@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package com.arturoar.ui;
 
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
-import com.arturoar.model.BPlusLeafNode;
 import com.arturoar.model.BPlusTree;
 
 /**
@@ -38,7 +38,7 @@ public class Control {
                     System.out.print("Ingresa parámetro B: ");
                     int B = sc2.nextInt();
                     if (B >= 2)
-                        menuArbolBMas(new BPlusTree(B));
+                        menuArbolBMas(new BPlusTree<Integer,String>(B));
                     else
                         System.out.println(">>>>>Valor invalido");
                     break;
@@ -130,7 +130,7 @@ public class Control {
      * Método con menu de Árbol B+.
      * @param arbol arbolBMas
      */
-    public static void menuArbolBMas(BPlusTree arbol) {
+    public static void menuArbolBMas(BPlusTree<Integer,String> arbol) {
         boolean seguir = true;
         do {
             try {
@@ -146,35 +146,36 @@ public class Control {
                 switch(sc.nextInt()) {
                     case 1:
                         System.out.print("Clave: ");
-                        if(!arbol.insertNode(sc2.nextInt(), "Data").getResult().isEmpty())
+                        if(!arbol.insert(sc2.nextInt(), "Data").getResult())
                             System.out.println("◆◆◆◆◆ Inserción exitosa ◆◆◆◆◆");
                         else
                             System.out.println("◆◆◆◆◆◆◆ Clave repetida ◆◆◆◆◆◆◆");
                         break;
                     case 2:
                         System.out.print("Clave: ");
-                        if (arbol.removeNode(sc2.nextInt()).getResult() != null)
+                        if (arbol.remove(sc2.nextInt()).getResult() != null)
                             System.out.println("◆◆◆◆◆ Eliminación exitosa ◆◆◆◆◆");
                         else
                             System.out.println("◆◆◆◆◆ Clave no encontrada ◆◆◆◆◆");
                         break;
                     case 3:
                         System.out.print("Clave: ");
-                        BPlusLeafNode nodoEncontrado;
-                        if ((nodoEncontrado = arbol.searchKey(sc2.nextInt())) != null)
-                            System.out.println(nodoEncontrado);
+                        String value;
+                        if ((value = arbol.search(sc2.nextInt()).getResult()) != null)
+                            System.out.println(value);
                         else
                             System.out.println("◆◆◆◆◆ Clave no encontrada ◆◆◆◆◆");
                         break;
                     case 4:
-                        arbol.mostrarArbol();
+                        arbol.showTree();
                         break;
                     case 5:
                         seguir = false;
                         break;
                     default:
                         System.out.println("◆◆◆◆◆◆ Opción invalida ◆◆◆◆◆◆");
-                }
+                    } 
+                    
             } catch (InputMismatchException e) {
                 System.out.println("◆◆◆◆◆ Clave no númerica ◆◆◆◆◆");
                 menuArbolBMas(arbol);

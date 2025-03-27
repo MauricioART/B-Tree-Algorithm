@@ -3,7 +3,7 @@ module com.arturoar.bplustree {
     requires javafx.fxml;
     requires javafx.graphics;
     requires java.xml;
-    
+    requires javafx.base;
 
     // Abre los paquetes para el uso reflexivo por parte de javafx.fxml
     opens com.arturoar.ui to javafx.fxml;
