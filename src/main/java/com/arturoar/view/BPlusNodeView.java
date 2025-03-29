@@ -21,7 +21,6 @@ public class BPlusNodeView extends Group {
         this.isLeaf = isLeaf;
         this.keys = new ArrayList<>();
         this.edges = new ArrayList<>();
-        this.edges.add(new Arrow());
         this.nextLeaf = new Arrow();
     }
     
@@ -112,6 +111,9 @@ public class BPlusNodeView extends Group {
     }
     public ArrayList<Arrow> getEdges(){
         return this.edges;
+    }
+    public void addEdge(int index, Arrow edge){
+        this.edges.add(index, edge);
     }
 
     public void setOrigin(Double originX, Double originY) {
