@@ -195,8 +195,6 @@ public class BPlusTreeController implements BPlusTreeObserver<Integer,String>{
     }
 
     
-
-    
     public boolean insert(Integer key,String data) {
         BPlusTraversalResult<Boolean,Integer> result = this.tree.insert(key, data);
         System.out.println(result.getResult());
@@ -327,12 +325,38 @@ public class BPlusTreeController implements BPlusTreeObserver<Integer,String>{
 
             case KEY_BORROWED:
                 BPlusKeyView borrowedKey = keyToKeyView.get(e.getAffectedKey());
-                BPlusNodeView lenderNode = nodeToNodeView.get(e.getAffectedNode());
-                BPlusNodeView borrowerNode = nodeToNodeView.get(e.getAffectedNode2());
-                lenderNode.removeNode(borrowedKey.getKey());
-                borrowerNode.insert(borrowedKey);
+                BPlusNodeView lendingNode = nodeToNodeView.get(e.getLendingNode());
+                BPlusNodeView borrowingNode = nodeToNodeView.get(e.getBorrowingNode());
+                lendingNode.removeNode(borrowedKey.getKey());
+                borrowingNode.insert(borrowedKey);
                 break;
 
+            case CHILDNODE_BORROWED:
+                BPlusNodeView borrowingNodeView = nodeToNodeView.get(e.getBorrowingNode());
+                BPlusNodeView lendingNodeView = nodeToNodeView.get(e.getLendingNode());
+                Arrow arrow = childrenToArrow.get(e.getChildrenNode());
+                lendingNodeView.getEdges().remove(arrow);
+                int childIndex = 0;
+                for (int i = 0; i < ((BPlusInternalNode<Integer, String>) e.getLendingNode()).getChildren().size(); i++){
+                    if (((BPlusInternalNode<Integer, String>) e.getLendingNode()).getChild(i) == e.getChildrenNode()){
+                        childIndex = i;
+                        break;
+                    }
+                }
+                borrowingNodeView.getEdges().add(childIndex, arrow);
+                break;
+
+            case CHILDNODE_DELETED:
+                BPlusNodeView affectedNode = nodeToNodeView.get(e.getAffectedNode());
+                Arrow deletedArrow = childrenToArrow.get(e.getChildrenNode());
+                affectedNode.getEdges().remove(deletedArrow);
+                break;
+
+            case CHILDNODE_CREATED:
+                Arrow newChildNode = new Arrow();
+                childrenToArrow.put(e.getChildrenNode(), newChildNode);
+                nodeToNodeView.get(e.getAffectedNode()).getEdges().add(newChildNode);
+                break;
         }
         updateTreeLayout();
     }
