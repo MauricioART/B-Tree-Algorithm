@@ -1,6 +1,8 @@
-package com.arturoar.model;
+package com.arturoar.util;
 
 import java.util.ArrayList;
+
+import com.arturoar.model.Key;
 
 public class BPlusTraversalResult<T, K extends Comparable<K>> {
     private T result;
