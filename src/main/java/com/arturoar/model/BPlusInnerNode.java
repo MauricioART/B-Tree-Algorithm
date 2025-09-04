@@ -2,17 +2,21 @@ package com.arturoar.model;
 
 import java.util.ArrayList;
 
-public class BPlusInternalNode<K extends Comparable<K>, V> extends BPlusNode<K, V> {
+public class BPlusInnerNode<K extends Comparable<K>, V> extends BPlusNode<K, V> {
 
     private ArrayList<BPlusNode<K, V>> children;
 
-    public BPlusInternalNode(boolean isLeaf, int B, int level, BPlusInternalNode<K, V> parent) {
+    public BPlusInnerNode(boolean isLeaf, int B, int level, BPlusInnerNode<K, V> parent) {
         super(isLeaf, B, level, parent);
         this.children = new ArrayList<>();
     }
 
     public ArrayList<BPlusNode<K, V>> getChildren() {
         return this.children;
+    }
+
+    public void addChild(int index, BPlusNode<K, V> child) {
+        this.children.add(index, child);
     }
 
     public BPlusNode<K, V> getChild(int index) {
