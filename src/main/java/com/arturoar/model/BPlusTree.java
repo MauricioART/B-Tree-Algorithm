@@ -3,10 +3,14 @@ package com.arturoar.model;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
+import com.arturoar.util.BPlusTraversalResult;
+import com.arturoar.util.BPlusTreeEvent;
+import com.arturoar.util.BPlusTreeObserver;
+
 public class BPlusTree<K extends Comparable<K>,V> {
-    
 
     private BPlusNode<K,V> root;
     private int B;
@@ -15,7 +19,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
     public BPlusTree(int B){
         this.B = B;
         this.root = new BPlusLeafNode<K,V>(true, B, 0, null);
-        this.nodes = new ArrayList<>();
+        this.nodes = new ArrayList<>(List.of(this.root));
     }
 
     public BPlusNode<K,V> getRoot(){
@@ -45,8 +49,9 @@ public class BPlusTree<K extends Comparable<K>,V> {
             leafNode.addKey(keyIndex, newKey);
             leafNode.getData().add(keyIndex, data);
 
-            notifyObservers(new BPlusTreeEvent<K,V>(BPlusTreeEvent.EventType.KEY_INSERTED, leafNode, newKey));
-            
+            //notifyObservers(new BTreeEvent<K,V>(BTreeEvent.EventType.KEY_INSERTED, leafNode, newKey));
+            notifyObservers(new BPlusTreeEvent.KeyInserted<>(leafNode, newKey));
+
             insertResult.setResult(true);
 
             if(!leafNode.isOverFlow()){
@@ -74,7 +79,8 @@ public class BPlusTree<K extends Comparable<K>,V> {
 
             removeResult.setResult(leafNode.getData().remove(keyIndex));
 
-            notifyObservers(new BPlusTreeEvent<K,V>(BPlusTreeEvent.EventType.KEY_REMOVED, leafNode, deletedKey));
+            //notifyObservers(new BTreeEvent<K,V>(BTreeEvent.EventType.KEY_REMOVED, leafNode, deletedKey));
+            notifyObservers(new BPlusTreeEvent.KeyRemoved<>(leafNode, deletedKey));
 
             if (!leafNode.isUnderFlow()) {    
                 return removeResult;
@@ -134,7 +140,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
                 }
             } else {
                 int childIndex = findChildIndex(currentNode, key);
-                nodesQueue.addLast(((BPlusInternalNode<K, V>) currentNode).getChild(childIndex));
+                nodesQueue.addLast(((BPlusInnerNode<K, V>) currentNode).getChild(childIndex));
             }
         }
         
@@ -198,29 +204,34 @@ public class BPlusTree<K extends Comparable<K>,V> {
      * @param node Pagina actual donde se quiere insertar key
      */
     private void splitNode(BPlusNode<K,V> node) {
+
         BPlusNode<K,V> newNode;
+        int size = node.size();
 
         if (node.isLeaf()){
             newNode = new BPlusLeafNode<>(true, this.B, node.getLevel(), node.getParent());
             ((BPlusLeafNode<K,V>)newNode).setNextLeafNode(((BPlusLeafNode<K,V>)node).getNextLeafNode());
             ((BPlusLeafNode<K,V>)node).setNextLeafNode((BPlusLeafNode<K,V>)newNode);
         }else{
-            newNode = new BPlusInternalNode<>(false, this.B, node.getLevel(), node.getParent());
+            newNode = new BPlusInnerNode<>(false, this.B, node.getLevel(), node.getParent());
         }
         this.nodes.add(newNode);
 
-        notifyObservers(new BPlusTreeEvent<K,V>(BPlusTreeEvent.EventType.NODE_CREATED, newNode));
-
-        ArrayList<Key<K>> leftKeys = new ArrayList<>(node.getKeys().subList(0, node.size()/2));
-        ArrayList<Key<K>> rightKeys = new ArrayList<>(node.getKeys().subList(node.size()/2, node.size()));
+        
+        ArrayList<Key<K>> leftKeys = new ArrayList<>(node.getKeys().subList(0, size/2));
+        ArrayList<Key<K>> rightKeys = new ArrayList<>(node.getKeys().subList(size/2, size));
         
         node.setKeys(leftKeys);
         newNode.setKeys(rightKeys);
         
+        notifyObservers(new BPlusTreeEvent.NodeSplit<K,V>(node,newNode,rightKeys.get(0)));
+
+        notifyObservers(new BPlusTreeEvent.KeyBorrowed<K,V>(node, newNode, rightKeys));
+        
         if (node.isLeaf()) {
 
-            ArrayList<V> leftData = new ArrayList<>(((BPlusLeafNode<K,V>)node).getData().subList(0, node.size()/2));
-            ArrayList<V> rightData = new ArrayList<>(((BPlusLeafNode<K,V>)node).getData().subList(node.size()/2, node.size()));
+            ArrayList<V> leftData = new ArrayList<>(((BPlusLeafNode<K,V>)node).getData().subList(0, size/2));
+            ArrayList<V> rightData = new ArrayList<>(((BPlusLeafNode<K,V>)node).getData().subList(size/2, size));
 
             ((BPlusLeafNode<K,V>)node).setData(leftData);
             ((BPlusLeafNode<K,V>)newNode).setData(rightData);
@@ -232,63 +243,65 @@ public class BPlusTree<K extends Comparable<K>,V> {
 
             ///CHILDREN SWAPPED
             for (int j = 0; j < B; j++){
-                BPlusNode<K,V> child = ((BPlusInternalNode<K,V>)node).getChildren().remove(--numOfChildren);
-                ((BPlusInternalNode<K,V>)newNode).getChildren().addFirst(child);
-                notifyObservers(new BPlusTreeEvent<>(BPlusTreeEvent.EventType.CHILDNODE_BORROWED, node, newNode ,child));
+                BPlusNode<K,V> child = ((BPlusInnerNode<K,V>)node).getChildren().remove(--numOfChildren);
+                ((BPlusInnerNode<K,V>)newNode).getChildren().addFirst(child);
+                notifyObservers(new BPlusTreeEvent.ChildNodeBorrowed<>(node, newNode, child));
             }
 
-            for (BPlusNode<K,V> sibling : ((BPlusInternalNode<K,V>)newNode).getChildren()) {
-                sibling.setParent((BPlusInternalNode<K,V>)newNode);
+            for (BPlusNode<K,V> sibling : ((BPlusInnerNode<K,V>)newNode).getChildren()) {
+                sibling.setParent((BPlusInnerNode<K,V>)newNode);
             }
         }
         
         if (node == this.root) {
 
-            BPlusInternalNode<K,V> newRoot = new BPlusInternalNode<>(false, this.B, 0 , null);
+            BPlusInnerNode<K,V> newRoot = new BPlusInnerNode<>(false, this.B, 0 , null);
             this.nodes.add(newRoot);
             setRoot(newRoot);
             node.setParent(newRoot);
             newNode.setParent(newRoot);
 
+            notifyObservers(new BPlusTreeEvent.NewRoot<K,V>(newRoot));
+
             /////CHILDREN ADDED
             newRoot.getChildren().add(node);
             newRoot.getChildren().add(newNode);
 
-            notifyObservers(new BPlusTreeEvent<K,V>(BPlusTreeEvent.EventType.NODE_CREATED, newRoot));
-            notifyObservers(new BPlusTreeEvent<>(BPlusTreeEvent.EventType.CHILDNODE_CREATED, newRoot,node));
-            notifyObservers(new BPlusTreeEvent<>(BPlusTreeEvent.EventType.CHILDNODE_CREATED, newRoot,newNode));
+            notifyObservers(new BPlusTreeEvent.ChildNodeCreated<>(newRoot,node));
+            notifyObservers(new BPlusTreeEvent.ChildNodeCreated<>(newRoot,newNode));
 
             if (node.isLeaf()){
                 Key<K> newKey = new Key<K>(newNode.getKey(0));
                 newRoot.getKeys().add(newKey);
-                notifyObservers(new BPlusTreeEvent<K,V>(BPlusTreeEvent.EventType.KEY_INSERTED, newRoot,newKey));
+
+                notifyObservers(new BPlusTreeEvent.KeyInserted<>(newRoot,newKey)); 
+
 
             }else{
                 newRoot.getKeys().add(newNode.getKeys().removeFirst());  ///CHECK THIS PART
             }
-            return;
         }
         else {
             int currentNodeIndex = node.getChildrenIndex();
-            newNode.setParent(node.getParent());
-            node.getParent().getChildren().add(currentNodeIndex + 1, newNode);
+            node.getParent().addChild(currentNodeIndex + 1, newNode);
 
-            notifyObservers(new BPlusTreeEvent<K,V>(BPlusTreeEvent.EventType.CHILDNODE_CREATED ,node.getParent(),newNode));
+            notifyObservers(new BPlusTreeEvent.ChildNodeCreated<>(node.getParent(),newNode));
 
             if ( !node.getParent().isOverFlow()){
                 if (node.isLeaf()){
                     Key<K> newKey = new Key<K>(newNode.getKey(0));
                     node.getParent().getKeys().add(currentNodeIndex, newKey);
-                    notifyObservers(new BPlusTreeEvent<K,V>(BPlusTreeEvent.EventType.KEY_INSERTED, node.getParent(),newKey));
+                    notifyObservers(new BPlusTreeEvent.KeyInserted<>(node.getParent(),newKey));
                 }else{
                     Key<K> keyBorrowed = newNode.getKeys().removeFirst();
                     node.getParent().getKeys().add(currentNodeIndex, keyBorrowed);
-                    notifyObservers(new BPlusTreeEvent<K,V>(BPlusTreeEvent.EventType.KEY_BORROWED, newNode, node.getParent(), keyBorrowed));
+                    notifyObservers(new BPlusTreeEvent.KeyBorrowed<K, V>(newNode, node.getParent(), java.util.Arrays.asList(keyBorrowed)));
                 }
             }else{
                 splitNode(node.getParent());
             }
 
+            
         }
     }
 
@@ -305,48 +318,70 @@ public class BPlusTree<K extends Comparable<K>,V> {
             node = node.getParent().getChild(--siblingIndex);
         }
         BPlusNode<K,V> nextNode = node.getParent().getChild(siblingIndex+1);
+
         if (node.isLeaf()) {
+            List<Key<K>> borrowedKeys = nextNode.getKeys();
+
+            node.getKeys().addAll(borrowedKeys);
+            notifyObservers(new BPlusTreeEvent.KeyBorrowed<>(nextNode, node, borrowedKeys));
+
+            ((BPlusLeafNode<K,V>)node).getData().addAll(((BPlusLeafNode<K,V>)nextNode).getData());
+
+            ((BPlusLeafNode<K,V>)node).setNextLeafNode(((BPlusLeafNode<K,V>)nextNode).getNextLeafNode());
+            
+            /* 
             for (int keyIndex=0; keyIndex < nextNode.size(); keyIndex++){
                 node.addKey(nextNode.getKeys().get(keyIndex));
                 ((BPlusLeafNode<K,V>)node).getData().add(((BPlusLeafNode<K,V>)nextNode).getData(keyIndex));
-                notifyObservers(new BPlusTreeEvent<>(BPlusTreeEvent.EventType.KEY_BORROWED, nextNode ,node, nextNode.getKeys().get(keyIndex)));
+                //notifyObservers(new BTreeEvent<>(BTreeEvent.EventType.KEY_BORROWED, nextNode ,node, nextNode.getKeys().get(keyIndex)));
             }
-            ((BPlusLeafNode<K,V>)node).setNextLeafNode(((BPlusLeafNode<K,V>)nextNode).getNextLeafNode());
+            */
+            
             /// ELIMINATED NODE
 
         }
         else {
             Key<K> newKey = new Key<K>(node.getParent().getKey(siblingIndex));
             node.getKeys().add(newKey);
-            notifyObservers(new BPlusTreeEvent<>(BPlusTreeEvent.EventType.KEY_INSERTED, node, newKey));
+            //notifyObservers(new BTreeEvent<>(BTreeEvent.EventType.KEY_INSERTED, node, newKey));
+            notifyObservers(new BPlusTreeEvent.KeyInserted<>(node, newKey));
 
-            for (BPlusNode<K,V> child : ((BPlusInternalNode<K,V>)nextNode).getChildren()) {
-                child.setParent((BPlusInternalNode<K,V>)node);
-                ((BPlusInternalNode<K,V>)node).getChildren().add(child);
-                notifyObservers(new BPlusTreeEvent<>(BPlusTreeEvent.EventType.CHILDNODE_BORROWED, node, nextNode, child));
+            for (BPlusNode<K,V> child : ((BPlusInnerNode<K,V>)nextNode).getChildren()) {
+                child.setParent((BPlusInnerNode<K,V>)node);
+                ((BPlusInnerNode<K,V>)node).getChildren().add(child);
+                //notifyObservers(new BTreeEvent<>(BTreeEvent.EventType.CHILDNODE_BORROWED, node, nextNode, child));
+                notifyObservers(new BPlusTreeEvent.ChildNodeBorrowed<>(node, nextNode, child));
             }
 
-
-
+            /*
             for ( Key<K> key : nextNode.getKeys()) {
                 node.getKeys().add(key);
-                notifyObservers(new BPlusTreeEvent<>(BPlusTreeEvent.EventType.KEY_BORROWED, nextNode , node, key));
-            }
+                notifyObservers(new BTreeEvent<>(BTreeEvent.EventType.KEY_BORROWED, nextNode , node, key));
+            }*/
+
+            List<Key<K>> borrowedKeys = nextNode.getKeys();
+            node.getKeys().addAll(borrowedKeys);
+            notifyObservers(new BPlusTreeEvent.KeyBorrowed<>(nextNode, node, borrowedKeys));
+
             if (node.getParent() == this.root && this.root.size() == 0) {
                 this.root = node;
+                notifyObservers(new BPlusTreeEvent.NewRoot<>(node));   //////////////////////////////////////////////
                 this.nodes.remove(node.getParent());
-                notifyObservers(new BPlusTreeEvent<>(BPlusTreeEvent.EventType.NODE_DELETED, node.getParent()));
+                //notifyObservers(new BTreeEvent<>(BTreeEvent.EventType.NODE_DELETED, node.getParent()));
+                notifyObservers(new BPlusTreeEvent.NodeDeleted<>(node.getParent()));
+
                 for (BPlusNode<K,V> currentNode: this.nodes){
                     currentNode.decreaseLevel();
                 }
                 this.root.setParent(null);
-                node = ((BPlusInternalNode<K,V>)node).getChild(0);
+                node = ((BPlusInnerNode<K,V>)node).getChild(0);
             }
         }
         node.getParent().getKeys().remove(siblingIndex);
         BPlusNode<K,V> childDeleted = node.getParent().getChildren().remove(siblingIndex+1);
 
-        notifyObservers(new BPlusTreeEvent<>(BPlusTreeEvent.EventType.CHILDNODE_DELETED, null, node.getParent(), childDeleted));
+        //notifyObservers(new BTreeEvent<>(BTreeEvent.EventType.CHILDNODE_DELETED, null, node.getParent(), childDeleted));
+        notifyObservers(new BPlusTreeEvent.ChildNodeDeleted<>(node.getParent(), childDeleted));
 
         if (node.getParent() == this.root && node.getParent().getKeys().isEmpty()) {
             this.root = node;
@@ -394,13 +429,13 @@ public class BPlusTree<K extends Comparable<K>,V> {
             int childIndex = 0;
 
             for (K storedKey : currentNode.getKeyValues()) {
-                if (storedKey.compareTo(key) <= 0) {
+                if (storedKey.compareTo(key) >= 0) {
                     break;
                 }
                 childIndex++; 
             }
 
-            return searchLeafNodeRecursive(((BPlusInternalNode<K,V>) currentNode).getChild(childIndex), key);
+            return searchLeafNodeRecursive(((BPlusInnerNode<K,V>) currentNode).getChild(childIndex), key);
         }
     }
 
@@ -411,7 +446,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
      * @return Returns -1 if the found page is the left neighbor, 1 if it's the right neighbor,
      * and 0 if neither neighbor can lend keys.
      */
-    private int searchBorrower(int childIndex, BPlusInternalNode<K,V> parent){
+    private int searchBorrower(int childIndex, BPlusInnerNode<K,V> parent){
         
         if(childIndex > 0 && childIndex < parent.getChildren().size() - 1){
 
@@ -450,31 +485,36 @@ public class BPlusTree<K extends Comparable<K>,V> {
             case -1:
                 Key<K> borrowedKey = lendingNode.getKeys().removeLast();
                 node.getKeys().addFirst(borrowedKey);
-                notifyObservers(new BPlusTreeEvent<>(BPlusTreeEvent.EventType.KEY_BORROWED, lendingNode, node, borrowedKey));
+                //notifyObservers(new BTreeEvent<>(BTreeEvent.EventType.KEY_BORROWED, lendingNode, node, borrowedKey));
+                notifyObservers(new BPlusTreeEvent.KeyBorrowed<>(lendingNode, node, java.util.Arrays.asList(borrowedKey)));
                 Key<K> createdKey = new Key<K>(node.getKey(0));
                 node.getParent().getKeys().set(h-1,createdKey);
-                notifyObservers(new BPlusTreeEvent<>(BPlusTreeEvent.EventType.KEY_INSERTED, node.getParent(),createdKey));
+                //notifyObservers(new BTreeEvent<>(BTreeEvent.EventType.KEY_INSERTED, node.getParent(),createdKey));
+                notifyObservers(new BPlusTreeEvent.KeyInserted<>(node.getParent(), createdKey));
 
                 if (node.isLeaf()){
                     ((BPlusLeafNode<K,V>)node).getData().addFirst(((BPlusLeafNode<K,V>)lendingNode).getData().removeLast());
                 }else{
-                    BPlusNode<K,V> child = ((BPlusInternalNode<K,V>)lendingNode).getChildren().removeLast();
-                    ((BPlusInternalNode<K,V>)node).getChildren().addFirst(child);
-                    ((BPlusInternalNode<K,V>)node).getChild(0).setParent((BPlusInternalNode<K,V>)node);
-                    notifyObservers(new BPlusTreeEvent<>(BPlusTreeEvent.EventType.CHILDNODE_BORROWED, node, lendingNode, child));
+                    BPlusNode<K,V> child = ((BPlusInnerNode<K,V>)lendingNode).getChildren().removeLast();
+                    ((BPlusInnerNode<K,V>)node).getChildren().addFirst(child);
+                    ((BPlusInnerNode<K,V>)node).getChild(0).setParent((BPlusInnerNode<K,V>)node);
+                    //notifyObservers(new BTreeEvent<>(BTreeEvent.EventType.CHILDNODE_BORROWED, node, lendingNode, child));
+                    notifyObservers(new BPlusTreeEvent.ChildNodeBorrowed<>(node, lendingNode, child));
                 }
             case 1:        
                 Key<K> borrowedKey2 = lendingNode.getKeys().removeFirst();
                 node.getKeys().add(borrowedKey2); 
-                notifyObservers(new BPlusTreeEvent<>(BPlusTreeEvent.EventType.KEY_INSERTED, node, borrowedKey2));
+                //notifyObservers(new BTreeEvent<>(BTreeEvent.EventType.KEY_INSERTED, node, borrowedKey2));
+                notifyObservers(new BPlusTreeEvent.KeyInserted<>(node, borrowedKey2));
 
                 node.getParent().getKeys().set(h, borrowedKey2);
                 if (node.isLeaf()){
                     ((BPlusLeafNode<K,V>) node).getData().addLast(((BPlusLeafNode<K,V>)lendingNode).getData().removeFirst());
                 }else{
-                    BPlusNode<K,V> child = ((BPlusInternalNode<K,V>)lendingNode).getChildren().removeFirst();
-                    ((BPlusInternalNode<K,V>)node).getChildren().addLast(child);
-                    notifyObservers(new BPlusTreeEvent<>(BPlusTreeEvent.EventType.CHILDNODE_BORROWED, node, lendingNode, child));
+                    BPlusNode<K,V> child = ((BPlusInnerNode<K,V>)lendingNode).getChildren().removeFirst();
+                    ((BPlusInnerNode<K,V>)node).getChildren().addLast(child);
+                    //notifyObservers(new BTreeEvent<>(BTreeEvent.EventType.CHILDNODE_BORROWED, node, lendingNode, child));
+                    notifyObservers(new BPlusTreeEvent.ChildNodeBorrowed<>(node, lendingNode, child));
                 }
             default:
                 break;
@@ -507,7 +547,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
             System.out.print("\n\t\t");
             v.showKeys();
             if (!v.isLeaf()){
-                nodes.addAll(((BPlusInternalNode<K,V>)v).getChildren());
+                nodes.addAll(((BPlusInnerNode<K,V>)v).getChildren());
             }
         }
         System.out.println("\n");
@@ -515,18 +555,18 @@ public class BPlusTree<K extends Comparable<K>,V> {
     }
 
 
-    private ArrayList<BPlusTreeObserver> observers = new ArrayList<>();
+    private ArrayList<BPlusTreeObserver<K, V>> observers = new ArrayList<>();
 
-    public void addObserver(BPlusTreeObserver observer) {
+    public void addObserver(BPlusTreeObserver<K, V> observer) {
         observers.add(observer);
     }
 
-    public void removeObserver(BPlusTreeObserver observer) {
+    public void removeObserver(BPlusTreeObserver<K, V> observer) {
         observers.remove(observer);
     }
 
     private void notifyObservers(BPlusTreeEvent<K,V> event) {
-        for (BPlusTreeObserver observer : observers) {
+        for (BPlusTreeObserver<K, V> observer : observers) {
             observer.onTreeChanged(event);
         }
     }
