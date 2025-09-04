@@ -14,7 +14,7 @@ public class BPlusTreeUI extends Application {
     public void start(Stage primaryStage) throws Exception {
         FXMLLoader fxmlLoader = new FXMLLoader(BPlusTreeUI.class.getResource("vista.fxml"));
         Parent root = fxmlLoader.load();
-        //BPlusTreeController controller = fxmlLoader.getController();
+        
         Scene scene = new Scene(root);
         primaryStage.setResizable(true);
         primaryStage.setTitle(STYLESHEET_CASPIAN);
