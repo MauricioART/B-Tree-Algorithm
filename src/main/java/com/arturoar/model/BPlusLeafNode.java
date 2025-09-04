@@ -8,7 +8,7 @@ public class BPlusLeafNode<K extends Comparable<K>, V> extends BPlusNode<K,V>{
     private BPlusLeafNode<K, V> nextLeafNode;
 
 
-    public BPlusLeafNode(boolean isLeaf, int B, int level,BPlusInternalNode<K,V> parent){
+    public BPlusLeafNode(boolean isLeaf, int B, int level,BPlusInnerNode<K,V> parent){
         super(isLeaf, B, level, parent);
         this.data = new ArrayList<>();
         this.nextLeafNode = null;
@@ -18,8 +18,26 @@ public class BPlusLeafNode<K extends Comparable<K>, V> extends BPlusNode<K,V>{
         return this.data;
     }
 
+    public V getData(K key){
+        for (int i = 0; i < super.keys.size(); i++) {
+            if (super.keys.get(i).getKey().equals(key)) {
+                return this.data.get(i);
+            }
+        }
+        return null;
+    }
+    
     public V getData(int index){
         return this.data.get(index);
+    }
+
+    public V getData(Key<K> key){
+        for (int i = 0; i < super.keys.size(); i++) {
+            if (super.keys.get(i).getKey().equals(key.getKey())) {
+                return this.data.get(i);
+            }
+        }
+        return null;
     }
 
     public BPlusLeafNode<K, V> getNextLeafNode(){
