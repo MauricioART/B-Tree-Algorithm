@@ -5,20 +5,21 @@ import java.util.stream.Collectors;
 
 abstract public class BPlusNode<K extends Comparable<K>, V> {
 
-    private int B;
-    private ArrayList<Key<K>> keys;
-    private BPlusInternalNode<K, V> parent;
-    private boolean isLeaf;
-    private int level;
+    protected int B;
+    protected ArrayList<Key<K>> keys;
+    protected BPlusInnerNode<K, V> parent;
+    protected boolean isLeaf;
+    protected int level;
 
-    BPlusNode(boolean isLeaf, int B, int level, BPlusInternalNode<K, V> parent) {
+    BPlusNode(boolean isLeaf, int B, int level, BPlusInnerNode<K, V> parent) {
         this.keys = new ArrayList<>();
         this.isLeaf = isLeaf;
         this.parent = parent;
         this.B = B;
+        this.level = level;
     }
 
-    public BPlusInternalNode<K, V> getParent() {
+    public BPlusInnerNode<K, V> getParent() {
         return this.parent;
     }
 
@@ -76,7 +77,7 @@ abstract public class BPlusNode<K extends Comparable<K>, V> {
         this.keys = keys;
     }
 
-    public void setParent(BPlusInternalNode<K, V> parent) {
+    public void setParent(BPlusInnerNode<K, V> parent) {
         this.parent = parent;
     }
 
@@ -96,7 +97,7 @@ abstract public class BPlusNode<K extends Comparable<K>, V> {
         if (this.parent == null) {
             return -1;
         } else {
-            BPlusInternalNode<K, V> parent = this.parent;
+            BPlusInnerNode<K, V> parent = this.parent;
             for (int childrenIndex = 0; childrenIndex < parent.getChildren().size(); childrenIndex++) {
                 if (parent.getChild(childrenIndex) == this)
                     return childrenIndex;
