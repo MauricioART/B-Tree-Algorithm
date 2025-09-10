@@ -12,10 +12,13 @@ public class KeyView extends Group {
     private Text text;
     private Tooltip nodeData;
     private Integer key;
-    private double newOriginX;
-    private double newOriginY;
+    private double currentXOrigin;
+    private double currentYOrigin;
+    private double newXOrigin;
+    private double newYOrigin;
     private Double width;
     private Double height;
+    private boolean isNew;
     private final Double paddingX = 8.0;
     private final Double paddingY = 4.0;
     private Color strokeColor = Color.BLACK;
@@ -27,6 +30,7 @@ public class KeyView extends Group {
         this.nodeData = null;
         this.width = this.text.getLayoutBounds().getWidth() + 2 * paddingX;
         this.height = this.text.getLayoutBounds().getHeight() + 2 * paddingY;
+        this.isNew = true;
         setupNode();
     }
     public KeyView(Integer key, String nodeData ) {
@@ -48,25 +52,45 @@ public class KeyView extends Group {
     }
 
    
-    public double getNewOriginX(){
-        return this.newOriginX;
+    public double getNewXOrigin(){
+        return this.newXOrigin;
     }
 
-    public double getNewOriginY(){
-        return this.newOriginY;
+    public double getNewYOrigin(){
+        return this.newYOrigin;
     }   
 
     public void setNewOriginX(Double newOriginX) {
-        this.newOriginX = newOriginX;
+        this.newXOrigin = newOriginX;
     }
 
     public void setNewOriginY(Double newOriginY) {
-        this.newOriginY = newOriginY;
-    }   
+        this.newYOrigin = newOriginY;
+    }
+
+    public double getCurrentXOrigin() {
+        return this.currentXOrigin;
+    }
+
+    public double getCurrentYOrigin() {
+        return this.currentYOrigin;
+    }
+
+    public void setCurrentXOrigin(Double currentXOrigin) {
+        this.currentXOrigin = currentXOrigin;
+    }
+
+    public void setCurrentYOrigin(Double currentYOrigin) {
+        this.currentYOrigin = currentYOrigin;
+    } 
 
     public double getDeltaX(){
-        double deltaX  = this.newOriginX - this.translateXProperty().get();
+        double deltaX  = this.newXOrigin - this.currentXOrigin;
         return deltaX;
+    }
+
+    public boolean isNew() {
+        return isNew;
     }
 
 
@@ -97,4 +121,7 @@ public class KeyView extends Group {
         this.nodeShape.setStroke(this.strokeColor);
     }
 
+    public void setIsNew(boolean isNew) {
+        this.isNew = isNew;
+    }
 }
