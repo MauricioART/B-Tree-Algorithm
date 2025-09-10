@@ -81,7 +81,7 @@ public class Arrow extends Group {
         // Flecha siempre hacia abajo (vertical)
         double angle = Math.PI / 2; // 90 grados
 
-        double arrowSize = 10.0;
+        double arrowSize = 8.0;
         double ex = endX.get();
         double ey = endY.get();
 
