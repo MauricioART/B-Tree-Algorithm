@@ -19,7 +19,11 @@ public class LeafNodeView extends NodeView {
         this.nextLeaf.originXProperty().bind(this.translateXProperty().add(this.widthProperty()));
         this.nextLeaf.originYProperty().bind(this.translateYProperty());
         this.nextLeaf.endXProperty().bind(this.nextLeaf.originXProperty());
-        this.nextLeaf.opacityProperty().set(0.0);
-        this.getChildren().add(this.nextLeaf);
+        //this.nextLeaf.opacityProperty().set(0.0);
+        //this.getChildren().add(this.nextLeaf);
+    }
+
+    public Arrow getNextLeaf() {
+        return nextLeaf;
     }
 }
