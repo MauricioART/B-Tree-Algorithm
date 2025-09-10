@@ -35,19 +35,6 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
     public TreeView(BPlusNode<Integer, String> root) {
 
-        /*NodeView rootView = NodeFactory.createNode(true, this.canvasWidth.get()/2, Y_PADDING);
-        this.nodeToNodeView.put(root, rootView);
-        this.treeLevels.add(new ArrayList<>());
-        this.treeLevels.get(0).add(rootView);
-        this.getChildren().add(rootView);
-        
-        
-        ChangeListener<Number> listener = (_, oldValue, newValue) -> {
-            System.out.println("Canvas size changed: " + oldValue + " -> " + newValue);
-            handleNewRoot(new BPlusTreeEvent.NewRoot<>(root));
-
-        };*/
-
         ChangeListener<Number> listener = new ChangeListener<>() {
             private boolean first = true;
 
@@ -111,7 +98,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         }else{
             NodeView newNode = NodeFactory.createNode(e.getNewRoot().isLeaf(), this.canvasWidth.get()/2, Y_PADDING);
             this.nodeToNodeView.put(e.getNewRoot(), newNode);
-            this.getChildren().add(newNode);
+            //this.getChildren().add(newNode);
             List<NodeView> newLevel = new ArrayList<>();
             newLevel.add(newNode);
             this.treeLevels.addFirst(newLevel);   
@@ -124,9 +111,9 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         BPlusTreeEvent.NodeSplit<Integer,String> e = (BPlusTreeEvent.NodeSplit<Integer,String>) event;
         NodeView splitNode = this.nodeToNodeView.get(e.getNode());
         KeyView middleKey = keyToKeyView.get(e.getMiddleKey());
-        NodeView newNode = NodeFactory.createNode(e.getNewNode().isLeaf(), splitNode.getTranslateX() + middleKey.getNewOriginX(), splitNode.getTranslateY());
+        NodeView newNode = NodeFactory.createNode(e.getNewNode().isLeaf(), middleKey.getTranslateX(), splitNode.getTranslateY());
         this.nodeToNodeView.put(e.getNewNode(), newNode);
-        this.getChildren().add(newNode);
+        //this.getChildren().add(newNode);
 
         // Inserting new NodeView in the correct position
 
@@ -149,7 +136,24 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                     }
                 }
             } else{
-               // ((InnerNodeView) newNode).getEdges().get(0).originXProperty().bind(newNode.translateXProperty().add(newNode.widthProperty()));
+                
+                int childIndex = splitNode.getKeyIndex(middleKey);
+
+
+                Arrow prevArrow = ((InnerNodeView) splitNode).getEdges().get(childIndex);
+                prevArrow.originXProperty().unbind();
+                prevArrow.originYProperty().unbind();
+                prevArrow.originXProperty().bind(splitNode.translateXProperty().add(splitNode.widthProperty()));
+                prevArrow.originYProperty().bind(splitNode.translateYProperty().add(splitNode.getHeight()));
+
+                Arrow nexArrow = ((InnerNodeView) splitNode).getEdges().get(childIndex + 1);
+                KeyView nextKey = ((InnerNodeView) splitNode).keys.get(childIndex + 1);
+                nexArrow.originXProperty().bind(nextKey.translateXProperty());
+                nexArrow.originYProperty().bind(nextKey.translateYProperty().add(nextKey.getHeight()));
+
+                ((InnerNodeView) splitNode).getEdges().getLast().originXProperty().unbind();
+                ((InnerNodeView) splitNode).getEdges().getLast().originXProperty().bind(newNode.translateXProperty().add(newNode.widthProperty()));
+                
                 //((InnerNodeView) newNode).getEdges().get(0).originYProperty().bind(newNode.translateYProperty().add(0.5 * newNode.getHeight()));
             }
 
@@ -162,9 +166,9 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         NodeView deletedNode = nodeToNodeView.remove(e.getNode());
         this.treeLevels.get(e.getNode().getLevel()).remove(deletedNode);
 
-        Transition keyDeletion = TreeAnimator.animateKeyDeletion(deletedNode);
-        TreeAnimator.addTransitionToQueue(keyDeletion);
-        keyDeletion.setOnFinished(_ -> this.getChildren().remove(deletedNode));
+        //Transition keyDeletion = TreeAnimator.animateKeyDeletion(deletedNode);
+        //TreeAnimator.addTransitionToQueue(keyDeletion);
+        //keyDeletion.setOnFinished(_ -> this.getChildren().remove(deletedNode));
         updateYLayout();
     }
 
@@ -178,12 +182,20 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         
         //Register new key view
         this.keyToKeyView.put(e.getKey(), newKey);
-        affectedNodeView.insert(newKey);
+
+        if (e.getNode().isLeaf()){
+            affectedNodeView.insert(newKey);
+        }else{
+            ((InnerNodeView)affectedNodeView).insert(newKey, e.getNode().getLevel() == 0 ? true : false);
+        }
+        this.getChildren().add(newKey);
 
         int level = e.getNode().getLevel();
         updateLevelLayout(level);
 
         TreeAnimator.addTransitionToQueue(TreeAnimator.fadeNode(newKey,0,1));
+
+        newKey.setIsNew(false);
 
     }
 
@@ -204,13 +216,13 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
         KeyView removedKey = keyToKeyView.remove(e.getKey());
         NodeView node = nodeToNodeView.get(e.getNode());
-        node.keys.remove(removedKey);
+        node.remove(removedKey);
 
+        
         Transition keyFading = TreeAnimator.fadeNode(removedKey, 1, 0);
         TreeAnimator.addTransitionToQueue(keyFading);
-
         keyFading.setOnFinished(_ -> this.getChildren().remove(removedKey));    
-
+        
         updateLevelLayout(e.getNode().getLevel());
 
     }
@@ -223,13 +235,27 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         //POR CUESTIONES DE ANIMACION TALVEZ PONERLO ALREVES
         for (Key<Integer> key : e.getBorrowedKeys()) {
             KeyView borrowedKey = keyToKeyView.get(key);
-            lendingNode.removeNode(borrowedKey.getKey());
-            borrowingNode.insert(borrowedKey);
-          
+            lendingNode.remove(borrowedKey);
+
+            if (e.getBorrowingNode().isLeaf()){
+                borrowingNode.insert(borrowedKey);
+            }else{
+                boolean isRoot =  this.treeLevels.get(e.getBorrowingNode().getLevel()).size()  == 1 ? true : false;
+                ((InnerNodeView)borrowingNode).insert(borrowedKey, isRoot);
+            }
         }
 
+        int lendingLevel = e.getLendingNode().getLevel();
+        int borrowingLevel = e.getBorrowingNode().getLevel();
 
-         updateLevelLayout(e.getLendingNode().getLevel());
+        if (lendingLevel == borrowingLevel) {
+            updateLevelLayout(lendingLevel);
+        } else {
+            updateLevelLayout(lendingLevel);
+            updateLevelLayout(borrowingLevel);
+        }
+
+        updateYLayout();
     }
  
     private void handleChildNodeBorrowed(BPlusTreeEvent<Integer, String> event) {
@@ -257,7 +283,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     private void handleChildNodeCreated(BPlusTreeEvent<Integer, String> event) {
         BPlusTreeEvent.ChildNodeCreated<Integer,String> e = (BPlusTreeEvent.ChildNodeCreated<Integer,String>) event;
         Arrow newChildEdge = new Arrow();  //Set opacity to 0.0
-        newChildEdge.setOpacity(0.0);
+        //newChildEdge.setOpacity(0.0);
         NodeView nodeView = nodeToNodeView.get(e.getParent());
         NodeView childNodeView = nodeToNodeView.get(e.getChild());
         int childIndex = findChildIndex(e.getParent(), e.getChild());
@@ -297,8 +323,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
         for (NodeView node : this.treeLevels.get(level)) {
             double deltaX = startX - node.translateXProperty().get() ;
-            TreeAnimator.addParallelTransition(TreeAnimator.moveNode(node, deltaX,0.0));
-            node.updateLayout();
+            node.updateLayout(deltaX);
             startX += node.getWidth() + nodeSpacing;
         }
         TreeAnimator.createParallelTransition();
@@ -313,9 +338,13 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             double startY = Y_PADDING * (2*i + 1);
 
             for (NodeView node : this.treeLevels.get(i)) {
-                double deltaY = startY - node.translateYProperty().get() ;
+                double deltaY = startY - node.translateYProperty().get();
+                node.setTranslateY(startY);
                 if (!node.keys.isEmpty()) {
-                    TreeAnimator.addParallelTransition(TreeAnimator.moveNode(node, 0.0, deltaY));
+                    node.keys.forEach(key -> {
+                        Transition movingKey = TreeAnimator.moveNode(key, 0.0, deltaY);
+                        TreeAnimator.addParallelTransition(movingKey);
+                    });
                 }
             }
             startY += Y_PADDING;
