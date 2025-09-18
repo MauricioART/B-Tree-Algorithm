@@ -16,8 +16,8 @@ public class LeafNodeView extends NodeView {
 
     private void initialize() {
         this.nextLeaf = new Arrow();
-        this.nextLeaf.originXProperty().bind(this.translateXProperty().add(this.widthProperty()));
-        this.nextLeaf.originYProperty().bind(this.translateYProperty());
+        this.nextLeaf.originXProperty().bind(this.xOriginProperty().add(this.widthProperty()));
+        this.nextLeaf.originYProperty().bind(this.yOriginProperty());
         this.nextLeaf.endXProperty().bind(this.nextLeaf.originXProperty());
         //this.nextLeaf.opacityProperty().set(0.0);
         //this.getChildren().add(this.nextLeaf);
