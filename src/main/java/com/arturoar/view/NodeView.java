@@ -3,18 +3,20 @@ package com.arturoar.view;
 import javafx.animation.Transition;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.scene.Group;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.arturoar.util.TreeAnimator;
 
-public abstract class NodeView {
+public abstract class NodeView extends Group {
     
     protected DoubleProperty width = new SimpleDoubleProperty();
     protected DoubleProperty height = new SimpleDoubleProperty();
-    protected DoubleProperty translateX = new SimpleDoubleProperty();
-    protected DoubleProperty translateY = new SimpleDoubleProperty();
+   
+    protected DoubleProperty xOrigin = new SimpleDoubleProperty();
+    protected DoubleProperty yOrigin = new SimpleDoubleProperty();
 
     protected List<KeyView> keys;
 
@@ -24,6 +26,8 @@ public abstract class NodeView {
     }
     
     public NodeView(Double x, Double y) {
+        this.setXOrigin(x);
+        this.setYOrigin(y);
         this.setTranslateX(x);
         this.setTranslateY(y);
         this.width.set(0.0);
@@ -46,8 +50,8 @@ public abstract class NodeView {
         
         // Find the correct position to insert the new key
         int position = 0;
-        double xOrigin = this.getTranslateX();
-        double yOrigin = this.getTranslateY();
+        double xOrigin = this.getXOrigin();
+        double yOrigin = this.getYOrigin();
         
         for (KeyView key : this.keys) {
             if (key.getKey() < newKeyView.getKey()) {
@@ -63,6 +67,8 @@ public abstract class NodeView {
             newKeyView.setTranslateX( xOrigin);
             newKeyView.setCurrentXOrigin(xOrigin);
             newKeyView.setCurrentYOrigin(yOrigin);
+            newKeyView.setNewOriginY(yOrigin);
+        }else{
             newKeyView.setNewOriginY(yOrigin);
         }
 
@@ -132,7 +138,7 @@ public abstract class NodeView {
 
         });
 
-        this.setTranslateX(getTranslateX() + deltaX);
+        this.setXOrigin(getXOrigin() + deltaX);
     }
  
    
@@ -153,29 +159,30 @@ public abstract class NodeView {
         return this.height;
     }
 
-    public Double getTranslateX() {
-        return this.translateX.get();
+     
+    public Double getXOrigin() {
+        return this.xOrigin.get();
+    }
+    
+    public void setXOrigin(Double x) {
+        this.xOrigin.set(x);
     }
 
-    public void setTranslateX(Double x) {
-        this.translateX.set(x);
+    public Double getYOrigin() {
+        return this.yOrigin.get();
     }
 
-    public Double getTranslateY() {
-        return this.translateY.get();
+    public void setYOrigin(Double y) {
+        this.yOrigin.set(y);
     }
 
-    public void setTranslateY(Double y) {
-        this.translateY.set(y);
+    public DoubleProperty xOriginProperty() {
+        return this.xOrigin;
     }
 
-    public DoubleProperty translateXProperty() {
-        return this.translateX;
+    public DoubleProperty yOriginProperty() {
+        return this.yOrigin;
     }
-
-    public DoubleProperty translateYProperty() {
-        return this.translateY;
-    }
-
+    
 
 }
