@@ -5,7 +5,6 @@ import java.util.List;
 
 public class InnerNodeView extends NodeView {
 
-
     public List<Arrow> edges = new ArrayList<>();
 
     public InnerNodeView(Double x, Double y) {
@@ -15,7 +14,6 @@ public class InnerNodeView extends NodeView {
     public InnerNodeView() {
         super();
     }
-
 
     public int insert(KeyView newKeyView, boolean isRoot){
         int position = super.insert(newKeyView);
@@ -28,54 +26,20 @@ public class InnerNodeView extends NodeView {
             prevArrow.originXProperty().bind(newKeyView.translateXProperty());
             prevArrow.originYProperty().bind(newKeyView.translateYProperty().add(newKeyView.getHeight()));
 
-
             Arrow nextArrow = this.edges.get(position + 1);
-
             if (position < super.keys.size() - 1) {
                 KeyView nextKeyView = super.keys.get(position + 1);
                 nextArrow.originXProperty().bind(nextKeyView.translateXProperty());
                 nextArrow.originYProperty().bind(nextKeyView.translateYProperty().add(nextKeyView.getHeight()));
             }else{
-                nextArrow.originXProperty().bind(this.translateXProperty().add(this.widthProperty()));
-                nextArrow.originYProperty().bind(this.translateYProperty().add(this.getHeight()));
+                nextArrow.originXProperty().bind(this.xOriginProperty().add(this.widthProperty()));
+                nextArrow.originYProperty().bind(this.yOriginProperty().add(this.getHeight()));
             }
        
         }
         return position;
     }
 
-    /*
-     * 
-     * 
-     @Override
-     public int insert(KeyView newKeyView) {
-         
- 
-         int position = super.insert(newKeyView);
- 
-         Arrow prevArrow = this.edges.get(position);
-         prevArrow.originXProperty().unbind();
-         prevArrow.originYProperty().unbind();
-         prevArrow.originXProperty().bind(newKeyView.translateXProperty());
-         prevArrow.originYProperty().bind(newKeyView.translateYProperty().add(newKeyView.getHeight()));
- 
- 
-         Arrow nextArrow = this.edges.get(position + 1);
- 
-         if (position < super.keys.size() - 1) {
-             KeyView nextKeyView = super.keys.get(position + 1);
-             nextArrow.originXProperty().bind(nextKeyView.translateXProperty());
-             nextArrow.originYProperty().bind(nextKeyView.translateYProperty().add(nextKeyView.getHeight()));
-         }else{
-             nextArrow.originXProperty().bind(this.translateXProperty().add(this.widthProperty()));
-             nextArrow.originYProperty().bind(this.translateYProperty().add(this.getHeight()));
-         }
-         
-         return position;
-     }
-     */
-
-    
     public Arrow getEdge(int index){
         return this.edges.get(index);
     }
@@ -83,10 +47,9 @@ public class InnerNodeView extends NodeView {
     public List<Arrow> getEdges(){
         return this.edges;
     }
+
     public void addEdge(int index, Arrow edge){
         this.edges.add(index, edge);
     }
-
-
 
 }
