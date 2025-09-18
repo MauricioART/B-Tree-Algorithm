@@ -300,13 +300,6 @@ public class BPlusTree<K extends Comparable<K>,V> {
             if (node.getParent().isOverFlow()) {
                 splitNode(node.getParent());
             }
-            /*
-             * 
-             if ( !node.getParent().isOverFlow()){
-             }else{
-                 splitNode(node.getParent());
-             }
-             */
 
             
         }
