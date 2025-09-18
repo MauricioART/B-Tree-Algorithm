@@ -89,6 +89,11 @@ public class KeyView extends Group {
         return deltaX;
     }
 
+    public double getDeltaY(){
+        double deltaY  = this.newYOrigin - this.currentYOrigin;
+        return deltaY;
+    }
+    
     public boolean isNew() {
         return isNew;
     }
