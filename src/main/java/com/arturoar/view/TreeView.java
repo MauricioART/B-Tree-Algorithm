@@ -113,12 +113,10 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         KeyView middleKey = keyToKeyView.get(e.getMiddleKey());
         NodeView newNode = NodeFactory.createNode(e.getNewNode().isLeaf(), middleKey.getTranslateX(), splitNode.getYOrigin());
         this.nodeToNodeView.put(e.getNewNode(), newNode);
-        //this.getChildren().add(newNode);
 
         // Inserting new NodeView in the correct position
 
             int levelIndex = e.getNewNode().getLevel();
-            //int nodeChildIndex = e.getNode().getChildrenIndex() + 1;
             int nodeChildIndex = this.treeLevels.get(levelIndex).indexOf(splitNode) + 1;
 
             this.treeLevels.get(levelIndex).add(nodeChildIndex, newNode);
@@ -139,17 +137,16 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                 
                 int childIndex = splitNode.getKeyIndex(middleKey);
 
-
                 Arrow prevArrow = ((InnerNodeView) splitNode).getEdges().get(childIndex);
                 prevArrow.originXProperty().unbind();
                 prevArrow.originYProperty().unbind();
                 prevArrow.originXProperty().bind(splitNode.xOriginProperty().add(splitNode.widthProperty()));
                 prevArrow.originYProperty().bind(splitNode.yOriginProperty().add(splitNode.getHeight()));
 
-                Arrow nexArrow = ((InnerNodeView) splitNode).getEdges().get(childIndex + 1);
+                Arrow nextArrow = ((InnerNodeView) splitNode).getEdges().get(childIndex + 1);
                 KeyView nextKey = ((InnerNodeView) splitNode).keys.get(childIndex + 1);
-                nexArrow.originXProperty().bind(nextKey.translateXProperty());
-                nexArrow.originYProperty().bind(nextKey.translateYProperty().add(nextKey.getHeight()));
+                nextArrow.originXProperty().bind(nextKey.translateXProperty());
+                nextArrow.originYProperty().bind(nextKey.translateYProperty().add(nextKey.getHeight()));
 
                 ((InnerNodeView) splitNode).getEdges().getLast().originXProperty().unbind();
                 ((InnerNodeView) splitNode).getEdges().getLast().originXProperty().bind(newNode.xOriginProperty().add(newNode.widthProperty()));
@@ -231,7 +228,6 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         NodeView lendingNode = nodeToNodeView.get(e.getLendingNode());
         NodeView borrowingNode = nodeToNodeView.get(e.getBorrowingNode());
 
-        //POR CUESTIONES DE ANIMACION TALVEZ PONERLO ALREVES
         for (Key<Integer> key : e.getBorrowedKeys()) {
             KeyView borrowedKey = keyToKeyView.get(key);
             lendingNode.remove(borrowedKey);
@@ -282,7 +278,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     private void handleChildNodeCreated(BPlusTreeEvent<Integer, String> event) {
         BPlusTreeEvent.ChildNodeCreated<Integer,String> e = (BPlusTreeEvent.ChildNodeCreated<Integer,String>) event;
         Arrow newChildEdge = new Arrow();  //Set opacity to 0.0
-        //newChildEdge.setOpacity(0.0);
+        newChildEdge.setOpacity(0.0);
         NodeView nodeView = nodeToNodeView.get(e.getParent());
         NodeView childNodeView = nodeToNodeView.get(e.getChild());
         int childIndex = findChildIndex(e.getParent(), e.getChild());
@@ -362,21 +358,13 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         this.canvasHeight.set(height);
     }
 
-    public DoubleProperty canvasWidthProperty() {
-        return canvasWidth;
-    }
+    public DoubleProperty canvasWidthProperty() { return canvasWidth; }
 
-    public DoubleProperty canvasHeightProperty() {
-        return canvasHeight;
-    }
+    public DoubleProperty canvasHeightProperty() { return canvasHeight; }
 
-    public Double getCanvasWidth() {
-        return canvasWidth.get();
-    }
+    public Double getCanvasWidth() { return canvasWidth.get(); }
 
-    public Double getCanvasHeight() {
-        return canvasHeight.get();
-    }
+    public Double getCanvasHeight() { return canvasHeight.get(); }
 
 
 
