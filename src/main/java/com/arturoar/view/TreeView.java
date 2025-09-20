@@ -291,6 +291,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
         childrenToArrow.put(e.getChild(), newChildEdge);
         this.getChildren().add(newChildEdge);
+        TreeAnimator.newArrows.add(newChildEdge);
     }
 
     private int findChildIndex(BPlusNode<Integer, String> parent, BPlusNode<Integer, String> child) {
@@ -358,6 +359,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         this.canvasHeight.set(height);
     }
 
+    
     public DoubleProperty canvasWidthProperty() { return canvasWidth; }
 
     public DoubleProperty canvasHeightProperty() { return canvasHeight; }
