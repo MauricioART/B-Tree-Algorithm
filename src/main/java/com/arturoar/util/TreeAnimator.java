@@ -19,12 +19,11 @@ import javafx.util.Duration;
 
 public class TreeAnimator {
 
-    private static final Duration ANIMATION_DURATION = Duration.millis(1000);
+    private static final Duration ANIMATION_DURATION = Duration.millis(500);
     private static Interpolator interpolator = Interpolator.EASE_IN;
 
     public static List<Transition>  parallelList = new ArrayList<>();
     public static List<Transition> transitionQueue = new ArrayList<>();
-    public static List<Arrow> newArrows = new ArrayList<>();
 
     private TreeAnimator() {
         // Private constructor to prevent instantiation
@@ -118,9 +117,6 @@ public class TreeAnimator {
 
     public static void animateQueue() {
         SequentialTransition seqTransitions = new SequentialTransition();
-        if (!TreeAnimator.newArrows.isEmpty()){
-            TreeAnimator.showArrows();
-        }
         seqTransitions.getChildren().addAll(TreeAnimator.transitionQueue);
         TreeAnimator.clearQueue();
         seqTransitions.play();
@@ -141,13 +137,6 @@ public class TreeAnimator {
         return transition;
     }
 
-    private static void showArrows(){
-        for (Arrow arrow : TreeAnimator.newArrows) {
-            Transition fadeIn = TreeAnimator.fadeNode(arrow, 0, 1);
-            TreeAnimator.addParallelTransition(fadeIn);
-        }
-        TreeAnimator.newArrows.clear();
-        TreeAnimator.createParallelTransition();
-    }
+    
 
 }
