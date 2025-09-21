@@ -15,10 +15,10 @@ public class InnerNodeView extends NodeView {
         super();
     }
 
-    public int insert(KeyView newKeyView, boolean isRoot){
+    public int insert(KeyView newKeyView, boolean hasSplit){
         int position = super.insert(newKeyView);
 
-        if (isRoot){
+        if (!hasSplit){
 
             Arrow prevArrow = this.edges.get(position);
             prevArrow.originXProperty().unbind();
@@ -32,8 +32,8 @@ public class InnerNodeView extends NodeView {
                 nextArrow.originXProperty().bind(nextKeyView.translateXProperty());
                 nextArrow.originYProperty().bind(nextKeyView.translateYProperty().add(nextKeyView.getHeight()));
             }else{
-                nextArrow.originXProperty().bind(this.xOriginProperty().add(this.widthProperty()));
-                nextArrow.originYProperty().bind(this.yOriginProperty().add(this.getHeight()));
+                nextArrow.originXProperty().bind(this.translateXProperty().add(this.widthProperty()));
+                nextArrow.originYProperty().bind(this.translateYProperty().add(this.getHeight()));
             }
        
         }
