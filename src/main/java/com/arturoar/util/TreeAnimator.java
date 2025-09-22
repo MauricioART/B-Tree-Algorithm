@@ -19,8 +19,8 @@ import javafx.util.Duration;
 
 public class TreeAnimator {
 
-    private static final Duration ANIMATION_DURATION = Duration.millis(500);
-    private static Interpolator interpolator = Interpolator.EASE_IN;
+    private static final Duration ANIMATION_DURATION = Duration.millis(800);
+    private static Interpolator interpolator = Interpolator.EASE_BOTH;
 
     public static List<Transition>  parallelList = new ArrayList<>();
     public static List<Transition> transitionQueue = new ArrayList<>();
@@ -30,7 +30,7 @@ public class TreeAnimator {
     }
 
     public static Transition fadeNode(Node node, double from, double to) {
-        FadeTransition fade = new FadeTransition(Duration.millis(ANIMATION_DURATION.toMillis()), node);
+        FadeTransition fade = new FadeTransition(Duration.millis(ANIMATION_DURATION.toMillis()/1.2), node);
         fade.setFromValue(from);
         fade.setToValue(to);
         fade.setInterpolator(interpolator);
@@ -38,7 +38,7 @@ public class TreeAnimator {
     }
 
     public static Transition moveNode(Node node, double byX, double byY) {
-        TranslateTransition translate = new TranslateTransition(Duration.millis(ANIMATION_DURATION.toMillis() / 2), node);
+        TranslateTransition translate = new TranslateTransition(ANIMATION_DURATION, node);
         translate.setByX(byX);
         translate.setByY(byY);
         translate.setInterpolator(interpolator);
@@ -137,6 +137,20 @@ public class TreeAnimator {
         return transition;
     }
 
+    public static void combineLastTransitionsOnQueue() {
+        int size = TreeAnimator.transitionQueue.size();
+        if (size < 2) return;
+
+        Transition last = TreeAnimator.transitionQueue.get(size - 1);
+        Transition secondLast = TreeAnimator.transitionQueue.get(size - 2);
+
+        ParallelTransition combined = new ParallelTransition();
+        combined.getChildren().addAll(secondLast, last);
+
+        TreeAnimator.transitionQueue.remove(size - 1);
+        TreeAnimator.transitionQueue.remove(size - 2);
+        TreeAnimator.transitionQueue.add(combined);
+    }
     
 
 }
