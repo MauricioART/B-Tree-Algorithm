@@ -99,6 +99,11 @@ public class KeyView extends Group {
     }
 
 
+    public void setWidth(Double width) {
+        this.width = width;
+        this.nodeShape.setWidth(this.width);
+    }
+
     public Double getHeight() {
         return this.height;
     }

@@ -139,18 +139,16 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                 int childIndex = splitNode.getKeyIndex(middleKey);
 
                 Arrow prevArrow = ((InnerNodeView) splitNode).getEdges().get(childIndex);
-                prevArrow.originXProperty().unbind();
-                prevArrow.originYProperty().unbind();
-                prevArrow.originXProperty().bind(splitNode.translateXProperty().add(splitNode.widthProperty()));
-                prevArrow.originYProperty().bind(splitNode.translateYProperty().add(splitNode.getHeight()));
+                ((InnerNodeView)splitNode).bindToEndNode(prevArrow);
 
                 Arrow nextArrow = ((InnerNodeView) splitNode).getEdges().get(childIndex + 1);
                 KeyView nextKey = ((InnerNodeView) splitNode).keys.get(childIndex + 1);
                 nextArrow.originXProperty().bind(nextKey.translateXProperty());
                 nextArrow.originYProperty().bind(nextKey.translateYProperty().add(nextKey.getHeight()));
 
-                ((InnerNodeView) splitNode).getEdges().getLast().originXProperty().unbind();
-                ((InnerNodeView) splitNode).getEdges().getLast().originXProperty().bind(newNode.translateXProperty().add(newNode.widthProperty()));
+                Arrow splitNodeLastEdge = ((InnerNodeView) splitNode).getEdges().getLast();
+                ((InnerNodeView) newNode).bindToEndNode(splitNodeLastEdge);
+
 
             }
 
@@ -283,7 +281,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
     private void handleChildNodeCreated(BPlusTreeEvent<Integer, String> event) {
         BPlusTreeEvent.ChildNodeCreated<Integer,String> e = (BPlusTreeEvent.ChildNodeCreated<Integer,String>) event;
-        Arrow newChildEdge = new Arrow();  //Set opacity to 0.0
+        Arrow newChildEdge = new Arrow();
         newChildEdge.setOpacity(0.0);
         NodeView nodeView = nodeToNodeView.get(e.getParent());
         NodeView childNodeView = nodeToNodeView.get(e.getChild());
