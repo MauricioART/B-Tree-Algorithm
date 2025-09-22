@@ -106,6 +106,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         }
 
         updateYLayout();
+        TreeAnimator.combineLastTransitionsOnQueue();
     }
     
     private void handleNodeSplit(BPlusTreeEvent<Integer, String> event) {
@@ -184,16 +185,15 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             ((InnerNodeView)affectedNodeView).insert(newKey, false);
         }
         this.getChildren().add(newKey);
+        newKey.setIsNew(false);
 
+        // Animate insertion
         int level = e.getNode().getLevel();
         updateLevelLayout(level);
-
         TreeAnimator.addTransitionToQueue(TreeAnimator.fadeNode(newKey,0,1));
-
-        //FADE IN ARROWS IN QUEUE
-        showArrows();
-
-        newKey.setIsNew(false);
+        if (!this.unshownArrows.isEmpty()){
+            showArrows();
+        }
 
     }
 
@@ -251,10 +251,10 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         } else {
             updateLevelLayout(lendingLevel);
             updateLevelLayout(borrowingLevel);
+            updateYLayout();
+            TreeAnimator.combineLastTransitionsOnQueue();
+            showArrows();
         }
-        
-        updateYLayout();
-        showArrows();
     }
  
     private void handleChildNodeBorrowed(BPlusTreeEvent<Integer, String> event) {
