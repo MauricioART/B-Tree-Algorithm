@@ -150,9 +150,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                 nextArrow.originYProperty().bind(nextKey.translateYProperty().add(nextKey.getHeight()));
 
                 ((InnerNodeView) splitNode).getEdges().getLast().originXProperty().unbind();
-                ((InnerNodeView) splitNode).getEdges().getLast().originYProperty().unbind();
                 ((InnerNodeView) splitNode).getEdges().getLast().originXProperty().bind(newNode.translateXProperty().add(newNode.widthProperty()));
-                ((InnerNodeView) splitNode).getEdges().getLast().originYProperty().bind(newNode.translateYProperty().add(newNode.getHeight()));
 
             }
 
@@ -249,16 +247,16 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         }
 
         //FADE IN ARROWS IN QUEUE
-        showArrows();
-
+        
         if (lendingLevel == borrowingLevel) {
             updateLevelLayout(lendingLevel);
         } else {
             updateLevelLayout(lendingLevel);
             updateLevelLayout(borrowingLevel);
         }
-
+        
         updateYLayout();
+        showArrows();
     }
  
     private void handleChildNodeBorrowed(BPlusTreeEvent<Integer, String> event) {
