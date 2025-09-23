@@ -186,12 +186,12 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         
         //Register new key view
         this.keyToKeyView.put(e.getKey(), newKey);
+        int position = affectedNodeView.insert(newKey);
 
-        if (e.getNode().isLeaf()){
-            affectedNodeView.insert(newKey);
-        }else{
-            ((InnerNodeView)affectedNodeView).insert(newKey, false);
+        if (!e.getNode().isLeaf()){
+            reasignnArrowOrigins((InnerNodeView) affectedNodeView, position, newKey);
         }
+
         this.getChildren().add(newKey);
         newKey.setIsNew(false);
 
@@ -240,20 +240,19 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         int lendingLevel = e.getLendingNode().getLevel();
         int borrowingLevel = e.getBorrowingNode().getLevel();
 
+        int tempPosition = -1;
+        KeyView tempBorrowedKey = null;
+
         for (Key<Integer> key : e.getBorrowedKeys()) {
-            KeyView borrowedKey = keyToKeyView.get(key);
-            lendingNode.remove(borrowedKey);
-
-            if (e.getBorrowingNode().isLeaf()){
-                borrowingNode.insert(borrowedKey);
-            }else{
-                boolean hasSplit = lendingLevel == borrowingLevel;
-                ((InnerNodeView)borrowingNode).insert(borrowedKey, hasSplit);
-            }
+            tempBorrowedKey = keyToKeyView.get(key);
+            lendingNode.remove(tempBorrowedKey);
+            tempPosition = borrowingNode.insert(tempBorrowedKey);
         }
-
         //FADE IN ARROWS IN QUEUE
-        
+
+        final int position = tempPosition;
+        final KeyView borrowedKey = tempBorrowedKey;
+
         if (lendingLevel == borrowingLevel) {
             updateLevelLayout(lendingLevel);
         } else {
@@ -262,7 +261,29 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             TreeAnimator.combineLastTransitionsOnQueue();
             updateYLayout();
             TreeAnimator.combineLastTransitionsOnQueue();
+            if (position != -1 && borrowedKey != null) {
+                TreeAnimator.addListenerToLastTransition(() -> reasignnArrowOrigins((InnerNodeView) borrowingNode, position, borrowedKey));
+            }
             showArrows();
+        }
+    }
+
+    private void reasignnArrowOrigins(InnerNodeView nodeView, int position, KeyView borrowedKey) {
+        Arrow prevArrow = nodeView.getEdge(position); 
+        prevArrow.originXProperty().unbind();
+        prevArrow.originYProperty().unbind();
+        prevArrow.originXProperty().bind(borrowedKey.translateXProperty());
+        prevArrow.originYProperty().bind(borrowedKey.translateYProperty().add(borrowedKey.getHeight()));
+    
+        Arrow nextArrow = nodeView.getEdge(position + 1);
+        if (position < nodeView.getNumberOfKeys() - 1) {
+            KeyView nextKeyView = nodeView.getKey(position + 1);
+            nextArrow.originXProperty().bind(nextKeyView.translateXProperty());
+            nextArrow.originYProperty().bind(nextKeyView.translateYProperty().add(nextKeyView.getHeight()));
+        }else{
+            KeyView lastKey = nodeView.getLast();
+            nextArrow.originXProperty().bind(lastKey.translateXProperty().add(lastKey.getWidth()));
+            nextArrow.originYProperty().bind(lastKey.translateYProperty().add(lastKey.getHeight()));
         }
     }
  

@@ -47,6 +47,18 @@ public abstract class NodeView extends Group {
         });
 
     }
+
+    public int getNumberOfKeys(){
+        return this.keys.size();
+    }
+
+    public KeyView getKey(int index){
+        return this.keys.get(index);
+    }
+
+    public KeyView getLast(){
+        return this.keys.getLast();
+    }
     
     public int getKeyIndex( KeyView keyView) {
         return this.keys.indexOf(keyView);
