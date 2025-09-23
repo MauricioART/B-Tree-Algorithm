@@ -18,6 +18,9 @@ public abstract class NodeView extends Group {
     protected DoubleProperty xOrigin = new SimpleDoubleProperty();
     protected DoubleProperty yOrigin = new SimpleDoubleProperty();
 
+    protected DoubleProperty animatedWidth = new SimpleDoubleProperty(0.0);
+    protected DoubleProperty centerX = new SimpleDoubleProperty(0.0);
+
     protected List<KeyView> keys;
 
     public NodeView() {
@@ -32,6 +35,17 @@ public abstract class NodeView extends Group {
         this.setTranslateY(y);
         this.width.set(0.0);
         this.keys = new ArrayList<>();
+
+        // Bind centerX to smoothly follow the animated width
+        this.centerX.bind(this.translateXProperty().add(this.animatedWidth.divide(2)));
+        
+        // Animate width changes
+        this.width.addListener((_, oldVal, newVal) -> {
+            Transition widthTransition = TreeAnimator.animateProperty(
+                this.animatedWidth, oldVal.doubleValue(), newVal.doubleValue());
+            TreeAnimator.addParallelTransition(widthTransition);
+        });
+
     }
     
     public int getKeyIndex( KeyView keyView) {
@@ -184,5 +198,12 @@ public abstract class NodeView extends Group {
         return this.yOrigin;
     }
     
+    public DoubleProperty centerXProperty() {
+        return centerX;
+    }
+    
+    public Double getCenterX() {
+        return centerX.get();
+    }
 
 }

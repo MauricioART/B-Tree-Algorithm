@@ -8,11 +8,16 @@ import com.arturoar.view.Arrow;
 import javafx.animation.FadeTransition;
 import javafx.animation.FillTransition;
 import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
 import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.SequentialTransition;
+import javafx.animation.Timeline;
 import javafx.animation.Transition;
 import javafx.animation.TranslateTransition;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.Property;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
@@ -152,5 +157,42 @@ public class TreeAnimator {
         TreeAnimator.transitionQueue.add(combined);
     }
     
+
+    public static void addListenerToLastTransition(Runnable onFinished) {
+        int size = TreeAnimator.transitionQueue.size();
+        if (size == 0) return;
+
+        Transition last = TreeAnimator.transitionQueue.get(size - 1);
+        last.setOnFinished(e -> onFinished.run());
+    }
+
+    /**
+     * Creates a smooth transition for any property using a custom Transition
+     */
+    public static Transition animateProperty(Property<Number> property, double fromValue, double toValue)  {
+        return new Transition() {
+            private final double startValue = fromValue;
+            private final double endValue = toValue;
+            
+            {
+                setCycleDuration(ANIMATION_DURATION);
+                // Set initial value
+                property.setValue(fromValue);
+            }
+            
+            @Override
+            protected void interpolate(double frac) {
+                double value = startValue + (endValue - startValue) * frac;
+                property.setValue(value);
+            }
+        };
+    }
+    
+    /**
+     * Overload for DoubleProperty specifically
+     */
+    public static Transition animateProperty(DoubleProperty property, double fromValue, double toValue) {
+        return animateProperty((Property<Number>)property, fromValue, toValue);
+    }
 
 }

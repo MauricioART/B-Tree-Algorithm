@@ -140,7 +140,11 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                 int childIndex = splitNode.getKeyIndex(middleKey);
 
                 Arrow prevArrow = ((InnerNodeView) splitNode).getEdges().get(childIndex);
-                ((InnerNodeView)splitNode).bindToEndNode(prevArrow);
+                KeyView prevKey = ((InnerNodeView) splitNode).keys.get(childIndex - 1);
+                prevArrow.originXProperty().unbind();
+                prevArrow.originYProperty().unbind();
+                prevArrow.originXProperty().bind(prevKey.translateXProperty().add(prevKey.getWidth()));
+                prevArrow.originYProperty().bind(prevKey.translateYProperty().add(prevKey.getHeight()));
 
                 Arrow nextArrow = ((InnerNodeView) splitNode).getEdges().get(childIndex + 1);
                 KeyView nextKey = ((InnerNodeView) splitNode).keys.get(childIndex + 1);
@@ -148,7 +152,11 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                 nextArrow.originYProperty().bind(nextKey.translateYProperty().add(nextKey.getHeight()));
 
                 Arrow splitNodeLastEdge = ((InnerNodeView) splitNode).getEdges().getLast();
-                ((InnerNodeView) newNode).bindToEndNode(splitNodeLastEdge);
+                KeyView lastKey = ((InnerNodeView) splitNode).keys.getLast();
+                splitNodeLastEdge.originXProperty().unbind();
+                splitNodeLastEdge.originYProperty().unbind();
+                splitNodeLastEdge.originXProperty().bind(lastKey.translateXProperty().add(middleKey.getWidth()));
+                splitNodeLastEdge.originYProperty().bind(lastKey.translateYProperty().add(middleKey.getHeight()));
 
 
             }
@@ -251,6 +259,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         } else {
             updateLevelLayout(lendingLevel);
             updateLevelLayout(borrowingLevel);
+            TreeAnimator.combineLastTransitionsOnQueue();
             updateYLayout();
             TreeAnimator.combineLastTransitionsOnQueue();
             showArrows();
@@ -290,7 +299,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         ((InnerNodeView)nodeView).getEdges().add(childIndex,newChildEdge);
         
         //Bind end of Arrow to ChildNodeView
-        newChildEdge.endXProperty().bind(childNodeView.translateXProperty().add(childNodeView.widthProperty().divide(2)));
+        newChildEdge.endXProperty().bind(childNodeView.centerXProperty());
         newChildEdge.endYProperty().bind(childNodeView.translateYProperty());
 
         childrenToArrow.put(e.getChild(), newChildEdge);
