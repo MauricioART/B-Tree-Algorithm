@@ -34,5 +34,9 @@ public class Key<K extends Comparable<K>> {
     public K getKey(){
         return this.key;
     }
+
+    public void setKey(K key){
+        this.key = key;
+    }
     
 }
