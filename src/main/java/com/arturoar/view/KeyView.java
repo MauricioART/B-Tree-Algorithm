@@ -1,5 +1,6 @@
 package com.arturoar.view;
 
+import javafx.beans.value.ChangeListener;
 import javafx.scene.Group;
 import javafx.scene.control.Tooltip;
 import javafx.scene.paint.Color;
@@ -9,7 +10,7 @@ import javafx.scene.text.Text;
 public class KeyView extends Group {
     
     private Rectangle nodeShape;
-    private Text text;
+    private Text keyLabel;
     private Tooltip nodeData;
     private Integer key;
     private double currentXOrigin;
@@ -26,10 +27,10 @@ public class KeyView extends Group {
 
     public KeyView(Integer key) {
         this.key = key;
-        this.text = new Text(this.key.toString());
+        this.keyLabel = new Text(this.key.toString());
         this.nodeData = null;
-        this.width = this.text.getLayoutBounds().getWidth() + 2 * paddingX;
-        this.height = this.text.getLayoutBounds().getHeight() + 2 * paddingY;
+        this.width = this.keyLabel.getLayoutBounds().getWidth() + 2 * paddingX;
+        this.height = this.keyLabel.getLayoutBounds().getHeight() + 2 * paddingY;
         this.isNew = true;
         setupNode();
     }
@@ -45,10 +46,15 @@ public class KeyView extends Group {
         this.nodeShape.setStrokeWidth(1);
         this.nodeShape.setStroke(this.strokeColor);
         this.nodeShape.setFill(this.fillColor);
-        this.text.setX(paddingX);
-        this.text.setY(this.height - (2.0 * paddingY));
-        this.getChildren().addAll(this.nodeShape, this.text);
+        this.keyLabel.setX(paddingX);
+        this.keyLabel.setY(this.height - (2.0 * paddingY));
+        this.getChildren().addAll(this.nodeShape, this.keyLabel);
 
+        ChangeListener<String> strListener = (_, _, newValue) -> {
+            this.setKey(Integer.valueOf(newValue));
+        };
+
+        this.keyLabel.textProperty().addListener(strListener);
     }
 
    
@@ -112,13 +118,14 @@ public class KeyView extends Group {
     }
     public Integer getKey() {
         return this.key;
-    
+    }
+    public Text getKeyLabel() {
+        return this.keyLabel;
     }
     public void setKey(Integer key) {
         this.key = key;
-        this.text.setText(this.key.toString());
-        this.width = this.text.getLayoutBounds().getWidth() + 2 * paddingX;
-        this.height = this.text.getLayoutBounds().getHeight() + 2 * paddingY;
+        this.width = this.keyLabel.getLayoutBounds().getWidth() + 2 * paddingX;
+        this.height = this.keyLabel.getLayoutBounds().getHeight() + 2 * paddingY;
         this.nodeShape.setWidth(this.width);
         this.nodeShape.setHeight(this.height);
     }
