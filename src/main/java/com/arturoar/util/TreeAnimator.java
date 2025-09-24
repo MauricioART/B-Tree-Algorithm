@@ -8,23 +8,21 @@ import com.arturoar.view.Arrow;
 import javafx.animation.FadeTransition;
 import javafx.animation.FillTransition;
 import javafx.animation.Interpolator;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
 import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.SequentialTransition;
-import javafx.animation.Timeline;
 import javafx.animation.Transition;
 import javafx.animation.TranslateTransition;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.Property;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import javafx.util.Duration;
 
 public class TreeAnimator {
 
-    private static final Duration ANIMATION_DURATION = Duration.millis(800);
+    private static final Duration ANIMATION_DURATION = Duration.millis(300);
     private static Interpolator interpolator = Interpolator.EASE_BOTH;
 
     public static List<Transition>  parallelList = new ArrayList<>();
@@ -163,7 +161,7 @@ public class TreeAnimator {
         if (size == 0) return;
 
         Transition last = TreeAnimator.transitionQueue.get(size - 1);
-        last.setOnFinished(e -> onFinished.run());
+        last.setOnFinished(_ -> onFinished.run());
     }
 
     /**
@@ -194,5 +192,25 @@ public class TreeAnimator {
     public static Transition animateProperty(DoubleProperty property, double fromValue, double toValue) {
         return animateProperty((Property<Number>)property, fromValue, toValue);
     }
+
+    public static SequentialTransition animateTextChange(Text text, String newText) {
+        SequentialTransition seqTransition = new SequentialTransition();
+
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(ANIMATION_DURATION.toMillis()/2), text);
+        fadeOut.setFromValue(1.0);
+        fadeOut.setToValue(0.0);
+        fadeOut.setInterpolator(interpolator);
+
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(ANIMATION_DURATION.toMillis()/2), text);
+        fadeIn.setFromValue(0.0);
+        fadeIn.setToValue(1.0);
+        fadeIn.setInterpolator(interpolator);
+
+        fadeOut.setOnFinished(_ -> text.setText(newText));
+
+        seqTransition.getChildren().addAll(fadeOut, fadeIn);
+        return seqTransition;
+
+    } 
 
 }
