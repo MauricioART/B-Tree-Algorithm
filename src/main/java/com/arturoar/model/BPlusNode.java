@@ -61,6 +61,9 @@ abstract public class BPlusNode<K extends Comparable<K>, V> {
         return this.keys.get(index).getKey();
     }
 
+    public Key<K> getKeyObject(int index) {
+        return this.keys.get(index);
+    }
     public int getLevel() {
         return this.level;
     }
@@ -88,6 +91,10 @@ abstract public class BPlusNode<K extends Comparable<K>, V> {
     public boolean isUnderFlow() {
         return this.keys.size() < B - 1;
     }
+
+    public boolean wouldBeUnderFlow() {
+    return (this.size() - 1) < (B - 1);
+}
 
     public int size() {
         return this.keys.size();
