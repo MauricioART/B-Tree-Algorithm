@@ -56,6 +56,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
     @Override
     public void onTreeChanged(BPlusTreeEvent<Integer, String> event) {
+
         switch (event.getType()) {
             case NEW_ROOT:
                 handleNewRoot(event);
@@ -83,6 +84,9 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                 break;
             case CHILDNODE_CREATED:
                 handleChildNodeCreated(event);
+                break;
+            case KEY_CHANGED:
+                handleKeyChanged(event);
                 break;
         }
 
@@ -326,6 +330,12 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         childrenToArrow.put(e.getChild(), newChildEdge);
         this.getChildren().add(newChildEdge);
         this.unshownArrows.add(newChildEdge);
+    }
+
+    private void handleKeyChanged(BPlusTreeEvent<Integer, String> event) {
+        BPlusTreeEvent.KeyChanged<Integer,String> e = (BPlusTreeEvent.KeyChanged<Integer,String>) event;
+        KeyView changedKeyView = keyToKeyView.get(e.getKey());
+        TreeAnimator.addTransitionToQueue(TreeAnimator.animateTextChange(changedKeyView.getKeyLabel(), String.valueOf(e.getNewKey())));
     }
 
     private int findChildIndex(BPlusNode<Integer, String> parent, BPlusNode<Integer, String> child) {

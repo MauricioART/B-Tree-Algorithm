@@ -10,6 +10,7 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 
 import com.arturoar.model.BPlusTree;
+import com.arturoar.model.Key;
 
 /**
  * Este método contiene la interfaz de usuario para manejar las estructuras de datos Árbol AVL y
@@ -160,7 +161,7 @@ public class Control {
                         break;
                     case 3:
                         System.out.print("Clave: ");
-                        String value;
+                        Key<Integer> value;
                         if ((value = arbol.search(sc2.nextInt()).getResult()) != null)
                             System.out.println(value);
                         else
