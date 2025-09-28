@@ -153,7 +153,7 @@ public abstract class NodeView extends Group {
         this.keys.forEach(key -> {
             double byX = key.getDeltaX() + deltaX;
 
-            if (byX == 0.0) return;
+            //if (byX == 0.0) return;
 
             // Create a transition for the key movement
             Transition movingKey = TreeAnimator.moveNode(key, byX, 0.0);
