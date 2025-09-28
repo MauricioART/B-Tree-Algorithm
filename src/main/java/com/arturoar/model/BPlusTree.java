@@ -319,6 +319,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
             List<Key<K>> borrowedKeys = nextNode.getKeys();
 
             node.getKeys().addAll(borrowedKeys);
+            notifyObservers(new BPlusTreeEvent.NodeDeleted<>(nextNode));
             notifyObservers(new BPlusTreeEvent.KeyBorrowed<>(nextNode, node, borrowedKeys));
 
             ((BPlusLeafNode<K,V>)node).getData().addAll(((BPlusLeafNode<K,V>)nextNode).getData());
@@ -363,10 +364,13 @@ public class BPlusTree<K extends Comparable<K>,V> {
 
         if (node.getParent() == this.root && node.getParent().getKeys().isEmpty()) {
             this.root = node;
+            node.decreaseLevel();
+            notifyObservers(new BPlusTreeEvent.NodeDeleted<>(node.getParent()));
             this.root.setParent(null);
+            notifyObservers(new BPlusTreeEvent.NewRoot<>(node));
         }
         else {
-            if (node.getParent().isUnderFlow()) {
+            if (node.getParent().isUnderFlow() && node.getParent() != this.root) {
                 int lendingNode = searchBorrower(node.getParent().getChildrenIndex(),node.getParent().getParent());
                 if (lendingNode != 0) {
                     borrowKey(node.getParent(),lendingNode);
