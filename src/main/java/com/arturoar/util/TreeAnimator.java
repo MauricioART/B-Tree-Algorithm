@@ -22,7 +22,7 @@ import javafx.util.Duration;
 
 public class TreeAnimator {
 
-    private static final Duration ANIMATION_DURATION = Duration.millis(300);
+    private static final Duration ANIMATION_DURATION = Duration.millis(800);
     private static Interpolator interpolator = Interpolator.EASE_BOTH;
 
     public static List<Transition>  parallelList = new ArrayList<>();
@@ -33,7 +33,7 @@ public class TreeAnimator {
     }
 
     public static Transition fadeNode(Node node, double from, double to) {
-        FadeTransition fade = new FadeTransition(Duration.millis(ANIMATION_DURATION.toMillis()/1.2), node);
+        FadeTransition fade = new FadeTransition(Duration.millis(ANIMATION_DURATION.toMillis()/4), node);
         fade.setFromValue(from);
         fade.setToValue(to);
         fade.setInterpolator(interpolator);
