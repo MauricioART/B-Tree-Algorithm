@@ -82,34 +82,6 @@ public class TreeAnimator {
         return fillTransition;
     }   
 
-    public static SequentialTransition highlightNode(NodeView node) {
-        Rectangle shape = node.getNodeShape();
-        Color original = (Color) shape.getStroke();
-        Color highlightColor = Color.web("#bca20eff"); // Amarillo dorado
-
-        FadeTransition fadeIn = new FadeTransition(ANIMATION_DURATION.divide(2), shape);
-        fadeIn.setFromValue(0);
-        fadeIn.setToValue(1.0);
-        fadeIn.setInterpolator(interpolator);
-        StrokeTransition highlightStroke = new StrokeTransition(ANIMATION_DURATION.divide(2), shape, original, highlightColor);
-
-        ParallelTransition highlight = new ParallelTransition(fadeIn, highlightStroke);
-
-        FadeTransition fadeOut = new FadeTransition(ANIMATION_DURATION.divide(2), shape);
-        fadeOut.setFromValue(1.0);
-        fadeOut.setToValue(0.0);
-        fadeOut.setInterpolator(interpolator);
-
-        StrokeTransition restoreTransition = new StrokeTransition(ANIMATION_DURATION.divide(2), shape, highlightColor, original);
-
-        ParallelTransition restore = new ParallelTransition(fadeOut, restoreTransition);
-
-        SequentialTransition seq = new SequentialTransition(highlight, restore);
-        return seq;
-    }
-
-    /*
-    
     public static SequentialTransition highlightKeyView(KeyView keyView) {
         Rectangle rect = keyView.getKeyShape();
         Text text = keyView.getKeyLabel();
@@ -118,79 +90,29 @@ public class TreeAnimator {
         Color highlightStroke = Color.web("#bca20eff"); // Amarillo dorado
 
         Color originalText = (Color) text.getFill();
-        Color highlightText = Color.web("#FFF"); // Naranja fuerte
+        Color highlightText = Color.web("#bca20eff"); // Blanco
 
-        // Transición para el borde
-        FillTransition strokeHighlight = new FillTransition(ANIMATION_DURATION, rect);
-        strokeHighlight.setFromValue(originalStroke);
-        strokeHighlight.setToValue(highlightStroke);
+        // Transiciones para el borde
+        StrokeTransition strokeHighlight = new StrokeTransition(ANIMATION_DURATION, rect, originalStroke, highlightStroke);
         strokeHighlight.setInterpolator(interpolator);
 
-        FillTransition strokeRestore = new FillTransition(ANIMATION_DURATION, rect);
-        strokeRestore.setFromValue(highlightStroke);
-        strokeRestore.setToValue(originalStroke);
+        StrokeTransition strokeRestore = new StrokeTransition(ANIMATION_DURATION, rect, highlightStroke, originalStroke);
         strokeRestore.setInterpolator(interpolator);
 
-        // Transición para el texto
-        Transition textHighlight = new Transition() {
-            {
-                setCycleDuration(Duration.millis(250));
-                setInterpolator(interpolator);
-            }
-            @Override
-            protected void interpolate(double frac) {
-                text.setFill(frac < 1.0 ? highlightText : originalText);
-            }
-        };
+        // 🔹 Transiciones para el texto (usando FillTransition en lugar de Transition manual)
+        FillTransition textHighlight = new FillTransition(Duration.millis(250), text, originalText, highlightText);
+        textHighlight.setInterpolator(interpolator);
 
-        Transition textRestore = new Transition() {
-            {
-                setCycleDuration(Duration.millis(250));
-                setInterpolator(interpolator);
-            }
-            @Override
-            protected void interpolate(double frac) {
-                text.setFill(frac < 1.0 ? originalText : highlightText);
-            }
-        };
+        FillTransition textRestore = new FillTransition(Duration.millis(250), text, highlightText, originalText);
+        textRestore.setInterpolator(interpolator);
 
-        SequentialTransition seq = new SequentialTransition(
-            strokeHighlight, textHighlight, strokeRestore, textRestore
-        );
-        return seq;
+        // 🔹 Agrupar en paralelo
+        ParallelTransition highlightPhase = new ParallelTransition(strokeHighlight, textHighlight);
+        ParallelTransition restorePhase = new ParallelTransition(strokeRestore, textRestore);
+
+        // 🔹 Secuencia completa
+        return new SequentialTransition(highlightPhase, restorePhase);
     }
-    */
-    public static SequentialTransition highlightKeyView(KeyView keyView) {
-    Rectangle rect = keyView.getKeyShape();
-    Text text = keyView.getKeyLabel();
-
-    Color originalStroke = (Color) rect.getStroke();
-    Color highlightStroke = Color.web("#bca20eff"); // Amarillo dorado
-
-    Color originalText = (Color) text.getFill();
-    Color highlightText = Color.web("#bca20eff"); // Blanco
-
-    // Transiciones para el borde
-    StrokeTransition strokeHighlight = new StrokeTransition(ANIMATION_DURATION, rect, originalStroke, highlightStroke);
-    strokeHighlight.setInterpolator(interpolator);
-
-    StrokeTransition strokeRestore = new StrokeTransition(ANIMATION_DURATION, rect, highlightStroke, originalStroke);
-    strokeRestore.setInterpolator(interpolator);
-
-    // 🔹 Transiciones para el texto (usando FillTransition en lugar de Transition manual)
-    FillTransition textHighlight = new FillTransition(Duration.millis(250), text, originalText, highlightText);
-    textHighlight.setInterpolator(interpolator);
-
-    FillTransition textRestore = new FillTransition(Duration.millis(250), text, highlightText, originalText);
-    textRestore.setInterpolator(interpolator);
-
-    // 🔹 Agrupar en paralelo
-    ParallelTransition highlightPhase = new ParallelTransition(strokeHighlight, textHighlight);
-    ParallelTransition restorePhase = new ParallelTransition(strokeRestore, textRestore);
-
-    // 🔹 Secuencia completa
-    return new SequentialTransition(highlightPhase, restorePhase);
-}
 
   
     public static SequentialTransition highlightEdge(Edge arrow) {
