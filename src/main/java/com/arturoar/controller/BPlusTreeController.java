@@ -96,6 +96,8 @@ public class BPlusTreeController {
                     showAlert(Alert.AlertType.WARNING, "Insertion Error", "Key already exists");
                 }
                 this.tree.showTree();
+                disableButtons();
+                TreeAnimator.addListenerToLastTransition(() -> enableButtons());
                 TreeAnimator.animateQueue();
             } catch (NumberFormatException e) {
                 showInputErrorAlert("Please enter a valid integer key.");
@@ -112,6 +114,8 @@ public class BPlusTreeController {
                     showAlert(Alert.AlertType.ERROR, "Removal Error", 
                             "The structure does not contain key " + key);
                 }
+                disableButtons();                
+                TreeAnimator.addListenerToLastTransition(() -> enableButtons());
                 this.tree.showTree();
                 TreeAnimator.animateQueue();
             } catch (NumberFormatException e) {
@@ -125,7 +129,7 @@ public class BPlusTreeController {
         dialog.showAndWait().ifPresent(values -> {
             try {
                 int key = Integer.parseInt(values[0]);
-                BPlusTraversalResult<Key<Integer>, Integer, String> result = search(key);
+                BPlusTraversalResult<BPlusLeafNode<Integer, String>, Integer, String> result = search(key);
                 if ( result.getResult() == null) {
                     showAlert(Alert.AlertType.ERROR, "Search Error", 
                             "The structure does not contain key " + key);
@@ -133,6 +137,8 @@ public class BPlusTreeController {
                     // TODOw: Implement search animation
                     System.out.println("◆◆◆◆◆ Búsqueda exitosa ◆◆◆◆◆");
                 }
+                disableButtons();
+                TreeAnimator.addListenerToLastTransition(() -> enableButtons());
                 TreeAnimator.animateQueue();
             } catch (NumberFormatException e) {
                 showInputErrorAlert("Please enter a valid integer key.");
@@ -144,20 +150,29 @@ public class BPlusTreeController {
         Dialog<String[]> dialog = new Dialog<>();
         dialog.setTitle(title);
         dialog.setHeaderText(header);
-        
+
         ButtonType confirmButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(confirmButton, ButtonType.CANCEL);
-        
+
         TextField keyField = new TextField();
         keyField.setPromptText("Key");
         VBox vbox = new VBox(keyField);
-        
+
+        TextField dataField = null;
         if (includeDataField) {
-            TextField dataField = new TextField();
+            dataField = new TextField();
             dataField.setPromptText("Data");
             vbox.getChildren().add(dataField);
+
+            // Listener para actualizar el valor por defecto dinámicamente
+            TextField finalDataField = dataField;
+            keyField.textProperty().addListener((_, _, newVal) -> {
+                finalDataField.setText("Data " + newVal);
+            });
+            finalDataField.setOnMouseClicked(_ -> finalDataField.setText(""));
         }
-        
+
+
         dialog.getDialogPane().setContent(vbox);
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == confirmButton) {
@@ -170,7 +185,7 @@ public class BPlusTreeController {
             }
             return null;
         });
-        
+
         return dialog;
     }
 
@@ -218,6 +233,7 @@ public class BPlusTreeController {
 
     public boolean insert(Integer key, String data) {
         BPlusTraversalResult<Boolean, Integer, String> result = this.tree.insert(key, data);
+        treeView.animateTraversal(result.getVisitedKeys());
         return result.getResult();
     }
 
@@ -225,9 +241,23 @@ public class BPlusTreeController {
         return this.tree.remove(key);
     }
 
-    public BPlusTraversalResult<Key<Integer>, Integer, String> search(Integer key) {
+    public BPlusTraversalResult<BPlusLeafNode<Integer, String>, Integer, String> search(Integer key) {
         return this.tree.search(key);
     }
 
-    
+    private void disableButtons() {
+        this.insertBtn.setDisable(true);
+        this.removeBtn.setDisable(true);
+        this.searchBtn.setDisable(true);
+        this.homeBtn.setDisable(true);
+    }
+
+    private void enableButtons() {
+        this.insertBtn.setDisable(false);
+        this.removeBtn.setDisable(false);
+        this.searchBtn.setDisable(false);
+        this.homeBtn.setDisable(false);
+        this.treeView.updateKeyViews();
+    }
+
 }
