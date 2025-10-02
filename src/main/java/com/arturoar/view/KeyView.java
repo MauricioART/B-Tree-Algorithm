@@ -24,6 +24,8 @@ public class KeyView extends Group {
     private final Double paddingY = 4.0;
     private Color strokeColor = Color.BLACK;
     private Color fillColor = Color.WHITE;
+    private NodeView node;
+    private NodeView newNode;
 
     public KeyView(Integer key) {
         this.key = key;
@@ -57,6 +59,21 @@ public class KeyView extends Group {
         this.keyLabel.textProperty().addListener(strListener);
     }
 
+    public NodeView getNode() {
+        return this.node;
+    }
+
+    public void setNode(NodeView node) {
+        this.node = node;
+    }
+
+    public void setNewNode(NodeView newNode) {
+        this.newNode = newNode;
+    }   
+
+    public void updateNode() {
+        this.node = this.newNode;
+    }
    
     public double getNewXOrigin(){
         return this.newXOrigin;
@@ -141,4 +158,9 @@ public class KeyView extends Group {
     public void setIsNew(boolean isNew) {
         this.isNew = isNew;
     }
+
+    public Rectangle getKeyShape() {
+        return this.nodeShape;
+    }
+
 }
