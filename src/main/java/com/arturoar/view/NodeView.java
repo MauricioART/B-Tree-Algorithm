@@ -4,6 +4,8 @@ import javafx.animation.Transition;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Group;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +61,10 @@ public abstract class NodeView extends Group {
     public KeyView getLast(){
         return this.keys.getLast();
     }
+
+    public int size(){
+        return this.keys.size();
+    }
     
     public int getKeyIndex( KeyView keyView) {
         return this.keys.indexOf(keyView);
@@ -94,8 +100,10 @@ public abstract class NodeView extends Group {
             newKeyView.setCurrentXOrigin(xOrigin);
             newKeyView.setCurrentYOrigin(yOrigin);
             newKeyView.setNewOriginY(yOrigin);
+            newKeyView.setNode(this);
         }else{
             newKeyView.setNewOriginY(yOrigin);
+            newKeyView.setNewNode(this);
         }
 
         // Update the new origin for all keys after the inserted key
