@@ -10,7 +10,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.CubicCurve;
 import javafx.scene.shape.Polygon;
 
-public class Arrow extends Group {
+public class Edge extends Group {
 
     private final CubicCurve curve;
     private final Polygon arrowHead;
@@ -21,11 +21,11 @@ public class Arrow extends Group {
     private final DoubleProperty endY = new SimpleDoubleProperty();
     private final ObjectProperty<Color> arrowColor = new SimpleObjectProperty<>(Color.BLACK);
 
-    public Arrow() {
+    public Edge() {
         this(0, 0, 0, 0);
     }
 
-    public Arrow(double originX, double originY, double endX, double endY) {
+    public Edge(double originX, double originY, double endX, double endY) {
         this.originX.set(originX);
         this.originY.set(originY);
         this.endX.set(endX);
@@ -97,7 +97,18 @@ public class Arrow extends Group {
         );
     }
 
+
     // Getters/Setters/Properties
+
+
+    public CubicCurve getCurve() {
+        return curve;
+    }
+
+    public Polygon getArrowHead() {
+        return arrowHead;
+    }
+
     public final double getOriginX() { return originX.get(); }
     public final void setOriginX(double value) { originX.set(value); }
     public DoubleProperty originXProperty() { return originX; }
