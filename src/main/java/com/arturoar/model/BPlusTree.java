@@ -41,9 +41,9 @@ public class BPlusTree<K extends Comparable<K>,V> {
     
     public BPlusTraversalResult<Boolean,K,V> insert(K key, V data){
         BPlusLeafNode<K,V> leafNode = searchLeafNode(key);
-        BPlusTraversalResult<Boolean, K, V> containResult = this.contains(key);
-        BPlusTraversalResult<Boolean, K, V> insertResult = new BPlusTraversalResult<>(containResult.getVisitedNodes(), false);
-        if (!containResult.getResult()) {
+        BPlusTraversalResult<BPlusLeafNode<K, V>, K, V> containResult = this.contains(key);
+        BPlusTraversalResult<Boolean, K, V> insertResult = new BPlusTraversalResult<>(containResult.getVisitedKeys(), false);
+        if (containResult.getResult() == null ) {
             int keyIndex = findNodeIndex(key, leafNode);
             Key<K> newKey = new Key<K>(key);
             leafNode.addKey(keyIndex, newKey);
@@ -64,13 +64,13 @@ public class BPlusTree<K extends Comparable<K>,V> {
     } 
 
     public BPlusTraversalResult<Key<K>, K, V> remove(K key){
-        BPlusTraversalResult<Boolean,K,V> containsResult = this.contains(key);
-        BPlusTraversalResult<Key<K>, K, V> removeResult = new BPlusTraversalResult<>( containsResult.getVisitedNodes());
+        BPlusTraversalResult<BPlusLeafNode<K, V>, K, V> containsResult = this.contains(key);
+        BPlusTraversalResult<Key<K>, K, V> removeResult = new BPlusTraversalResult<>( containsResult.getVisitedKeys());
 
-        if (!containsResult.getResult()) {
+        if (containsResult.getResult() == null) {
             return null;
         }else{
-            BPlusLeafNode<K,V> leafNode = (BPlusLeafNode<K,V>) containsResult.getVisitedNodes().getLast();
+            BPlusLeafNode<K,V> leafNode =  containsResult.getResult();
 
             int keyIndex = leafNode.getKeyValues().indexOf(key);
 
@@ -120,8 +120,8 @@ public class BPlusTree<K extends Comparable<K>,V> {
      * @param key The key to search for.
      * @return A BPlusTraversalResult containing the data associated with the key if found.
      */
-    public BPlusTraversalResult<Key<K>, K, V> search(K key) {
-        BPlusTraversalResult<Key<K>, K, V> result = new BPlusTraversalResult<>();
+    public BPlusTraversalResult<BPlusLeafNode<K, V>, K, V> search(K key) {
+        BPlusTraversalResult<BPlusLeafNode<K, V>, K, V> result = new BPlusTraversalResult<>();
 
         if (this.root == null) {
             throw new IllegalStateException("The B+ tree is empty.");
@@ -132,7 +132,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
         
         while (!nodesQueue.isEmpty()) {
             BPlusNode<K, V> currentNode = nodesQueue.poll();
-            result.addVisitedKey(currentNode);
+            //result.addVisitedKey(currentNode);
             
             if (currentNode.isLeaf()) {
                 processLeafNode(currentNode, key, result);
@@ -140,7 +140,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
                     return result;
                 }
             } else {
-                int childIndex = findChildIndex(currentNode, key);
+                int childIndex = findChildIndex(currentNode, key, result.getVisitedKeys());
                 nodesQueue.addLast(((BPlusInnerNode<K, V>) currentNode).getChild(childIndex));
             }
         }
@@ -155,11 +155,14 @@ public class BPlusTree<K extends Comparable<K>,V> {
      * @param key The key to search for.
      * @param result The result that will contain the data if the key is found.
      */
-    private void processLeafNode(BPlusNode<K, V> currentNode, K key, BPlusTraversalResult<Key<K>, K, V> result) {
-        for (K storedKey : currentNode.getKeyValues()) {
-            if (key.compareTo(storedKey) == 0) {
-                int index = currentNode.getKeyValues().lastIndexOf(key);
-                result.setResult(((BPlusLeafNode<K, V>) currentNode).getKeyObject(index));
+    private void processLeafNode(BPlusNode<K, V> currentNode, K key, BPlusTraversalResult<BPlusLeafNode<K, V>, K, V> result) {
+        for (Key<K> storedKey : currentNode.getKeys()) {
+            result.addVisitedKey(storedKey);
+            if (key.compareTo(storedKey.key) < 0) {
+                break;
+            }
+            if (key.compareTo(storedKey.key) == 0) {
+                result.setResult(((BPlusLeafNode<K, V>) currentNode));
                 break;
             }
         }
@@ -172,10 +175,11 @@ public class BPlusTree<K extends Comparable<K>,V> {
      * @param key The key to search for.
      * @return The index of the child node to traverse.
      */
-    private int findChildIndex(BPlusNode<K, V> currentNode, K key) {
+    private int findChildIndex(BPlusNode<K, V> currentNode, K key, List<Key<K>> visitedKeys) {
         int childIndex = 0;
-        for (K storedKey : currentNode.getKeyValues()) {
-            if (key.compareTo(storedKey) >= 0) {
+        for (Key<K> storedKey : currentNode.getKeys()) {
+            visitedKeys.add(storedKey);
+            if (key.compareTo(storedKey.key) >= 0) {
                 childIndex++;
             } else {
                 break;
@@ -186,10 +190,9 @@ public class BPlusTree<K extends Comparable<K>,V> {
 
 
 
-    public BPlusTraversalResult<Boolean, K, V> contains(K key){
-        BPlusTraversalResult<Key<K>, K, V> result = this.search(key);
-        result.setResult(result.getResult() != null ? result.getResult() : null);
-        return new BPlusTraversalResult<Boolean, K, V>(result.getVisitedNodes(), result.getResult() != null);
+    public BPlusTraversalResult<BPlusLeafNode<K, V>, K, V> contains(K key){
+        return this.search(key);
+
     }
 
      /**

@@ -2,39 +2,39 @@ package com.arturoar.util;
 
 import java.util.ArrayList;
 
-import com.arturoar.model.BPlusNode;
+import com.arturoar.model.Key;
 
 public class BPlusTraversalResult<T, K extends Comparable<K>, V> {
     private T result;
-    private ArrayList<BPlusNode<K,V>> visitedNodes;
+    private ArrayList<Key<K>> visitedKeys;
 
     public BPlusTraversalResult() {
         this.result = null;
-        this.visitedNodes = new ArrayList<>();
+        this.visitedKeys = new ArrayList<>();
     }
-    public BPlusTraversalResult(ArrayList<BPlusNode<K,V>> visitedNodes) {
+    public BPlusTraversalResult(ArrayList<Key<K>> visitedKeys) {
         this.result = null;
-        this.visitedNodes = visitedNodes;
+        this.visitedKeys = visitedKeys;
     }
-    public BPlusTraversalResult(ArrayList<BPlusNode<K,V>> visitedNodes, T result){
+    public BPlusTraversalResult(ArrayList<Key<K>> visitedKeys, T result){
         this.result = result;
-        this.visitedNodes = visitedNodes;
+        this.visitedKeys = visitedKeys;
     }
 
     public BPlusTraversalResult(T result){
         this.result = result;
-        this.visitedNodes = new ArrayList<>();
+        this.visitedKeys = new ArrayList<>();
     }
 
-    public void addVisitedKey(BPlusNode<K,V> node) {
-        this.visitedNodes.add(node);
+    public void addVisitedKey(Key<K> key) {
+        this.visitedKeys.add(key);
     }
 
-    public void setVisitedKeys(ArrayList<BPlusNode<K,V>> nodes){
-        this.visitedNodes = nodes;
+    public void setVisitedKeys(ArrayList<Key<K>> keys){
+        this.visitedKeys = keys;
     }
-    public ArrayList<BPlusNode<K,V>> getVisitedNodes() {
-        return visitedNodes;
+    public ArrayList<Key<K>> getVisitedKeys() {
+        return visitedKeys;
     }
 
     public void setResult(T result){
