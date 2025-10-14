@@ -16,6 +16,9 @@ public class BPlusTreeUI extends Application {
         Parent root = fxmlLoader.load();
         
         Scene scene = new Scene(root);
+
+        scene.getStylesheets().add(getClass().getResource("css/styles.css").toExternalForm());
+        
         primaryStage.setResizable(true);
         primaryStage.setTitle(STYLESHEET_CASPIAN);
         primaryStage.setTitle("B+ Tree");
