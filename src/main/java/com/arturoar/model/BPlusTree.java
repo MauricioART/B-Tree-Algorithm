@@ -13,12 +13,12 @@ import com.arturoar.util.BPlusTreeObserver;
 public class BPlusTree<K extends Comparable<K>,V> {
 
     private BPlusNode<K,V> root;
-    private int B;
+    private int m;
     private ArrayList<BPlusNode<K,V>> nodes;
 
-    public BPlusTree(int B){
-        this.B = B;
-        this.root = new BPlusLeafNode<K,V>(true, B, 0, null);
+    public BPlusTree(int m){
+        this.m = m;
+        this.root = new BPlusLeafNode<K,V>(true, m, 0, null);
         this.nodes = new ArrayList<>(List.of(this.root));
     }
 
@@ -26,8 +26,8 @@ public class BPlusTree<K extends Comparable<K>,V> {
         return this.root;
     }
 
-    public int getB(){
-        return this.B;
+    public int getM(){
+        return this.m;
     }
 
     public void setRoot(BPlusNode<K,V> newRoot){
@@ -62,7 +62,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
         }else
             return insertResult;
     } 
-
+ 
     public BPlusTraversalResult<Key<K>, K, V> remove(K key){
         BPlusTraversalResult<BPlusLeafNode<K, V>, K, V> containsResult = this.contains(key);
         BPlusTraversalResult<Key<K>, K, V> removeResult = new BPlusTraversalResult<>( containsResult.getVisitedKeys());
@@ -80,7 +80,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
             removeResult.setResult(deletedKey);
 
             //notifyObservers(new BTreeEvent<K,V>(BTreeEvent.EventType.KEY_REMOVED, leafNode, deletedKey));
-            notifyObservers(new BPlusTreeEvent.KeyRemoved<>(leafNode, deletedKey));
+             notifyObservers(new BPlusTreeEvent.KeyRemoved<>(leafNode, deletedKey));
 
             if (!leafNode.isUnderFlow()) {    
                 return removeResult;
@@ -209,11 +209,11 @@ public class BPlusTree<K extends Comparable<K>,V> {
 
         // New node creation
         if (node.isLeaf()){
-            newNode = new BPlusLeafNode<>(true, this.B, node.getLevel(), node.getParent());
+            newNode = new BPlusLeafNode<>(true, this.m, node.getLevel(), node.getParent());
             ((BPlusLeafNode<K,V>)newNode).setNextLeafNode(((BPlusLeafNode<K,V>)node).getNextLeafNode());
             ((BPlusLeafNode<K,V>)node).setNextLeafNode((BPlusLeafNode<K,V>)newNode);
         }else{
-            newNode = new BPlusInnerNode<>(false, this.B, node.getLevel(), node.getParent());
+            newNode = new BPlusInnerNode<>(false, this.m, node.getLevel(), node.getParent());
         }
         this.nodes.add(newNode);
 
@@ -254,7 +254,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
         
         if (node == this.root) {
 
-            BPlusInnerNode<K,V> newRoot = new BPlusInnerNode<>(false, this.B, 0 , null);
+            BPlusInnerNode<K,V> newRoot = new BPlusInnerNode<>(false, this.m, 0 , null);
             this.nodes.add(newRoot);
             setRoot(newRoot);
             node.setParent(newRoot);

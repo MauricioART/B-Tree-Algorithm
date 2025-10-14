@@ -5,17 +5,17 @@ import java.util.stream.Collectors;
 
 abstract public class BPlusNode<K extends Comparable<K>, V> {
 
-    protected int B;
+    protected int m;
     protected ArrayList<Key<K>> keys;
     protected BPlusInnerNode<K, V> parent;
     protected boolean isLeaf;
     protected int level;
 
-    BPlusNode(boolean isLeaf, int B, int level, BPlusInnerNode<K, V> parent) {
+    BPlusNode(boolean isLeaf, int m, int level, BPlusInnerNode<K, V> parent) {
         this.keys = new ArrayList<>();
         this.isLeaf = isLeaf;
         this.parent = parent;
-        this.B = B;
+        this.m = m;
         this.level = level;
     }
 
@@ -85,15 +85,15 @@ abstract public class BPlusNode<K extends Comparable<K>, V> {
     }
 
     public boolean isOverFlow() {
-        return this.keys.size() > (2 * B) - 1;
+        return this.keys.size() > m - 1;
     }
 
     public boolean isUnderFlow() {
-        return this.keys.size() < B - 1;
+        return this.keys.size() < Math.ceil(m / 2) - 1;
     }
 
     public boolean wouldBeUnderFlow() {
-    return (this.size() - 1) < (B - 1);
+    return (this.size() - 1) < Math.ceil(m / 2) - 1;
 }
 
     public int size() {
