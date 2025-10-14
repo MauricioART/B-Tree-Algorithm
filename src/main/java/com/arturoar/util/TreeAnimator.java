@@ -5,7 +5,8 @@ import java.util.List;
 
 import com.arturoar.view.Edge;
 import com.arturoar.view.KeyView;
-import com.arturoar.view.NodeView;
+import com.arturoar.view.LeafLinkEdge;
+import com.arturoar.view.TreeEdge;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.FillTransition;
@@ -21,13 +22,14 @@ import javafx.beans.property.Property;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
 public class TreeAnimator {
 
     private static final Duration ANIMATION_DURATION = Duration.millis(600);
-    private static Interpolator interpolator = Interpolator.EASE_IN;
+    private static Interpolator interpolator = Interpolator.EASE_BOTH;
 
 
     public static List<Transition>  parallelList = new ArrayList<>();
@@ -39,7 +41,8 @@ public class TreeAnimator {
     }
 
     public static Transition fadeNode(Node node, double from, double to) {
-        FadeTransition fade = new FadeTransition(Duration.millis(ANIMATION_DURATION.toMillis() * 0.4), node);
+        FadeTransition fade = new FadeTransition(ANIMATION_DURATION, node);
+        fade.setInterpolator(Interpolator.EASE_IN);
         fade.setFromValue(from);
         fade.setToValue(to);
         fade.setInterpolator(interpolator);
@@ -115,18 +118,24 @@ public class TreeAnimator {
     }
 
   
-    public static SequentialTransition highlightEdge(Edge arrow) {
+    public static SequentialTransition highlightEdge(Edge edge) {
 
-        Color originalStroke = (Color) arrow.getArrowColor();
+        Shape body;
+        if (edge instanceof TreeEdge ) {
+            body = ((TreeEdge) edge).getBody();
+        }else {
+            body = ((LeafLinkEdge) edge).getBody();
+        }
+        Color originalStroke = (Color) edge.getColor();
         Color highlightStroke = Color.web("#bca20eff"); // Azul claro
 
 
-        StrokeTransition highlightCurve = new StrokeTransition(ANIMATION_DURATION, arrow.getCurve(), originalStroke, highlightStroke);
-        StrokeTransition highlightArrowHead = new StrokeTransition(ANIMATION_DURATION, arrow.getArrowHead(), originalStroke, highlightStroke);
-        
-        
-        StrokeTransition restoreCurve = new StrokeTransition(ANIMATION_DURATION, arrow.getCurve(), highlightStroke, originalStroke);
-        StrokeTransition restoreArrowHead = new StrokeTransition(ANIMATION_DURATION, arrow.getArrowHead(), highlightStroke, originalStroke);
+        StrokeTransition highlightCurve = new StrokeTransition(ANIMATION_DURATION, body, originalStroke, highlightStroke);
+        FillTransition highlightArrowHead = new FillTransition(ANIMATION_DURATION, edge.getHead(), originalStroke, highlightStroke);
+
+
+        StrokeTransition restoreCurve = new StrokeTransition(ANIMATION_DURATION, body, highlightStroke, originalStroke);
+        FillTransition restoreArrowHead = new FillTransition(ANIMATION_DURATION, edge.getHead(), highlightStroke, originalStroke);
 
         highlightCurve.setInterpolator(interpolator);
         restoreCurve.setInterpolator(interpolator);

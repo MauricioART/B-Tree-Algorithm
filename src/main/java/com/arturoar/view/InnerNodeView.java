@@ -6,7 +6,7 @@ import java.util.List;
 
 public class InnerNodeView extends NodeView {
 
-    public List<Arrow> edges = new ArrayList<>();
+    public List<Edge> edges = new ArrayList<>();
 
 
     public InnerNodeView(Double x, Double y) {
@@ -18,15 +18,15 @@ public class InnerNodeView extends NodeView {
     }
 
 
-    public Arrow getEdge(int index){
+    public Edge getEdge(int index){
         return this.edges.get(index);
     }
     
-    public List<Arrow> getEdges(){
+    public List<Edge> getEdges(){
         return this.edges;
     }
 
-    public void addEdge(int index, Arrow edge){
+    public void addEdge(int index, Edge edge){
         this.edges.add(index, edge);
     }
 
