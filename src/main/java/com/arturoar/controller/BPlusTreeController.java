@@ -19,7 +19,7 @@ public class BPlusTreeController {
     private static final double SCALE_DELTA = 1.1;
    // private static final double DEFAULT_X_SPACING = 20.0;
    // private static final double DEFAULT_Y_SPACING = 80.0;
-    private static final int DEFAULT_BRANCHING_FACTOR = 3;
+    private static final int DEFAULT_BRANCHING_FACTOR = 4;
 
     @FXML private Pane canvas;
     @FXML private Button insertBtn;
@@ -50,7 +50,7 @@ public class BPlusTreeController {
     public BPlusTreeController() {
         this.tree = new BPlusTree<>(this.branchingFactor);
         this.treeView = new TreeView(this.tree.getRoot());
-        this.tree.addObserver(this.treeView);
+        //this.tree.addObserver(this.treeView);
     }
 
     @FXML
@@ -96,8 +96,9 @@ public class BPlusTreeController {
                     showAlert(Alert.AlertType.WARNING, "Insertion Error", "Key already exists");
                 }
                 this.tree.showTree();
-                disableButtons();
+                //disableButtons();
                 TreeAnimator.addListenerToLastTransition(() -> enableButtons());
+
                 TreeAnimator.animateQueue();
             } catch (NumberFormatException e) {
                 showInputErrorAlert("Please enter a valid integer key.");
@@ -110,11 +111,11 @@ public class BPlusTreeController {
         dialog.showAndWait().ifPresent(values -> {
             try {
                 int key = Integer.parseInt(values[0]);
-                if (remove(key).getResult() == null) {
+                if (remove(key) == null) {
                     showAlert(Alert.AlertType.ERROR, "Removal Error", 
                             "The structure does not contain key " + key);
                 }
-                disableButtons();                
+                //disableButtons();                
                 TreeAnimator.addListenerToLastTransition(() -> enableButtons());
                 this.tree.showTree();
                 TreeAnimator.animateQueue();
@@ -129,8 +130,8 @@ public class BPlusTreeController {
         dialog.showAndWait().ifPresent(values -> {
             try {
                 int key = Integer.parseInt(values[0]);
-                BPlusTraversalResult<BPlusLeafNode<Integer, String>, Integer, String> result = search(key);
-                if ( result.getResult() == null) {
+                BPlusLeafNode<Integer, String> result = search(key);
+                if ( result == null) {
                     showAlert(Alert.AlertType.ERROR, "Search Error", 
                             "The structure does not contain key " + key);
                 }else{
@@ -233,16 +234,20 @@ public class BPlusTreeController {
 
     public boolean insert(Integer key, String data) {
         BPlusTraversalResult<Boolean, Integer, String> result = this.tree.insert(key, data);
-        treeView.animateTraversal(result.getVisitedKeys());
+        //treeView.animateTraversal(result.getVisitedKeys());
         return result.getResult();
     }
 
-    public BPlusTraversalResult<Key<Integer>, Integer, String> remove(Integer key) {
-        return this.tree.remove(key);
+    public Key<Integer> remove(Integer key) {
+        BPlusTraversalResult<Key<Integer>, Integer, String> result = this.tree.remove(key);
+        //treeView.animateTraversal(result.getVisitedKeys());
+        return result.getResult();
     }
 
-    public BPlusTraversalResult<BPlusLeafNode<Integer, String>, Integer, String> search(Integer key) {
-        return this.tree.search(key);
+    public BPlusLeafNode<Integer, String> search(Integer key) {
+        BPlusTraversalResult<BPlusLeafNode<Integer, String>, Integer, String>  result =  this.tree.search(key);
+        //treeView.animateTraversal(result.getVisitedKeys());
+        return result.getResult();
     }
 
     private void disableButtons() {
