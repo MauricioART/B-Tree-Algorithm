@@ -1,17 +1,19 @@
 package com.arturoar.view;
 
 import javafx.beans.value.ChangeListener;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
+import javafx.scene.transform.Rotate;
 
 public class KeyView extends Group {
     
     private Rectangle nodeShape;
     private Text keyLabel;
-    private Tooltip nodeData;
+    private Label dataLabel;
     private Integer key;
     private double currentXOrigin;
     private double currentYOrigin;
@@ -30,7 +32,6 @@ public class KeyView extends Group {
     public KeyView(Integer key) {
         this.key = key;
         this.keyLabel = new Text(this.key.toString());
-        this.nodeData = null;
         this.width = this.keyLabel.getLayoutBounds().getWidth() + 2 * paddingX;
         this.height = this.keyLabel.getLayoutBounds().getHeight() + 2 * paddingY;
         this.isNew = true;
@@ -38,19 +39,57 @@ public class KeyView extends Group {
     }
     public KeyView(Integer key, String nodeData ) {
         this(key);
-        this.nodeData = new Tooltip(nodeData);
-        Tooltip.install(this.nodeShape, this.nodeData);
+        dataLabel = new Label(nodeData);
+        dataLabel.setVisible(false);
+        //dataBox = new VBox(dataLabel);
+        
+        // Configuración básica del Label
+        dataLabel.setMinHeight(this.width);
+        dataLabel.setMaxHeight(35.0);
+        dataLabel.setMinWidth(this.height);
+        dataLabel.setMaxWidth(200.0);
+        dataLabel.setAlignment(Pos.BASELINE_LEFT);
+        dataLabel.setWrapText(true);
+        dataLabel.setStyle("-fx-padding: 0 5 0 5;"); // Espaciado interno
+
+        // LIMPIA cualquier transformación previa
+        dataLabel.getTransforms().clear();
+
+        // Aplicar rotación -90° desde la esquina superior izquierda
+        Rotate rotate = new Rotate(90, 0, 0);
+        dataLabel.getTransforms().add(rotate);
+
+        // Posicionamiento ABSOLUTO en el contenedor padre
+        dataLabel.setLayoutX(0);  // Alineado al borde izquierdo del contenedor
+        dataLabel.setLayoutY(dataLabel.getHeight() + this.height + 10);  // 5 unidades por debajo del contenedor
+        dataLabel.setTranslateX(this.width ); // 5 unidades a la derecha del contenedor
+
+         dataLabel.getStyleClass().add("rotated-label-modern");
+
+
+        // Contenedor
+        /*
+        dataBox.setAlignment(Pos.CENTER);
+        dataBox.setStyle("-fx-background-color: #0d2ba4f8; -fx-padding: 0;");
+        dataBox.setMaxWidth(this.width);
+
+        dataBox.setTranslateY(this.height + 5);*/
+
+        getChildren().add(dataLabel);
     }
 
 
     private void setupNode(){
-        this.nodeShape = new Rectangle(this.width, this.height);
-        this.nodeShape.setStrokeWidth(1);
-        this.nodeShape.setStroke(this.strokeColor);
-        this.nodeShape.setFill(this.fillColor);
-        this.keyLabel.setX(paddingX);
-        this.keyLabel.setY(this.height - (2.0 * paddingY));
-        this.getChildren().addAll(this.nodeShape, this.keyLabel);
+        
+        nodeShape = new Rectangle(this.width, this.height);
+        nodeShape.setStrokeWidth(1);
+        nodeShape.setStroke(this.strokeColor);
+        nodeShape.setFill(this.fillColor);
+        
+        keyLabel.setX(paddingX);
+        keyLabel.setY(this.height - (2.0 * paddingY));
+        
+        getChildren().addAll(this.nodeShape, this.keyLabel);
 
         ChangeListener<String> strListener = (_, _, newValue) -> {
             this.setKey(Integer.valueOf(newValue));
