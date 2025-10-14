@@ -4,8 +4,6 @@ import javafx.animation.Transition;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Group;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -224,6 +222,10 @@ public abstract class NodeView extends Group {
     
     public Double getCenterX() {
         return centerX.get();
+    }
+
+    public DoubleProperty animatedWidthProperty() {
+        return animatedWidth;
     }
 
 }
