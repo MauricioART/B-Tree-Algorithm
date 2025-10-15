@@ -23,6 +23,14 @@ public class BPlusInnerNode<K extends Comparable<K>, V> extends BPlusNode<K, V> 
         return this.children.get(index);
     }
 
+    public BPlusNode<K,V> getLastChild(){
+        return children.getLast();
+    }
+
+    public BPlusNode<K,V> getFirstChild(){
+        return children.getFirst();
+    }
+
     public void setChildren(ArrayList<BPlusNode<K, V>> children) {
         this.children = children;
     }
@@ -30,4 +38,5 @@ public class BPlusInnerNode<K extends Comparable<K>, V> extends BPlusNode<K, V> 
     public void setChild(int index, BPlusNode<K, V> child) {
         this.children.set(index, child);
     }
+
 }
