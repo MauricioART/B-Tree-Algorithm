@@ -1,6 +1,5 @@
 package com.arturoar.model;
 
-import java.lang.classfile.components.ClassPrinter.LeafNode;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -473,11 +472,16 @@ public class BPlusTree<K extends Comparable<K>,V> {
 
         }else{
             Key<K> separatingKey = rightNode.getParent().getKeys().remove(nodeIndex - 1);
-            rightNode.getKeys().add( nodeIndex - 1, borrowedKey);
+            rightNode.getParent().getKeys().add( nodeIndex - 1, borrowedKey);
             notifyObservers(new BPlusTreeEvent.KeyBorrowed<>(leftNode, leftNode.getParent(),  java.util.Arrays.asList(borrowedKey)));
 
             rightNode.addKey(0, separatingKey);
             notifyObservers(new BPlusTreeEvent.KeyBorrowed<>(rightNode.getParent(), rightNode, java.util.Arrays.asList(separatingKey)));
+
+            BPlusNode<K,V> child = ((BPlusInnerNode<K,V>)leftNode).getChildren().removeLast();
+            ((BPlusInnerNode<K,V>)rightNode).getChildren().addFirst(child);
+            ((BPlusInnerNode<K,V>)rightNode).getFirstChild().setParent((BPlusInnerNode<K,V>)rightNode);
+            notifyObservers(new BPlusTreeEvent.ChildNodeBorrowed<>(rightNode, leftNode, child));
         }
     }
     
@@ -490,7 +494,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
 
             leftNode.getKeys().addLast(borrowedKey);
 
-            K newValue = borrowedKey.getKey();
+            K newValue = rightNode.keys.get(0).getKey();
             Key<K> updatedKey = leftNode.getParent().getKeys().get(nodeIndex);
             updatedKey.setKey(newValue);
             notifyObservers(new BPlusTreeEvent.KeyChanged<K,V>(updatedKey, newValue));
@@ -500,15 +504,20 @@ public class BPlusTree<K extends Comparable<K>,V> {
 
         }else{
             Key<K> separatingKey = rightNode.getParent().getKeys().remove(nodeIndex);
-            leftNode.getKeys().add( nodeIndex, borrowedKey);
+            leftNode.getParent().getKeys().add( nodeIndex, borrowedKey);
             notifyObservers(new BPlusTreeEvent.KeyBorrowed<>(rightNode, leftNode.getParent(),  java.util.Arrays.asList(borrowedKey)));
 
             leftNode.keys.addLast(separatingKey);
             notifyObservers(new BPlusTreeEvent.KeyBorrowed<>(rightNode.getParent(), leftNode, java.util.Arrays.asList(separatingKey)));
+
+            BPlusNode<K,V> child = ((BPlusInnerNode<K,V>)rightNode).getChildren().removeFirst();
+            ((BPlusInnerNode<K,V>)leftNode).getChildren().addLast(child);
+            ((BPlusInnerNode<K,V>)leftNode).getLastChild().setParent((BPlusInnerNode<K,V>)leftNode);
+            notifyObservers(new BPlusTreeEvent.ChildNodeBorrowed<>(leftNode, rightNode, child));
         }
     }
 
-    private void borrowKey(BPlusNode<K,V> node, int borrower) {
+     private void borrowKey(BPlusNode<K,V> node, int borrower) {
 
         int h = node.getChildrenIndex();
         BPlusNode<K,V> lendingNode = node.getParent().getChild(h + borrower);
@@ -531,7 +540,6 @@ public class BPlusTree<K extends Comparable<K>,V> {
                     BPlusNode<K,V> child = ((BPlusInnerNode<K,V>)lendingNode).getChildren().removeLast();
                     ((BPlusInnerNode<K,V>)node).getChildren().addFirst(child);
                     ((BPlusInnerNode<K,V>)node).getChild(0).setParent((BPlusInnerNode<K,V>)node);
-                    //notifyObservers(new BTreeEvent<>(BTreeEvent.EventType.CHILDNODE_BORROWED, node, lendingNode, child));
                     notifyObservers(new BPlusTreeEvent.ChildNodeBorrowed<>(node, lendingNode, child));
                 }
 
