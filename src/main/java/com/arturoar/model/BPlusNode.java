@@ -27,6 +27,10 @@ abstract public class BPlusNode<K extends Comparable<K>, V> {
         return this.isLeaf;
     }
 
+    public boolean isEmpty(){
+        return keys.size() == 0;
+    }
+
     public ArrayList<K> getKeyValues() {
         return this.keys.stream().map(Key::getKey).collect(Collectors.toCollection(ArrayList::new));
     }
