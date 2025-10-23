@@ -3,20 +3,23 @@ package com.arturoar.model;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+
 abstract public class BPlusNode<K extends Comparable<K>, V> {
 
     protected int m;
     protected ArrayList<Key<K>> keys;
     protected BPlusInnerNode<K, V> parent;
     protected boolean isLeaf;
-    protected int level;
+    protected IntegerProperty level;
 
     BPlusNode(boolean isLeaf, int m, int level, BPlusInnerNode<K, V> parent) {
         this.keys = new ArrayList<>();
         this.isLeaf = isLeaf;
         this.parent = parent;
         this.m = m;
-        this.level = level;
+        this.level = new SimpleIntegerProperty(level);
     }
 
     public BPlusInnerNode<K, V> getParent() {
@@ -69,11 +72,15 @@ abstract public class BPlusNode<K extends Comparable<K>, V> {
         return this.keys.get(index);
     }
     public int getLevel() {
-        return this.level;
+        return this.level.get();
+    }
+
+    public IntegerProperty levelProperty(){
+        return level;
     }
 
     public void setLevel(int level) {
-        this.level = level;
+        this.level.set(level);;
     }
 
     public void setKey(int index, Key<K> key) {
@@ -123,10 +130,10 @@ abstract public class BPlusNode<K extends Comparable<K>, V> {
     }
     
     public void increaseLevel() {
-        this.level += 1;
+        level.set(level.get() + 1);
     }
 
     public void decreaseLevel(){
-        this.level -= 1;
+        level.set(level.get() - 1);
     }
 }
