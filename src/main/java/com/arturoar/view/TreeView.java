@@ -18,9 +18,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.geometry.Point2D;
 import javafx.scene.Group;
-import javafx.scene.shape.Circle;
 
 public class TreeView extends Group implements BPlusTreeObserver<Integer, String> {
 
@@ -48,6 +46,8 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                     System.out.println("Canvas size initialized: " + newValue);
                     handleNewRoot(new BPlusTreeEvent.NewRoot<>(root));
                     first = false; 
+                    canvasWidth.removeListener(this);
+                    canvasHeight.removeListener(this);
                 }
             }
         };
@@ -67,9 +67,6 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             case NODE_SPLIT:
                 handleNodeSplit(event);
                 break;
-            case NODE_DELETED:
-                handleNodeDeleted(event);
-                break;
             case KEY_INSERTED:
                 handleKeyInserted(event);
                 break;
@@ -79,13 +76,13 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             case KEY_BORROWED:
                 handleKeyBorrowed(event);
                 break;
-            case CHILDNODE_BORROWED:
+            case NODE_BORROWED:
                 handleChildNodeBorrowed(event);
                 break;
-            case CHILDNODE_DELETED:
+            case NODE_DELETED:
                 handleChildNodeDeleted(event);
                 break;
-            case CHILDNODE_CREATED:
+            case NODE_CREATED:
                 handleChildNodeCreated(event);
                 break;
             case KEY_CHANGED:
@@ -100,28 +97,36 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         
         BPlusTreeEvent.NewRoot<Integer,String> e = (BPlusTreeEvent.NewRoot<Integer,String>) event;
 
-
         if (nodeToNodeView.containsKey(e.getNewRoot())) {
-            this.treeLevels.removeFirst();
+            NodeView root = this.treeLevels.removeFirst().getFirst();
+            for(Edge edge : ((InnerNodeView)root).getEdges()){
+                TreeAnimator.addTransitionToQueue(TreeAnimator.fadeNode(edge, 1, 0));
+                TreeAnimator.combineLastsTransitionsOnQueue(2);
+            }
+            updateYLayout();
+
         }else{
             NodeView newNode = NodeFactory.createNode(e.getNewRoot().isLeaf(), this.canvasWidth.get()/2, Y_PADDING);
             this.nodeToNodeView.put(e.getNewRoot(), newNode);
+            newNode.levelProperty().bind(e.getNewRoot().levelProperty());
             this.getChildren().add(0,newNode);
             List<NodeView> newLevel = new ArrayList<>();
             newLevel.add(newNode);
             this.treeLevels.addFirst(newLevel);   
+            if (nodeToNodeView.size() > 1){
+                updateYLayout();
+            }
+            TreeAnimator.combineLastsTransitionsOnQueue(2);
         }
-        if (nodeToNodeView.size() > 1){
-            updateYLayout();
-        }
-        TreeAnimator.combineLastTransitionsOnQueue();
     }
+    
     
     private void handleNodeSplit(BPlusTreeEvent<Integer, String> event) {
         BPlusTreeEvent.NodeSplit<Integer,String> e = (BPlusTreeEvent.NodeSplit<Integer,String>) event;
         NodeView splitNode = this.nodeToNodeView.get(e.getNode());
         KeyView middleKey = keyToKeyView.get(e.getMiddleKey());
         NodeView newNode = NodeFactory.createNode(e.getNewNode().isLeaf(), middleKey.getTranslateX(), splitNode.getYOrigin());
+        newNode.levelProperty().bind(e.getNewNode().levelProperty());
         this.nodeToNodeView.put(e.getNewNode(), newNode);
         this.getChildren().add(newNode);
 
@@ -154,7 +159,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                 KeyView prevKey = ((InnerNodeView) splitNode).keys.get(childIndex - 1);
                 prevArrow.originXProperty().unbind();
                 prevArrow.originYProperty().unbind();
-                prevArrow.originXProperty().bind(prevKey.translateXProperty().add(prevKey.getWidth()));
+                prevArrow.originXProperty().bind(prevKey.translateXProperty().add(prevKey.widthProperty()));
                 prevArrow.originYProperty().bind(prevKey.translateYProperty().add(prevKey.getHeight()));
 
                 Edge nextArrow = ((InnerNodeView) splitNode).getEdges().get(childIndex + 1);
@@ -166,8 +171,8 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                 KeyView lastKey = ((InnerNodeView) splitNode).keys.getLast();
                 splitNodeLastEdge.originXProperty().unbind();
                 splitNodeLastEdge.originYProperty().unbind();
-                splitNodeLastEdge.originXProperty().bind(lastKey.translateXProperty().add(middleKey.getWidth()));
-                splitNodeLastEdge.originYProperty().bind(lastKey.translateYProperty().add(middleKey.getHeight()));
+                splitNodeLastEdge.originXProperty().bind(lastKey.translateXProperty().add(lastKey.widthProperty()));
+                splitNodeLastEdge.originYProperty().bind(lastKey.translateYProperty().add(lastKey.getHeight()));
 
 
             }
@@ -175,82 +180,70 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     }
 
 
-    private void handleNodeDeleted(BPlusTreeEvent<Integer, String> event) {
+    private void   updateEdges(BPlusNode<Integer,String> node) {
+        NodeView deletedNode = nodeToNodeView.get(node);
+        int nodeIndex = this.treeLevels.get(deletedNode.getLevel()).indexOf(deletedNode);
+        this.treeLevels.get(deletedNode.getLevel()).remove(nodeIndex);
+        updateLevelLayout(deletedNode.getLevel());
 
-        BPlusTreeEvent.NodeDeleted<Integer,String> e = (BPlusTreeEvent.NodeDeleted<Integer,String>) event;
-        NodeView deletedNode = nodeToNodeView.remove(e.getNode());
-        if (e.getNode().isLeaf()){
+        if (node.isLeaf()){
             LeafNodeView deletedLeaf = (LeafNodeView) deletedNode;
-            int deletedNodeLevel = e.getNode().getLevel();
+            int deletedNodeLevel = deletedNode.getLevel();
 
             if (deletedNodeLevel > 0){
-                int deletedNodeIndex = this.treeLevels.get(deletedNodeLevel).indexOf(deletedLeaf);
-                if (deletedNodeIndex == 0){
-                    Transition edgeFadeOut = TreeAnimator.fadeNode(deletedLeaf.nextLeaf, 1, 0);
-                    edgeFadeOut.setOnFinished(_ -> {
-                        this.getChildren().remove(deletedLeaf.nextLeaf);
-                    });
-                    TreeAnimator.addParallelTransition(edgeFadeOut);
-                }else if (deletedNodeIndex == this.treeLevels.get(deletedNodeLevel).size() - 1){
-                    LeafNodeView previousNode = (LeafNodeView) this.treeLevels.get(deletedNodeLevel).get(deletedNodeIndex - 1);
+                if (nodeIndex == this.treeLevels.get(deletedNodeLevel).size() ){
+                    LeafNodeView previousNode = (LeafNodeView) this.treeLevels.get(deletedNodeLevel).get(nodeIndex - 1);
                     Transition edgeFadeOut = TreeAnimator.fadeNode(previousNode.nextLeaf, 1, 0);
                     edgeFadeOut.setOnFinished(_ -> {
                         this.getChildren().remove(previousNode.nextLeaf);
                     });
-                    TreeAnimator.addParallelTransition(edgeFadeOut);
+                    TreeAnimator.addTransitionToQueue(edgeFadeOut);
+                    TreeAnimator.combineLastsTransitionsOnQueue(2);
                 }else{
-                    LeafNodeView previousNode = (LeafNodeView) this.treeLevels.get(deletedNodeLevel).get(deletedNodeIndex - 1);
-                    LeafNodeView nextNode = (LeafNodeView) this.treeLevels.get(deletedNodeLevel).get(deletedNodeIndex + 1);
-                    Circle endPoint = new Circle(previousNode.nextLeaf.endXProperty().get(), deletedLeaf.nextLeaf.endYProperty().get(),1);
-                    
-                    getChildren().add(endPoint);
-                    
-                    previousNode.nextLeaf.endXProperty().unbind();
-                    previousNode.nextLeaf.endYProperty().unbind();
-                    previousNode.nextLeaf.endXProperty().bind(endPoint.centerXProperty());
-                    previousNode.nextLeaf.endYProperty().bind(endPoint.centerYProperty());
-
-                    double byX = nextNode.getKey(0).getNewXOrigin() - endPoint.getCenterX();
-                    double byY = nextNode.getKey(0).getNewYOrigin() - endPoint.getCenterY();
-
-                    Transition endPointTranslation = TreeAnimator.moveNode(endPoint, byX, byY);
-                    endPointTranslation.setOnFinished(_ -> {
-                        previousNode.nextLeaf.endXProperty().unbind();
-                        previousNode.nextLeaf.endYProperty().unbind();
-                        previousNode.nextLeaf.endXProperty().bind(nextNode.translateXProperty());
-                        previousNode.nextLeaf.endYProperty().bind(nextNode.translateYProperty().add(nextNode.heightProperty().divide(2)));
-                        getChildren().remove(endPoint);
-                    });
 
                     Transition edgeFadeOut = TreeAnimator.fadeNode(deletedLeaf.nextLeaf, 1, 0);
                     edgeFadeOut.setOnFinished(_ -> {
                         this.getChildren().remove(deletedLeaf.nextLeaf);
                     });
-                    TreeAnimator.addParallelTransition(edgeFadeOut);
-                    TreeAnimator.addParallelTransition(endPointTranslation);
+                    TreeAnimator.addTransitionToQueue(edgeFadeOut);
+                    TreeAnimator.combineLastsTransitionsOnQueue(2);
+
+                    LeafNodeView previousNode = (LeafNodeView) this.treeLevels.get(deletedNodeLevel).get(nodeIndex - 1);
+                    LeafNodeView nextNode = (LeafNodeView) this.treeLevels.get(deletedNodeLevel).get(nodeIndex);
+                    
+                    
+                    previousNode.nextLeaf.endXProperty().unbind();
+                    previousNode.nextLeaf.endYProperty().unbind();
+
+                    double fromX = previousNode.nextLeaf.endXProperty().get();
+                    double toX = nextNode.getKey(0).getNewXOrigin();
+
+                    Transition endPointTranslation = TreeAnimator.animateProperty(previousNode.nextLeaf.endXProperty(), fromX, toX);
+                    endPointTranslation.setOnFinished(_ -> {
+                        previousNode.nextLeaf.endXProperty().unbind();
+                        previousNode.nextLeaf.endYProperty().unbind();
+                        previousNode.nextLeaf.endXProperty().bind(nextNode.translateXProperty());
+                        previousNode.nextLeaf.endYProperty().bind(nextNode.translateYProperty().add(nextNode.getHeight()/2));
+    
+                    });
+                    TreeAnimator.addTransitionToQueue(endPointTranslation);
+                    TreeAnimator.combineLastsTransitionsOnQueue(2);
                 }
             }
        
-        }else{
-            for (Edge edge : ((InnerNodeView)deletedNode).edges) {
-                Transition edgeFadeOut = TreeAnimator.fadeNode(edge, 1, 0);
-                edgeFadeOut.setOnFinished(_ -> {
-                    this.getChildren().remove(edge);
-                    this.childrenToEdge.values().remove(edge);
-                });
-                TreeAnimator.addTransitionToQueue(edgeFadeOut);
-                TreeAnimator.combineLastTransitionsOnQueue();
-            }
         }
-        treeLevels.get(e.getNode().getLevel()).remove(deletedNode);
         getChildren().remove(deletedNode);
-        nodeToNodeView.remove(e.getNode());/////////////////////////////Quitar
-        updateYLayout();
+        treeLevels.get(deletedNode.getLevel()).remove(deletedNode);
+//        updateLevelLayout(deletedNode.getLevel());
+//        updateYLayout();
+        TreeAnimator.combineLastsTransitionsOnQueue(2);
     }
 
     private void handleKeyInserted(BPlusTreeEvent<Integer, String> event) {
 
         KeyView newKey = createKeyView(event);
+
+        newKey.setOnWidthChangeCallback(level ->{updateLevelLayout(level);});
 
         BPlusTreeEvent.KeyInserted<Integer,String> e = (BPlusTreeEvent.KeyInserted<Integer,String>) event;
 
@@ -261,7 +254,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         int position = affectedNodeView.insert(newKey);
 
         if (!e.getNode().isLeaf()){
-            reasignnArrowOrigins((InnerNodeView) affectedNodeView, position, newKey);
+            reassignEdgesOriginsFromKeyInserted((InnerNodeView) affectedNodeView, position, newKey);
         }
 
         this.getChildren().add(newKey);
@@ -295,20 +288,38 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
         KeyView removedKey = keyToKeyView.remove(e.getKey());
         NodeView node = nodeToNodeView.get(e.getNode());
-        node.remove(removedKey);
+        int removeKeyIndex = node.remove(removedKey);
 
         
         Transition keyFading = TreeAnimator.fadeNode(removedKey, 1, 0);
         TreeAnimator.addTransitionToQueue(keyFading);
-        TreeAnimator.combineLastTransitionsOnQueue();
-        keyFading.setOnFinished(_ -> this.getChildren().remove(removedKey));    
-        
+        keyFading.setOnFinished(_ -> this.getChildren().remove(removedKey));
         updateLevelLayout(e.getNode().getLevel());
+        
+        if (!e.getNode().isLeaf() && !e.getNode().isEmpty()){
+            KeyView nextKey = node.getKey(removeKeyIndex);
+            Edge prevEdge = ((InnerNodeView)node).getEdge(removeKeyIndex);
+            prevEdge.originXProperty().unbind();
 
+            Transition readjustOrigin = TreeAnimator.animateProperty(prevEdge.originXProperty(), prevEdge.originXProperty().get(), nextKey.getNewXOrigin());
+            readjustOrigin.setOnFinished(_ -> { 
+                prevEdge.originYProperty().unbind();
+                prevEdge.originXProperty().bind(nextKey.translateXProperty());
+                prevEdge.originYProperty().bind(nextKey.translateYProperty().add(nextKey.getHeight()));
+            });
+            TreeAnimator.addTransitionToQueue(readjustOrigin);
+            TreeAnimator.combineLastsTransitionsOnQueue(2 );
+        }
+        
+        TreeAnimator.combineLastsTransitionsOnQueue(2);
+        
     }
 
-    private void handleKeyBorrowed(BPlusTreeEvent<Integer, String> event) {
+    private void  handleKeyBorrowed(BPlusTreeEvent<Integer, String> event) {
         BPlusTreeEvent.KeyBorrowed<Integer,String> e = (BPlusTreeEvent.KeyBorrowed<Integer,String>) event;
+        
+        if (e.getBorrowedKeys().isEmpty()) return;
+
         NodeView lendingNode = nodeToNodeView.get(e.getLendingNode());
         NodeView borrowingNode = nodeToNodeView.get(e.getBorrowingNode());
         int lendingLevel = e.getLendingNode().getLevel();
@@ -319,10 +330,17 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
         for (Key<Integer> key : e.getBorrowedKeys()) {
             tempBorrowedKey = keyToKeyView.get(key);
-            if (lendingNode != null)
-                lendingNode.remove(tempBorrowedKey);
+            //if (lendingNode != null)
+            lendingNode.remove(tempBorrowedKey);
             tempPosition = borrowingNode.insert(tempBorrowedKey);
             borrowedKeys.add(tempBorrowedKey);
+            getChildren().remove(tempBorrowedKey);
+            getChildren().add(tempBorrowedKey);
+
+            //When a key is borrowed from an inner node (Product other than splitting node)
+            if (!e.getLendingNode().isLeaf() && e.getBorrowingNode().getParent() != null){
+                reassignEdgesOriginsFromKeyBorrowed(tempBorrowedKey, borrowingNode, lendingNode);
+            }
         }
 
         final int position = tempPosition;
@@ -331,19 +349,91 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         if (lendingLevel == borrowingLevel) {
             updateLevelLayout(lendingLevel);
         } else {
+            //Smoother animation when a key is borrowed from child node to parent node
             updateLevelLayout(lendingLevel);
             updateLevelLayout(borrowingLevel);
-            TreeAnimator.combineLastTransitionsOnQueue();
             updateYLayout();
-            TreeAnimator.combineLastTransitionsOnQueue();
+            TreeAnimator.combineLastsTransitionsOnQueue(3);
+
             if (position != -1 && borrowedKey != null) {
-                TreeAnimator.addListenerToLastTransition(() -> reasignnArrowOrigins((InnerNodeView) borrowingNode, position, borrowedKey));
+                TreeAnimator.addListenerToLastTransition(() -> reassignEdgesOriginsFromKeyInserted((InnerNodeView) borrowingNode, position, borrowedKey));
             }
+
             showEdges();
         }
     }
 
-    private void reasignnArrowOrigins(InnerNodeView nodeView, int position, KeyView borrowedKey) {
+    private void reassignEdgesOriginsFromKeyBorrowed(KeyView borrowedKey,NodeView borrowingNode, NodeView lendingNode){
+
+        int borrowingIndex = treeLevels.get(borrowingNode.getLevel()).indexOf(borrowingNode);
+        int lendingIndex = treeLevels.get(lendingNode.getLevel()).indexOf(lendingNode);
+        if (lendingIndex < borrowingIndex){
+
+        }else{}
+
+        ChangeListener<Number> posListener = (obs, _, newVal) -> {
+            if (obs instanceof DoubleProperty prop) {
+                // Acceder al bean que contiene la propiedad
+                Object bean = prop.getBean();
+                if (bean instanceof KeyView movingKey) {
+                    if (lendingIndex < borrowingIndex){
+                        int lendingNodeSize = ((InnerNodeView) lendingNode).size();
+                        Edge BKnextEdge = ((InnerNodeView) borrowingNode).getEdges().get(0);
+                        Edge BKprevEdge = ((InnerNodeView) lendingNode).getEdges().get(lendingNodeSize);
+                        Edge BKnewNextEdge = ((InnerNodeView) borrowingNode).getEdges().get(1);
+
+                            BKprevEdge.originXProperty().unbind();
+                            BKprevEdge.originYProperty().unbind();
+                            KeyView prevKey = lendingNode.getKey(lendingNodeSize - 1);
+                            BKprevEdge.originXProperty().bind(prevKey.translateXProperty().add(prevKey.widthProperty()));
+                            BKprevEdge.originYProperty().bind(prevKey.translateYProperty().add(prevKey.getHeight()));
+                            BKnextEdge.originXProperty().unbind();
+                                                        
+                        if (Math.abs( (double) newVal - BKnextEdge.getOriginX()) < 5){
+                            BKnextEdge.originXProperty().bind(movingKey.translateXProperty());
+                        }
+                        
+                        if (Math.abs((double) newVal + movingKey.getWidthProperty() - BKnewNextEdge.getOriginX()) < 5){                                   
+                            BKnewNextEdge.originXProperty().unbind();
+                            BKnewNextEdge.originYProperty().unbind();
+                            BKnewNextEdge.originXProperty().bind(movingKey.translateXProperty().add(movingKey.widthProperty()));
+                            BKnewNextEdge.originYProperty().bind(movingKey.translateYProperty().add(movingKey.getHeight()));
+                        }
+                        
+                    }else{ 
+
+                        Edge BKnextEdge = ((InnerNodeView) lendingNode).getEdges().get(1);
+                        Edge BKprevEdge = ((InnerNodeView) lendingNode).getEdges().get(0);
+                        Edge BKnewPrevEdge = ((InnerNodeView) borrowingNode).getEdges().getLast();
+                        
+                        BKnextEdge.originXProperty().unbind();
+                        BKnextEdge.originYProperty().unbind();
+                        
+                        KeyView nextKey = lendingNode.getKey(1);
+                        BKnextEdge.originXProperty().bind(nextKey.translateXProperty().add(nextKey.widthProperty()));
+                        BKnextEdge.originYProperty().bind(nextKey.translateYProperty().add(nextKey.getHeight()));
+                        
+                        BKprevEdge.originXProperty().unbind();
+                        if (Math.abs((double) newVal + movingKey.getWidthProperty() - BKprevEdge.getOriginX()) < 0.5){
+                            BKprevEdge.originYProperty().bind(movingKey.translateXProperty().add(movingKey.widthProperty()));
+                        }
+                        
+                        if (Math.abs((double) newVal - BKnewPrevEdge.getOriginX()) < 0.5){
+                            
+                            BKnewPrevEdge.originXProperty().unbind();
+                            BKnewPrevEdge.originYProperty().unbind();
+                            BKnewPrevEdge.originXProperty().bind(movingKey.translateXProperty());
+                            BKnewPrevEdge.originYProperty().bind(movingKey.translateYProperty().add(movingKey.getHeight()));
+                        }
+                    }
+                }
+            }
+        };
+        borrowedKey.translateXProperty().addListener(posListener);
+    
+    }
+
+    private void reassignEdgesOriginsFromKeyInserted(InnerNodeView nodeView, int position, KeyView borrowedKey) {
         Edge prevArrow = nodeView.getEdge(position); 
         prevArrow.originXProperty().unbind();
         prevArrow.originYProperty().unbind();
@@ -357,51 +447,54 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             nextArrow.originYProperty().bind(nextKeyView.translateYProperty().add(nextKeyView.getHeight()));
         }else{
             KeyView lastKey = nodeView.getLast();
-            nextArrow.originXProperty().bind(lastKey.translateXProperty().add(lastKey.getWidth()));
+            nextArrow.originXProperty().bind(lastKey.translateXProperty().add(lastKey.widthProperty()));
             nextArrow.originYProperty().bind(lastKey.translateYProperty().add(lastKey.getHeight()));
         }
     }
  
     private void handleChildNodeBorrowed(BPlusTreeEvent<Integer, String> event) {
-        BPlusTreeEvent.ChildNodeBorrowed<Integer,String> e = (BPlusTreeEvent.ChildNodeBorrowed<Integer,String>) event;
+        BPlusTreeEvent.NodeBorrowed<Integer,String> e = (BPlusTreeEvent.NodeBorrowed<Integer,String>) event;
         NodeView borrowingNodeView = nodeToNodeView.get(e.getBorrowingNode());
         NodeView lendingNodeView = nodeToNodeView.get(e.getLendingNode());
         Edge arrow = childrenToEdge.get(nodeToNodeView.get(e.getChildNode()));
 
-        if (!e.getLendingNode().isLeaf()){
-           ( (InnerNodeView) lendingNodeView).getEdges().remove(arrow);
+
+        ( (InnerNodeView) lendingNodeView).getEdges().remove(arrow);
+
+        int lendingIndex = treeLevels.get(lendingNodeView.getLevel()).indexOf(lendingNodeView);
+        int borrowingIndex = treeLevels.get(borrowingNodeView.getLevel()).indexOf(borrowingNodeView);
+
+        if ( lendingIndex < borrowingIndex ){
+            ((InnerNodeView) borrowingNodeView).getEdges().addFirst(arrow);
+        }else{
+            ((InnerNodeView) borrowingNodeView).getEdges().addLast(arrow);
         }
-        /*
-        * 
-        int childIndex = findChildIndex(e.getLendingNode(), e.getChildNode());
-        ((InnerNodeView)borrowingNodeView).getEdges().add(childIndex, arrow);
-        */
-        int childIndex = findChildIndex(e.getLendingNode(), e.getChildNode());
-        if (childIndex != 0){
-            ((InnerNodeView)borrowingNodeView).getEdges().add(arrow);
-        }
-        else{
-            ((InnerNodeView)borrowingNodeView).getEdges().addLast(arrow);
-        }
+
     }
 
     private void handleChildNodeDeleted(BPlusTreeEvent<Integer, String> event) {
-        BPlusTreeEvent.ChildNodeDeleted<Integer,String> e = (BPlusTreeEvent.ChildNodeDeleted<Integer,String>) event;
+        BPlusTreeEvent.NodeDeleted<Integer,String> e = (BPlusTreeEvent.NodeDeleted<Integer,String>) event;
         NodeView affectedNode = nodeToNodeView.get(e.getParent());
-        Edge deletedArrow = childrenToEdge.remove(nodeToNodeView.get(e.getChild()));
+        NodeView deletedNode = nodeToNodeView.get(e.getChild());
+        Edge edge = childrenToEdge.remove(deletedNode);
 
-        Transition arrowFadeOut = TreeAnimator.fadeNode(deletedArrow, 1, 0);
-        TreeAnimator.addTransitionToQueue(arrowFadeOut);
-        TreeAnimator.combineLastTransitionsOnQueue();
-        arrowFadeOut.setOnFinished(_ -> {
-            ((InnerNodeView)affectedNode).getEdges().remove(deletedArrow);
-            this.getChildren().remove(deletedArrow);
-        });
+        Transition edgeFadeOut = TreeAnimator.fadeNode(edge, 1, 0);
+        TreeAnimator.addTransitionToQueue(edgeFadeOut);
+        TreeAnimator.combineLastsTransitionsOnQueue(2);
+        edgeFadeOut.setOnFinished(_ -> {
+            ((InnerNodeView)affectedNode).getEdges().remove(edge);
+            this.getChildren().remove(edge);
+        });        
+
+        updateEdges(e.getChild());
+
+        //updateLevelLayout(affectedNode.getLevel());
+
 
     }
 
     private void handleChildNodeCreated(BPlusTreeEvent<Integer, String> event) {
-        BPlusTreeEvent.ChildNodeCreated<Integer,String> e = (BPlusTreeEvent.ChildNodeCreated<Integer,String>) event;
+        BPlusTreeEvent.NodeCreated<Integer,String> e = (BPlusTreeEvent.NodeCreated<Integer,String>) event;
         Edge newChildEdge = new TreeEdge();
         newChildEdge.setOpacity(0.0);
         NodeView nodeView = nodeToNodeView.get(e.getParent());
@@ -444,11 +537,14 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                                                         .mapToDouble(NodeView::getWidth)
                                                         .sum() ;
 
-        double nodeSpacing = (this.canvasWidth.get() - totalWidth - 2 * X_PADDING) / (this.treeLevels.get(level).size() + 1);
+
+        double nodeSpacing = (this.canvasWidth.get() - totalWidth - 2 * X_PADDING) / (treeLevels.get(level).size() + 1);
 
         double startX = X_PADDING + nodeSpacing;
 
+    
         for (NodeView node : this.treeLevels.get(level)) {
+
             double deltaX = startX - node.xOriginProperty().get() ;
             if ( nodeToNodeView.size() == 1 && node.keys.size() == 1){
                 TreeAnimator.addParallelTransition(TreeAnimator.moveNode(node, deltaX, 0, 0.1));
