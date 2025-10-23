@@ -1,5 +1,12 @@
 package com.arturoar.view;
 
+import java.util.function.Consumer;
+
+import com.arturoar.util.TreeAnimator;
+
+import javafx.animation.Transition;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -19,7 +26,7 @@ public class KeyView extends Group {
     private double currentYOrigin;
     private double newXOrigin;
     private double newYOrigin;
-    private Double width;
+    private DoubleProperty widthProperty;
     private Double height;
     private boolean isNew;
     private final Double paddingX = 8.0;
@@ -29,23 +36,26 @@ public class KeyView extends Group {
     private NodeView node;
     private NodeView newNode;
 
+    private Consumer<Integer> onWidthChangeCallback;
+
+
     public KeyView(Integer key) {
         this.key = key;
         this.keyLabel = new Text(this.key.toString());
-        this.width = this.keyLabel.getLayoutBounds().getWidth() + 2 * paddingX;
-        this.height = this.keyLabel.getLayoutBounds().getHeight() + 2 * paddingY;
+        this.widthProperty = new SimpleDoubleProperty (keyLabel.getLayoutBounds().getWidth() + 2 * paddingX);
+        this.height = keyLabel.getLayoutBounds().getHeight() + 2 * paddingY;
         this.isNew = true;
         setupNode();
+        
     }
     public KeyView(Integer key, String nodeData ) {
         this(key);
         dataLabel = new Label(nodeData);
-        dataLabel.setVisible(false);
-        //dataBox = new VBox(dataLabel);
+        //dataLabel.setVisible(false);
         
         // Configuración básica del Label
-        dataLabel.setMinHeight(this.width);
-        dataLabel.setMaxHeight(35.0);
+        dataLabel.setMinHeight(22.0);
+        dataLabel.setMaxHeight(22.0);
         dataLabel.setMinWidth(this.height);
         dataLabel.setMaxWidth(200.0);
         dataLabel.setAlignment(Pos.BASELINE_LEFT);
@@ -58,33 +68,27 @@ public class KeyView extends Group {
         // Aplicar rotación -90° desde la esquina superior izquierda
         Rotate rotate = new Rotate(90, 0, 0);
         dataLabel.getTransforms().add(rotate);
+        
 
         // Posicionamiento ABSOLUTO en el contenedor padre
         dataLabel.setLayoutX(0);  // Alineado al borde izquierdo del contenedor
         dataLabel.setLayoutY(dataLabel.getHeight() + this.height + 10);  // 5 unidades por debajo del contenedor
-        dataLabel.setTranslateX(this.width ); // 5 unidades a la derecha del contenedor
-
+        dataLabel.translateXProperty().bind(widthProperty.divide(2).add(11.0));
          dataLabel.getStyleClass().add("rotated-label-modern");
 
-
-        // Contenedor
-        /*
-        dataBox.setAlignment(Pos.CENTER);
-        dataBox.setStyle("-fx-background-color: #0d2ba4f8; -fx-padding: 0;");
-        dataBox.setMaxWidth(this.width);
-
-        dataBox.setTranslateY(this.height + 5);*/
-
         getChildren().add(dataLabel);
+
+        
     }
 
 
     private void setupNode(){
         
-        nodeShape = new Rectangle(this.width, this.height);
+        nodeShape = new Rectangle(this.widthProperty.get(), this.height);
         nodeShape.setStrokeWidth(1);
         nodeShape.setStroke(this.strokeColor);
         nodeShape.setFill(this.fillColor);
+        nodeShape.widthProperty().bind(widthProperty);
         
         keyLabel.setX(paddingX);
         keyLabel.setY(this.height - (2.0 * paddingY));
@@ -93,9 +97,31 @@ public class KeyView extends Group {
 
         ChangeListener<String> strListener = (_, _, newValue) -> {
             this.setKey(Integer.valueOf(newValue));
+
         };
 
+        keyLabel.layoutBoundsProperty().addListener((_, oldVal, newVal)->{
+            double oldWidth = oldVal.getWidth() + 2 * paddingX;
+            double newWidth = newVal.getWidth() + 2 * paddingX;
+            Transition widthChangeTransition = TreeAnimator.animateProperty(widthProperty, oldWidth, newWidth);
+            TreeAnimator.addParallelTransition(widthChangeTransition);
+            node.onWidthChange(this, newWidth - oldWidth);
+            if (onWidthChangeCallback != null){
+                int level = node.getLevel();
+                onWidthChangeCallback.accept(level);
+            }
+
+            TreeAnimator.createParallelTransition();
+            TreeAnimator.animateQueue();
+
+            
+        });
+
         this.keyLabel.textProperty().addListener(strListener);
+    }
+
+    public void setOnWidthChangeCallback(Consumer<Integer> updateLevel){
+        onWidthChangeCallback = updateLevel;
     }
 
     public NodeView getNode() {
@@ -160,17 +186,19 @@ public class KeyView extends Group {
         return isNew;
     }
 
-
-    public void setWidth(Double width) {
-        this.width = width;
-        this.nodeShape.setWidth(this.width);
-    }
+    /*
+     * 
+     public void setWidth(Double width) {
+     this.width = width;
+         this.nodeShape.setWidth(this.width);
+     }
+     */
 
     public Double getHeight() {
         return this.height;
     }
-    public Double getWidth() {
-        return this.width;
+    public Double getWidthProperty() {
+        return this.widthProperty.get();
     }
     public Integer getKey() {
         return this.key;
@@ -180,10 +208,6 @@ public class KeyView extends Group {
     }
     public void setKey(Integer key) {
         this.key = key;
-        this.width = this.keyLabel.getLayoutBounds().getWidth() + 2 * paddingX;
-        this.height = this.keyLabel.getLayoutBounds().getHeight() + 2 * paddingY;
-        this.nodeShape.setWidth(this.width);
-        this.nodeShape.setHeight(this.height);
     }
     public void setFillColor(int r, int g, int b) {
         this.fillColor = Color.rgb(r, g, b);
@@ -202,4 +226,7 @@ public class KeyView extends Group {
         return this.nodeShape;
     }
 
+    public DoubleProperty widthProperty(){
+        return widthProperty;
+    }
 }

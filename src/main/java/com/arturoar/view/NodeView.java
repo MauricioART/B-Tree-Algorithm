@@ -2,7 +2,9 @@ package com.arturoar.view;
 
 import javafx.animation.Transition;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Group;
 
 import java.util.ArrayList;
@@ -20,6 +22,7 @@ public abstract class NodeView extends Group {
 
     protected DoubleProperty animatedWidth = new SimpleDoubleProperty(0.0);
     protected DoubleProperty centerX = new SimpleDoubleProperty(0.0);
+    protected IntegerProperty levelProperty = new SimpleIntegerProperty();
 
     protected List<KeyView> keys;
 
@@ -46,6 +49,17 @@ public abstract class NodeView extends Group {
             TreeAnimator.addParallelTransition(widthTransition);
         });
 
+
+    }
+
+    public void onWidthChange(KeyView keyView, double deltaWidth){
+        for (KeyView storedKeyView: keys){
+            if (storedKeyView.getKey() > keyView.getKey()){
+                double lastXOrigin = storedKeyView.getCurrentXOrigin();
+                storedKeyView.setNewOriginX(lastXOrigin + deltaWidth);
+            }
+        }
+        width.set(width.get() + deltaWidth);
     }
 
     public int getNumberOfKeys(){
@@ -85,7 +99,7 @@ public abstract class NodeView extends Group {
         
         for (KeyView key : this.keys) {
             if (key.getKey() < newKeyView.getKey()) {
-                xOrigin += key.getWidth();
+                xOrigin += key.getWidthProperty();
                 position++;
             }else { break; }
         }
@@ -108,11 +122,11 @@ public abstract class NodeView extends Group {
         for (int i = position; i < this.keys.size(); i++) {
             KeyView key = this.keys.get(i);
             key.setNewOriginX(xOrigin);
-            xOrigin += key.getWidth();
+            xOrigin += key.getWidthProperty();
         }
 
         // Update the width of the node view
-        this.width.set(this.width.get() + newKeyView.getWidth());
+        this.width.set(this.width.get() + newKeyView.getWidthProperty());
 
         return position;
     }
@@ -125,12 +139,12 @@ public abstract class NodeView extends Group {
             this.keys.remove(position);
 
             // Update the width of the node view
-            this.width.set(this.width.get() - key.getWidth());
+            this.width.set(this.width.get() - key.getWidthProperty());
 
             // Update the new origin for all keys after the removed key
             for (int i = position; i < this.keys.size(); i++) {
                 KeyView k = this.keys.get(i);
-                k.setNewOriginX(k.getNewXOrigin() - key.getWidth());
+                k.setNewOriginX(k.getNewXOrigin() - key.getWidthProperty());
             }
         }
 
@@ -147,7 +161,7 @@ public abstract class NodeView extends Group {
 
         if (removedKey != null) {
             this.keys.remove(removedKey);
-            this.width.set(this.width.get() - removedKey.getWidth());
+            this.width.set(this.width.get() - removedKey.getWidthProperty());
             return removedKey;
         }
         return null;
@@ -226,6 +240,14 @@ public abstract class NodeView extends Group {
 
     public DoubleProperty animatedWidthProperty() {
         return animatedWidth;
+    }
+
+    public int getLevel(){
+        return levelProperty.get();
+    }
+
+    public IntegerProperty levelProperty(){
+        return levelProperty;
     }
 
 }
