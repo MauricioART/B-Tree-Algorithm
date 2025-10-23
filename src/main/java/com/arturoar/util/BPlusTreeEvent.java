@@ -7,9 +7,9 @@ import com.arturoar.model.*;
 public abstract class BPlusTreeEvent<K extends Comparable<K>, V> {
 
     public enum EventType { 
-        NODE_SPLIT, NODE_DELETED, KEY_BORROWED, KEY_INSERTED, 
-        KEY_REMOVED, CHILDNODE_BORROWED, CHILDNODE_DELETED, 
-        CHILDNODE_CREATED, NEW_ROOT , KEY_CHANGED
+        NODE_SPLIT, KEY_BORROWED, KEY_INSERTED, 
+        KEY_REMOVED, NODE_BORROWED, NODE_DELETED, 
+        NODE_CREATED, NEW_ROOT , KEY_CHANGED
     }
 
     private final EventType type;
@@ -47,19 +47,7 @@ public abstract class BPlusTreeEvent<K extends Comparable<K>, V> {
         }
     }
 
-    public static class NodeDeleted<K extends Comparable<K>, V> extends BPlusTreeEvent<K, V> {
-        private final BPlusNode<K, V> node;
-
-        public NodeDeleted(BPlusNode<K, V> node) {
-            super(EventType.NODE_DELETED);
-            this.node = node;
-        }
-
-        public BPlusNode<K, V> getNode() {
-            return node;
-        }
-    }
-
+    
     public static class KeyBorrowed<K extends Comparable<K>, V> extends BPlusTreeEvent<K, V> {
         private final BPlusNode<K, V> lendingNode;
         private final BPlusNode<K, V> borrowingNode;
@@ -105,13 +93,14 @@ public abstract class BPlusTreeEvent<K extends Comparable<K>, V> {
         public Key<K> getKey() { return key; }
     }
 
-    public static class ChildNodeBorrowed<K extends Comparable<K>, V> extends BPlusTreeEvent<K, V> {
+
+    public static class NodeBorrowed<K extends Comparable<K>, V> extends BPlusTreeEvent<K, V> {
         private final BPlusNode<K, V> lendingNode;
         private final BPlusNode<K, V> borrowingNode;
         private final BPlusNode<K, V> childNode;
 
-        public ChildNodeBorrowed(BPlusNode<K, V> lendingNode, BPlusNode<K, V> borrowingNode, BPlusNode<K, V> childNode) {
-            super(EventType.CHILDNODE_BORROWED);
+        public NodeBorrowed(BPlusNode<K, V> lendingNode, BPlusNode<K, V> borrowingNode, BPlusNode<K, V> childNode) {
+            super(EventType.NODE_BORROWED);
             this.lendingNode = lendingNode;
             this.borrowingNode = borrowingNode;
             this.childNode = childNode;
@@ -122,12 +111,12 @@ public abstract class BPlusTreeEvent<K extends Comparable<K>, V> {
         public BPlusNode<K, V> getChildNode() { return childNode; }
     }
 
-    public static class ChildNodeCreated<K extends Comparable<K>, V> extends BPlusTreeEvent<K, V> {
+    public static class NodeCreated<K extends Comparable<K>, V> extends BPlusTreeEvent<K, V> {
         private final BPlusNode<K, V> parent;
         private final BPlusNode<K, V> child;
 
-        public ChildNodeCreated(BPlusNode<K, V> parent, BPlusNode<K, V> child) {
-            super(EventType.CHILDNODE_CREATED);
+        public NodeCreated(BPlusNode<K, V> parent, BPlusNode<K, V> child) {
+            super(EventType.NODE_CREATED);
             this.parent = parent;
             this.child = child;
         }
@@ -136,12 +125,12 @@ public abstract class BPlusTreeEvent<K extends Comparable<K>, V> {
         public BPlusNode<K, V> getChild() { return child; }
     }
 
-    public static class ChildNodeDeleted<K extends Comparable<K>, V> extends BPlusTreeEvent<K, V> {
+    public static class NodeDeleted<K extends Comparable<K>, V> extends BPlusTreeEvent<K, V> {
         private final BPlusNode<K, V> parent;
         private final BPlusNode<K, V> child;
 
-        public ChildNodeDeleted(BPlusNode<K, V> parent, BPlusNode<K, V> child) {
-            super(EventType.CHILDNODE_DELETED);
+        public NodeDeleted(BPlusNode<K, V> parent, BPlusNode<K, V> child) {
+            super(EventType.NODE_DELETED);
             this.parent = parent;
             this.child = child;
         }
