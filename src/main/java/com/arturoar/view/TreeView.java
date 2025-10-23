@@ -293,7 +293,12 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         
         Transition keyFading = TreeAnimator.fadeNode(removedKey, 1, 0);
         TreeAnimator.addTransitionToQueue(keyFading);
-        keyFading.setOnFinished(_ -> this.getChildren().remove(removedKey));
+        keyFading.setOnFinished(_ -> {
+            
+            this.getChildren().remove(removedKey);
+            keyToKeyView.remove(e.getKey());
+        }
+        );
         updateLevelLayout(e.getNode().getLevel());
         
         if (!e.getNode().isLeaf() && !e.getNode().isEmpty()){
