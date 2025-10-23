@@ -50,7 +50,7 @@ public class BPlusTreeController {
     public BPlusTreeController() {
         this.tree = new BPlusTree<>(this.branchingFactor);
         this.treeView = new TreeView(this.tree.getRoot());
-        //this.tree.addObserver(this.treeView);
+        this.tree.addObserver(this.treeView);
     }
 
     @FXML
@@ -72,10 +72,6 @@ public class BPlusTreeController {
         this.treeView.canvasHeightProperty().bind(this.canvas.heightProperty());
         this.treeView.canvasWidthProperty().bind(this.canvas.widthProperty());
 
-        this.canvas.setOnMouseClicked(_event -> {
-            // Handle mouse click events on the canvas
-            System.out.println("Canvas clicked at: " + _event.getX() + ", " + _event.getY());
-        });
     }
 
     private void setupButtonActions() {
@@ -96,7 +92,7 @@ public class BPlusTreeController {
                     showAlert(Alert.AlertType.WARNING, "Insertion Error", "Key already exists");
                 }
                 this.tree.showTree();
-                //disableButtons();
+                disableButtons();
                 TreeAnimator.addListenerToLastTransition(() -> enableButtons());
 
                 TreeAnimator.animateQueue();
@@ -115,7 +111,7 @@ public class BPlusTreeController {
                     showAlert(Alert.AlertType.ERROR, "Removal Error", 
                             "The structure does not contain key " + key);
                 }
-                //disableButtons();                
+                disableButtons();                
                 TreeAnimator.addListenerToLastTransition(() -> enableButtons());
                 this.tree.showTree();
                 TreeAnimator.animateQueue();
@@ -234,19 +230,19 @@ public class BPlusTreeController {
 
     public boolean insert(Integer key, String data) {
         BPlusTraversalResult<Boolean, Integer, String> result = this.tree.insert(key, data);
-        //treeView.animateTraversal(result.getVisitedKeys());
+        treeView.animateTraversal(result.getVisitedKeys());
         return result.getResult();
     }
 
     public Key<Integer> remove(Integer key) {
         BPlusTraversalResult<Key<Integer>, Integer, String> result = this.tree.remove(key);
-        //treeView.animateTraversal(result.getVisitedKeys());
+        treeView.animateTraversal(result.getVisitedKeys());
         return result.getResult();
     }
 
     public BPlusLeafNode<Integer, String> search(Integer key) {
         BPlusTraversalResult<BPlusLeafNode<Integer, String>, Integer, String>  result =  this.tree.search(key);
-        //treeView.animateTraversal(result.getVisitedKeys());
+        treeView.animateTraversal(result.getVisitedKeys());
         return result.getResult();
     }
 
