@@ -28,7 +28,7 @@ import javafx.util.Duration;
 
 public class TreeAnimator {
 
-    private static final Duration ANIMATION_DURATION = Duration.millis(600);
+    private static final Duration ANIMATION_DURATION = Duration.millis(500);
     private static Interpolator interpolator = Interpolator.EASE_BOTH;
 
 
@@ -51,7 +51,9 @@ public class TreeAnimator {
 
     public static Transition moveNode(Node node, double byX, double byY) {
         
-        TranslateTransition translate = new TranslateTransition(ANIMATION_DURATION, node);
+        double distance = Math.sqrt(Math.pow(byX, 2) + Math.pow(byY,2));
+        int duration = calculateDuration(distance);
+        TranslateTransition translate = new TranslateTransition(Duration.millis(duration), node);
         translate.setByX(byX);
         translate.setByY(byY);
         translate.setInterpolator(interpolator);
@@ -59,12 +61,22 @@ public class TreeAnimator {
     }
 
     public static Transition moveNode(Node node, double byX, double byY , double multiplier) {
-        
         TranslateTransition translate = new TranslateTransition(Duration.millis(ANIMATION_DURATION.toMillis() * multiplier), node);
         translate.setByX(byX);
         translate.setByY(byY);
         translate.setInterpolator(interpolator);
         return translate;
+    }
+
+    private static int calculateDuration(double delta){
+        //double normalizedDelta = Math.log1p(delta); // log(1 + delta)
+        double normalizedDelta = Math.sqrt(Math.abs(delta));
+        double duration = ANIMATION_DURATION.toMillis() * normalizedDelta;
+        
+        // Limitar duración máxima y mínima
+        duration = Math.max(ANIMATION_DURATION.toMillis(), Math.min(1.4* ANIMATION_DURATION.toMillis(), duration)); // entre 200ms y 2000ms
+
+        return (int) duration;
     }
 
     public static Transition scaleNode(Node node, double from, double to) {
@@ -213,34 +225,19 @@ public class TreeAnimator {
     }
 
 
-    public static Transition moveArrowEnd(Edge arrow, double fromX, double toX) {
-        Transition transition = new Transition() {
-            {
-                setCycleDuration(ANIMATION_DURATION);
-                setInterpolator(interpolator);
-            }
-            @Override
-            protected void interpolate(double frac) {
-                double value = fromX + (toX - fromX) * frac;
-                arrow.endXProperty().set(value);
-            }
-        };
-        return transition;
-    }
 
-    public static void combineLastTransitionsOnQueue() {
+    public static void combineLastsTransitionsOnQueue(int numOfTransitions) {
         int size = TreeAnimator.transitionQueue.size();
-        if (size < 2) return;
+        if (size < numOfTransitions) return;
 
-        Transition last = TreeAnimator.transitionQueue.get(size - 1);
-        Transition secondLast = TreeAnimator.transitionQueue.get(size - 2);
+        Transition lastTransition, secondLast;
+        for (int i = 1; i < numOfTransitions; i++){
+            lastTransition = TreeAnimator.transitionQueue.removeLast();
+            secondLast = TreeAnimator.transitionQueue.removeLast();
+            ParallelTransition combinedTransitions = new ParallelTransition(lastTransition,secondLast);
+            TreeAnimator.transitionQueue.add(combinedTransitions);
+        }
 
-        ParallelTransition combined = new ParallelTransition();
-        combined.getChildren().addAll(secondLast, last);
-
-        TreeAnimator.transitionQueue.remove(size - 1);
-        TreeAnimator.transitionQueue.remove(size - 2);
-        TreeAnimator.transitionQueue.add(combined);
     }
     
 
@@ -259,9 +256,10 @@ public class TreeAnimator {
         return new Transition() {
             private final double startValue = fromValue;
             private final double endValue = toValue;
-            
+            int duration = calculateDuration(toValue - fromValue);
             {
-                setCycleDuration(ANIMATION_DURATION);
+                setCycleDuration(Duration.millis(duration));
+                //setCycleDuration(ANIMATION_DURATION);
                 // Set initial value
                 property.setValue(fromValue);
             }
