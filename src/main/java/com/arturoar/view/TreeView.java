@@ -24,6 +24,11 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
     private final Double X_PADDING = 20.0;
     private final Double Y_PADDING = 50.0;
+    private final Double MIN_NODE_SPACING = 15.0;
+    private final Double MAX_NODE_SPACING = 50.0;
+    // private final Double MIN_LEVEL_SPACING = 80.0;
+    // private final Double MAX_LEVEL_SPACING = 150.0;
+
 
     private final Map<Key<Integer>, KeyView> keyToKeyView = new HashMap<>();
     private final Map<BPlusNode<Integer, String>, NodeView> nodeToNodeView = new HashMap<>();
@@ -34,6 +39,10 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
     private DoubleProperty canvasWidth = new SimpleDoubleProperty();
     private DoubleProperty canvasHeight = new SimpleDoubleProperty();
+
+
+    private DoubleProperty scaleProperty = new SimpleDoubleProperty(1.0);
+    
 
     public TreeView(BPlusNode<Integer, String> root) {
 
@@ -286,7 +295,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     private void handleKeyRemoved(BPlusTreeEvent<Integer, String> event) {
         BPlusTreeEvent.KeyRemoved<Integer,String> e = (BPlusTreeEvent.KeyRemoved<Integer,String>) event;
 
-        KeyView removedKey = keyToKeyView.remove(e.getKey());
+        KeyView removedKey = keyToKeyView.get(e.getKey());
         NodeView node = nodeToNodeView.get(e.getNode());
         int removeKeyIndex = node.remove(removedKey);
 
@@ -534,16 +543,28 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     
     private void updateLevelLayout(int level){
 
-        if (level < 0 || level >= this.treeLevels.size()) {
+        if (level < 0 || level >= treeLevels.size()) {
             return; 
         }
 
-        double totalWidth = this.treeLevels.get(level).stream()
+        double nodesTotalWidth = this.treeLevels.get(level).stream()
                                                         .mapToDouble(NodeView::getWidth)
                                                         .sum() ;
 
+        
+        double nodeSpacing = ((canvasWidth.get()/scaleProperty.get()) - nodesTotalWidth - 2 * X_PADDING) / (treeLevels.get(level).size() + 1);
 
-        double nodeSpacing = (this.canvasWidth.get() - totalWidth - 2 * X_PADDING) / (treeLevels.get(level).size() + 1);
+        if (nodeSpacing < MIN_NODE_SPACING){
+
+            double blankSpaceNeeded = MIN_NODE_SPACING * (treeLevels.get(level).size() + 1) + 2 * X_PADDING;
+            scaleProperty.set( canvasWidth.get() / (blankSpaceNeeded + nodesTotalWidth) );
+            nodeSpacing = MIN_NODE_SPACING;
+            //TO DO: Scale down the tree view
+
+        }else if (nodeSpacing > MAX_NODE_SPACING){
+            //TODO: Scale up the tree view
+            //nodeSpacing = MAX_NODE_SPACING;
+        }
 
         double startX = X_PADDING + nodeSpacing;
 
@@ -640,6 +661,8 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     public Double getCanvasWidth() { return canvasWidth.get(); }
 
     public Double getCanvasHeight() { return canvasHeight.get(); }
+
+    public DoubleProperty scaleProperty() { return scaleProperty; }
 
 
 
