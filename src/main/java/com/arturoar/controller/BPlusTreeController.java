@@ -3,20 +3,17 @@ package com.arturoar.controller;
 import com.arturoar.model.*;
 import com.arturoar.util.BPlusTraversalResult;
 import com.arturoar.util.TreeAnimator;
+import com.arturoar.util.TreeViewTransformer;
 import com.arturoar.view.TreeView;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.transform.Scale;
-import javafx.scene.transform.Translate;
+import javafx.scene.shape.Rectangle;
 
 public class BPlusTreeController {
 
-    private static final double SCALE_DELTA = 1.1;
    // private static final double DEFAULT_X_SPACING = 20.0;
    // private static final double DEFAULT_Y_SPACING = 80.0;
     private static final int DEFAULT_BRANCHING_FACTOR = 4;
@@ -27,10 +24,6 @@ public class BPlusTreeController {
     @FXML private Button searchBtn;
     @FXML private Button homeBtn;
     //@FXML private AnchorPane anchorPane;
-
-    private final Scale scaleTransform = new Scale(1, 1);
-    private final Translate translateTransform = new Translate();
-
     
     //private double xSpacing = DEFAULT_X_SPACING;
     //private double ySpacing = DEFAULT_Y_SPACING;
@@ -43,6 +36,7 @@ public class BPlusTreeController {
 
     // BPlusTree model instance
     private final BPlusTree<Integer, String> tree;
+    private TreeViewTransformer transformer;
     
     private TreeView treeView;
     
@@ -51,31 +45,43 @@ public class BPlusTreeController {
         this.tree = new BPlusTree<>(this.branchingFactor);
         this.treeView = new TreeView(this.tree.getRoot());
         this.tree.addObserver(this.treeView);
+
+        
     }
 
     @FXML
     public void initialize() {
-        setupTransforms();
         setupCanvas();
+        this.canvas.setOnMouseClicked(event->{
+            this.lastMouseX = event.getX();
+            this.lastMouseY = event.getY();
+            System.out.println("Coords: (" + this.lastMouseX + ", " + this.lastMouseY + ")");
+        });
+        this.transformer = new TreeViewTransformer(canvas, treeView);
         setupButtonActions();
     }
 
-    private void setupTransforms() {
-        this.treeView.getTransforms().addAll(scaleTransform, translateTransform);
-    }
-
     private void setupCanvas() {
-        this.canvas.getChildren().add(treeView);
-        this.canvas.setOnScroll(this::handleZoom);
-        this.canvas.setOnMousePressed(this::handleMousePressed);
-        this.canvas.setOnMouseDragged(this::handleMouseDragged);
-        this.treeView.canvasHeightProperty().bind(this.canvas.heightProperty());
-        this.treeView.canvasWidthProperty().bind(this.canvas.widthProperty());
+
+        // Crear un Rectangle para el clip
+        Rectangle clip = new Rectangle();
+        
+        // Bind del clip al tamaño del Pane
+        clip.widthProperty().bind(canvas.widthProperty());
+        clip.heightProperty().bind(canvas.heightProperty());
+        
+        // Aplicar el clip al Pane
+        canvas.setClip(clip);
+
+        canvas.getChildren().add(treeView);
+        treeView.canvasHeightProperty().bind(this.canvas.heightProperty());
+        treeView.canvasWidthProperty().bind(this.canvas.widthProperty());
 
     }
+
 
     private void setupButtonActions() {
-        this.homeBtn.setOnAction  (_ -> resetView());
+        this.homeBtn.setOnAction  (_ -> transformer.resetView());
         this.insertBtn.setOnAction(_ -> handleInsert());
         this.removeBtn.setOnAction(_ -> handleRemove());
         this.searchBtn.setOnAction(_ -> handleSearch());
@@ -197,37 +203,7 @@ public class BPlusTreeController {
         showAlert(Alert.AlertType.ERROR, "Invalid Input", message);
     }
 
-    private void handleZoom(ScrollEvent event) {
-        double scaleFactor = event.getDeltaY() > 0 ? SCALE_DELTA : 1 / SCALE_DELTA;
-        scaleTransform.setX(scaleTransform.getX() * scaleFactor);
-        scaleTransform.setY(scaleTransform.getY() * scaleFactor);
-        //zoomFactor *= scaleFactor;
-    }
-
-    private void handleMousePressed(MouseEvent event) {
-        lastMouseX = event.getSceneX();
-        lastMouseY = event.getSceneY();
-    }
-
-    private void handleMouseDragged(MouseEvent event) {
-        double deltaX = event.getSceneX() - lastMouseX;
-        double deltaY = event.getSceneY() - lastMouseY;
-        
-        translateTransform.setX(translateTransform.getX() + deltaX);
-        translateTransform.setY(translateTransform.getY() + deltaY);
-        
-        lastMouseX = event.getSceneX();
-        lastMouseY = event.getSceneY();
-    }
-
-    private void resetView() {
-        scaleTransform.setX(1);
-        scaleTransform.setY(1);
-        translateTransform.setX(0);
-        translateTransform.setY(0);
-        //zoomFactor = 1.0;
-    }   
-
+    
     public boolean insert(Integer key, String data) {
         BPlusTraversalResult<Boolean, Integer, String> result = this.tree.insert(key, data);
         treeView.animateTraversal(result.getVisitedKeys());
