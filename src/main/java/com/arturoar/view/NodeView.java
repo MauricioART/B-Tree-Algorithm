@@ -44,9 +44,9 @@ public abstract class NodeView extends Group {
         
         // Animate width changes
         this.width.addListener((_, oldVal, newVal) -> {
-            Transition widthTransition = TreeAnimator.animateProperty(
+            Transition widthTransition = TreeAnimator.getInstance().animateProperty(
                 this.animatedWidth, oldVal.doubleValue(), newVal.doubleValue());
-            TreeAnimator.addParallelTransition(widthTransition);
+            TreeAnimator.getInstance().addParallelTransition(widthTransition);
         });
 
 
@@ -176,8 +176,8 @@ public abstract class NodeView extends Group {
             //if (byX == 0.0) return;
 
             // Create a transition for the key movement
-            Transition movingKey = TreeAnimator.moveNode(key, byX, 0.0);
-            TreeAnimator.addParallelTransition(movingKey);
+            Transition movingKey = TreeAnimator.getInstance().moveNode(key, byX, 0.0);
+            TreeAnimator.getInstance().addParallelTransition(movingKey);
             // Update the new origin for the key
             key.setNewOriginX(key.getNewXOrigin() + deltaX);
             key.setCurrentXOrigin(key.getNewXOrigin());

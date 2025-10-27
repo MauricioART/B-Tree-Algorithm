@@ -42,10 +42,10 @@ public class TreeViewTransformer {
 
         ChangeListener<Number> autoFitListener = (_, oldVal, newVal) -> {
             maxScale = 1 / newVal.doubleValue();
-            Transition autoFitX = TreeAnimator.animateProperty(autoFitScaleTransform.xProperty(),oldVal.doubleValue(), newVal.doubleValue());
-            Transition autoFitY = TreeAnimator.animateProperty(autoFitScaleTransform.yProperty(),oldVal.doubleValue(), newVal.doubleValue());
-            TreeAnimator.addParallelTransition(autoFitX);
-            TreeAnimator.addParallelTransition(autoFitY);
+            Transition autoFitX = TreeAnimator.getInstance().animateProperty(autoFitScaleTransform.xProperty(),oldVal.doubleValue(), newVal.doubleValue());
+            Transition autoFitY = TreeAnimator.getInstance().animateProperty(autoFitScaleTransform.yProperty(),oldVal.doubleValue(), newVal.doubleValue());
+            TreeAnimator.getInstance().addParallelTransition(autoFitX);
+            TreeAnimator.getInstance().addParallelTransition(autoFitY);
         };
         
         this.treeView.scaleProperty().addListener(autoFitListener);

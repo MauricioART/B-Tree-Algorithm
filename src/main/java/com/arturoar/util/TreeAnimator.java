@@ -19,6 +19,7 @@ import javafx.animation.Transition;
 import javafx.animation.TranslateTransition;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -28,20 +29,30 @@ import javafx.util.Duration;
 
 public class TreeAnimator {
 
-    private static final Duration ANIMATION_DURATION = Duration.millis(500);
-    private static Interpolator interpolator = Interpolator.EASE_BOTH;
+    private final int BASE_DURATION = 300;
+    private DoubleProperty animationSpeed = new SimpleDoubleProperty();
+    private DoubleProperty animationDuration = new SimpleDoubleProperty();
+    private Interpolator interpolator = Interpolator.EASE_BOTH;
 
 
-    public static List<Transition>  parallelList = new ArrayList<>();
-    public static List<Transition> transitionQueue = new ArrayList<>();
-    public static List<Transition> traversalList = new ArrayList<>();
-
+    public List<Transition>  parallelList = new ArrayList<>();
+    public List<Transition> transitionQueue = new ArrayList<>();
+    public List<Transition> traversalList = new ArrayList<>();
+    
+    private static TreeAnimator instance = new TreeAnimator();
+    
+    public static TreeAnimator getInstance(){
+        return instance;
+    }
+    
+    
     private TreeAnimator() {
         // Private constructor to prevent instantiation
+        animationDuration.bind(animationSpeed.multiply(BASE_DURATION));
     }
 
-    public static Transition fadeNode(Node node, double from, double to) {
-        FadeTransition fade = new FadeTransition(ANIMATION_DURATION, node);
+    public Transition fadeNode(Node node, double from, double to) {
+        FadeTransition fade = new FadeTransition(Duration.millis(animationDuration.get()), node);
         fade.setInterpolator(Interpolator.EASE_IN);
         fade.setFromValue(from);
         fade.setToValue(to);
@@ -49,7 +60,7 @@ public class TreeAnimator {
         return fade;
     }
 
-    public static Transition moveNode(Node node, double byX, double byY) {
+    public Transition moveNode(Node node, double byX, double byY) {
         
         double distance = Math.sqrt(Math.pow(byX, 2) + Math.pow(byY,2));
         int duration = calculateDuration(distance);
@@ -60,27 +71,27 @@ public class TreeAnimator {
         return translate;
     }
 
-    public static Transition moveNode(Node node, double byX, double byY , double multiplier) {
-        TranslateTransition translate = new TranslateTransition(Duration.millis(ANIMATION_DURATION.toMillis() * multiplier), node);
+    public Transition moveNode(Node node, double byX, double byY , double multiplier) {
+        TranslateTransition translate = new TranslateTransition(Duration.millis(animationDuration.get() * multiplier), node);
         translate.setByX(byX);
         translate.setByY(byY);
         translate.setInterpolator(interpolator);
         return translate;
     }
 
-    private static int calculateDuration(double delta){
+    private int calculateDuration(double delta){
         //double normalizedDelta = Math.log1p(delta); // log(1 + delta)
         double normalizedDelta = Math.sqrt(Math.abs(delta));
-        double duration = ANIMATION_DURATION.toMillis() * normalizedDelta;
+        double duration = animationDuration.get() * normalizedDelta;
         
         // Limitar duración máxima y mínima
-        duration = Math.max(ANIMATION_DURATION.toMillis(), Math.min(1.4* ANIMATION_DURATION.toMillis(), duration)); // entre 200ms y 2000ms
+        duration = Math.max(animationDuration.get(), Math.min(1.4 * animationDuration.get(), duration)); // entre 200ms y 2000ms
 
         return (int) duration;
     }
 
-    public static Transition scaleNode(Node node, double from, double to) {
-        ScaleTransition scale = new ScaleTransition(ANIMATION_DURATION, node);
+    public Transition scaleNode(Node node, double from, double to) {
+        ScaleTransition scale = new ScaleTransition(Duration.millis(animationDuration.get()), node);
         scale.setFromX(from);
         scale.setToX(to);
         scale.setFromY(from);
@@ -89,15 +100,15 @@ public class TreeAnimator {
         return scale;
     }
     
-    public static Transition colorTransition(javafx.scene.shape.Shape shape, Color fromColor, Color toColor) {
-        FillTransition fillTransition = new FillTransition(ANIMATION_DURATION, shape);
+    public Transition colorTransition(javafx.scene.shape.Shape shape, Color fromColor, Color toColor) {
+        FillTransition fillTransition = new FillTransition(Duration.millis(animationDuration.get()), shape);
         fillTransition.setFromValue(fromColor);
         fillTransition.setToValue(toColor);
         fillTransition.setInterpolator(interpolator);
         return fillTransition;
     }   
 
-    public static SequentialTransition highlightKeyView(KeyView keyView) {
+    public SequentialTransition highlightKeyView(KeyView keyView) {
         Rectangle rect = keyView.getKeyShape();
         Text text = keyView.getKeyLabel();
 
@@ -108,10 +119,10 @@ public class TreeAnimator {
         Color highlightText = Color.web("#bca20eff"); // Blanco
 
         // Transiciones para el borde
-        StrokeTransition strokeHighlight = new StrokeTransition(ANIMATION_DURATION, rect, originalStroke, highlightStroke);
+        StrokeTransition strokeHighlight = new StrokeTransition(Duration.millis(animationDuration.get()), rect, originalStroke, highlightStroke);
         strokeHighlight.setInterpolator(interpolator);
 
-        StrokeTransition strokeRestore = new StrokeTransition(ANIMATION_DURATION, rect, highlightStroke, originalStroke);
+        StrokeTransition strokeRestore = new StrokeTransition(Duration.millis(animationDuration.get()), rect, highlightStroke, originalStroke);
         strokeRestore.setInterpolator(interpolator);
 
         // 🔹 Transiciones para el texto (usando FillTransition en lugar de Transition manual)
@@ -130,7 +141,7 @@ public class TreeAnimator {
     }
 
   
-    public static SequentialTransition highlightEdge(Edge edge) {
+    public SequentialTransition highlightEdge(Edge edge) {
 
         Shape body;
         if (edge instanceof TreeEdge ) {
@@ -142,12 +153,12 @@ public class TreeAnimator {
         Color highlightStroke = Color.web("#bca20eff"); // Azul claro
 
 
-        StrokeTransition highlightCurve = new StrokeTransition(ANIMATION_DURATION, body, originalStroke, highlightStroke);
-        FillTransition highlightArrowHead = new FillTransition(ANIMATION_DURATION, edge.getHead(), originalStroke, highlightStroke);
+        StrokeTransition highlightCurve = new StrokeTransition(Duration.millis(animationDuration.get()), body, originalStroke, highlightStroke);
+        FillTransition highlightArrowHead = new FillTransition(Duration.millis(animationDuration.get()), edge.getHead(), originalStroke, highlightStroke);
 
 
-        StrokeTransition restoreCurve = new StrokeTransition(ANIMATION_DURATION, body, highlightStroke, originalStroke);
-        FillTransition restoreArrowHead = new FillTransition(ANIMATION_DURATION, edge.getHead(), highlightStroke, originalStroke);
+        StrokeTransition restoreCurve = new StrokeTransition(Duration.millis(animationDuration.get()), body, highlightStroke, originalStroke);
+        FillTransition restoreArrowHead = new FillTransition(Duration.millis(animationDuration.get()), edge.getHead(), highlightStroke, originalStroke);
 
         highlightCurve.setInterpolator(interpolator);
         restoreCurve.setInterpolator(interpolator);
@@ -159,17 +170,17 @@ public class TreeAnimator {
         return new SequentialTransition(highlight, restore);
     }
 
-    public static void addParallelTransition(List<Transition> transitions) {
+    public void addParallelTransition(List<Transition> transitions) {
         ParallelTransition parallelTransition = new ParallelTransition();
         for (Transition transition : transitions) {
             if (transition != null) {
                 parallelTransition.getChildren().add(transition);
             }
         }
-        TreeAnimator.transitionQueue.add(parallelTransition);
+        transitionQueue.add(parallelTransition);
     }
 
-    public static void createParallelTransition() {
+    public void createParallelTransition() {
         if (parallelList.isEmpty()) return;
         ParallelTransition parallelTransition = new ParallelTransition();
         for (Transition transition : parallelList) {
@@ -177,48 +188,48 @@ public class TreeAnimator {
                 parallelTransition.getChildren().add(transition);
             }
         }
-        TreeAnimator.transitionQueue.add(parallelTransition);
-        TreeAnimator.parallelList.clear();
+        transitionQueue.add(parallelTransition);
+        parallelList.clear();
     }
 
-    public static void addTransitionToQueue(Transition transition) {
+    public void addTransitionToQueue(Transition transition) {
         if (transition != null) {
-            TreeAnimator.transitionQueue.add(transition);
+            transitionQueue.add(transition);
         }
     }
 
-    public static void addSequentialTransition(List<Transition> transitions) {
+    public void addSequentialTransition(List<Transition> transitions) {
         SequentialTransition sequentialTransition = new SequentialTransition();
         for (Transition transition : transitions) {
             if (transition != null) {
                 sequentialTransition.getChildren().add(transition);
             }
         }
-        TreeAnimator.transitionQueue.add(sequentialTransition);
+        transitionQueue.add(sequentialTransition);
     }
 
-    public static void addParallelTransition(Transition transition) {
+    public void addParallelTransition(Transition transition) {
         if (transition != null) {
-            TreeAnimator.parallelList.add(transition);
+            parallelList.add(transition);
         }
     }
 
-    public static void clearQueue() {
-        TreeAnimator.transitionQueue.clear();
+    public void clearQueue() {
+        transitionQueue.clear();
     }
 
-    public static void clearParallelList(){
-        TreeAnimator.parallelList.clear();
+    public void clearParallelList(){
+        parallelList.clear();
     }
 
-    public static void animateQueue() {
+    public void animateQueue() {
         SequentialTransition traversal = new SequentialTransition();
-        traversal.getChildren().addAll(TreeAnimator.traversalList);
+        traversal.getChildren().addAll(traversalList);
         SequentialTransition seqTransitions = new SequentialTransition();
-        seqTransitions.getChildren().addAll(TreeAnimator.transitionQueue);
-        TreeAnimator.clearQueue();
+        seqTransitions.getChildren().addAll(transitionQueue);
+        clearQueue();
         traversal.setOnFinished(_ -> {
-            TreeAnimator.traversalList.clear();
+            traversalList.clear();
             seqTransitions.play();
         });
         traversal.play();
@@ -226,33 +237,33 @@ public class TreeAnimator {
 
 
 
-    public static void combineLastsTransitionsOnQueue(int numOfTransitions) {
-        int size = TreeAnimator.transitionQueue.size();
+    public void combineLastsTransitionsOnQueue(int numOfTransitions) {
+        int size = transitionQueue.size();
         if (size < numOfTransitions) return;
 
         Transition lastTransition, secondLast;
         for (int i = 1; i < numOfTransitions; i++){
-            lastTransition = TreeAnimator.transitionQueue.removeLast();
-            secondLast = TreeAnimator.transitionQueue.removeLast();
+            lastTransition = transitionQueue.removeLast();
+            secondLast = transitionQueue.removeLast();
             ParallelTransition combinedTransitions = new ParallelTransition(lastTransition,secondLast);
-            TreeAnimator.transitionQueue.add(combinedTransitions);
+            transitionQueue.add(combinedTransitions);
         }
 
     }
     
 
-    public static void addListenerToLastTransition(Runnable onFinished) {
-        int size = TreeAnimator.transitionQueue.size();
+    public void addListenerToLastTransition(Runnable onFinished) {
+        int size = transitionQueue.size();
         if (size == 0) return;
 
-        Transition last = TreeAnimator.transitionQueue.get(size - 1);
+        Transition last = transitionQueue.get(size - 1);
         last.setOnFinished(_ -> onFinished.run());
     }
 
     /**
      * Creates a smooth transition for any property using a custom Transition
      */
-    public static Transition animateProperty(Property<Number> property, double fromValue, double toValue)  {
+    public Transition animateProperty(Property<Number> property, double fromValue, double toValue)  {
         return new Transition() {
             private final double startValue = fromValue;
             private final double endValue = toValue;
@@ -275,19 +286,19 @@ public class TreeAnimator {
     /**
      * Overload for DoubleProperty specifically
      */
-    public static Transition animateProperty(DoubleProperty property, double fromValue, double toValue) {
+    public Transition animateProperty(DoubleProperty property, double fromValue, double toValue) {
         return animateProperty((Property<Number>)property, fromValue, toValue);
     }
 
-    public static SequentialTransition animateTextChange(Text text, String newText) {
+    public SequentialTransition animateTextChange(Text text, String newText) {
         SequentialTransition seqTransition = new SequentialTransition();
 
-        FadeTransition fadeOut = new FadeTransition(Duration.millis(ANIMATION_DURATION.toMillis()/2), text);
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(animationDuration.get()/2), text);
         fadeOut.setFromValue(1.0);
         fadeOut.setToValue(0.0);
         fadeOut.setInterpolator(interpolator);
 
-        FadeTransition fadeIn = new FadeTransition(Duration.millis(ANIMATION_DURATION.toMillis()/2), text);
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(animationDuration.get()/2), text);
         fadeIn.setFromValue(0.0);
         fadeIn.setToValue(1.0);
         fadeIn.setInterpolator(interpolator);
@@ -299,10 +310,18 @@ public class TreeAnimator {
 
     } 
 
-    public static void addToTraversalList(Transition transition) {
+    public void addToTraversalList(Transition transition) {
         if (transition != null) {
-            TreeAnimator.traversalList.add(transition);
+            traversalList.add(transition);
         }
+    }
+
+    public DoubleProperty getAnimationSpeedProperty() {
+        return animationSpeed;
+    }
+
+    public void setSpeedAnimation(double newSpeed) {
+        this.animationSpeed.set(newSpeed);
     }
 
     public enum Theme {

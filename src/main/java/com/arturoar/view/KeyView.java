@@ -103,16 +103,16 @@ public class KeyView extends Group {
         keyLabel.layoutBoundsProperty().addListener((_, oldVal, newVal)->{
             double oldWidth = oldVal.getWidth() + 2 * paddingX;
             double newWidth = newVal.getWidth() + 2 * paddingX;
-            Transition widthChangeTransition = TreeAnimator.animateProperty(widthProperty, oldWidth, newWidth);
-            TreeAnimator.addParallelTransition(widthChangeTransition);
+            Transition widthChangeTransition = TreeAnimator.getInstance().animateProperty(widthProperty, oldWidth, newWidth);
+            TreeAnimator.getInstance().addParallelTransition(widthChangeTransition);
             node.onWidthChange(this, newWidth - oldWidth);
             if (onWidthChangeCallback != null){
                 int level = node.getLevel();
                 onWidthChangeCallback.accept(level);
             }
 
-            TreeAnimator.createParallelTransition();
-            TreeAnimator.animateQueue();
+            TreeAnimator.getInstance().createParallelTransition();
+            TreeAnimator.getInstance().animateQueue();
 
             
         });
