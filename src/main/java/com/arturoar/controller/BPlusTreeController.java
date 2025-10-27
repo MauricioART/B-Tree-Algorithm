@@ -6,6 +6,8 @@ import com.arturoar.util.TreeAnimator;
 import com.arturoar.util.TreeViewTransformer;
 import com.arturoar.view.TreeView;
 
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.Pane;
@@ -23,6 +25,9 @@ public class BPlusTreeController {
     @FXML private Button removeBtn;
     @FXML private Button searchBtn;
     @FXML private Button homeBtn;
+    @FXML private Slider speedSlider;
+    @FXML private Button themeModeBtn;
+    @FXML private Label speedLabel;
     //@FXML private AnchorPane anchorPane;
     
     //private double xSpacing = DEFAULT_X_SPACING;
@@ -39,14 +44,15 @@ public class BPlusTreeController {
     private TreeViewTransformer transformer;
     
     private TreeView treeView;
+
+    private DoubleProperty animationSpeed = new SimpleDoubleProperty(1.0);
     
 
     public BPlusTreeController() {
         this.tree = new BPlusTree<>(this.branchingFactor);
         this.treeView = new TreeView(this.tree.getRoot());
         this.tree.addObserver(this.treeView);
-
-        
+        TreeAnimator.getInstance().getAnimationSpeedProperty().bind(this.animationSpeed);
     }
 
     @FXML
@@ -59,6 +65,7 @@ public class BPlusTreeController {
         });
         this.transformer = new TreeViewTransformer(canvas, treeView);
         setupButtonActions();
+        setupSpeedSlider();
     }
 
     private void setupCanvas() {
@@ -88,6 +95,19 @@ public class BPlusTreeController {
     }
 
     
+    private void setupSpeedSlider() {
+        this.speedSlider.setBlockIncrement(0.25);
+        this.speedSlider.setValue(1.0);
+        this.speedSlider.setMin(0.25);
+        this.speedSlider.setMax(1.5);
+        this.speedSlider.valueProperty().addListener((_, _, newVal) -> {
+
+            animationSpeed.set(1/newVal.doubleValue());
+        });
+        this.speedLabel.textProperty().bind(
+            animationSpeed.asString("Speed: %.2fx")
+        );
+    }
     
     private void handleInsert() {
         Dialog<String[]> dialog = createKeyValueDialog("New Node", "Insert the new key:", true);
@@ -99,9 +119,9 @@ public class BPlusTreeController {
                 }
                 this.tree.showTree();
                 disableButtons();
-                TreeAnimator.addListenerToLastTransition(() -> enableButtons());
+                TreeAnimator.getInstance().addListenerToLastTransition(() -> enableButtons());
 
-                TreeAnimator.animateQueue();
+                TreeAnimator.getInstance().animateQueue();
             } catch (NumberFormatException e) {
                 showInputErrorAlert("Please enter a valid integer key.");
             }
@@ -118,9 +138,9 @@ public class BPlusTreeController {
                             "The structure does not contain key " + key);
                 }
                 disableButtons();                
-                TreeAnimator.addListenerToLastTransition(() -> enableButtons());
+                TreeAnimator.getInstance().addListenerToLastTransition(() -> enableButtons());
                 this.tree.showTree();
-                TreeAnimator.animateQueue();
+                TreeAnimator.getInstance().animateQueue();
             } catch (NumberFormatException e) {
                 showInputErrorAlert("Please enter a valid integer key.");
             }
@@ -141,8 +161,8 @@ public class BPlusTreeController {
                     System.out.println("◆◆◆◆◆ Búsqueda exitosa ◆◆◆◆◆");
                 }
                 disableButtons();
-                TreeAnimator.addListenerToLastTransition(() -> enableButtons());
-                TreeAnimator.animateQueue();
+                TreeAnimator.getInstance().addListenerToLastTransition(() -> enableButtons());
+                TreeAnimator.getInstance().animateQueue();
             } catch (NumberFormatException e) {
                 showInputErrorAlert("Please enter a valid integer key.");
             }
