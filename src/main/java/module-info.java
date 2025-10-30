@@ -5,6 +5,12 @@ module com.arturoar.bplustree {
     requires transitive javafx.graphics;
     requires java.xml;
     requires javafx.base;
+    
+    requires MaterialFX;
+    requires VirtualizedFX;
+
+    requires org.kordamp.ikonli.fontawesome5;
+    requires org.kordamp.ikonli.javafx;
 
     // Abre los paquetes para el uso reflexivo por parte de javafx.fxml
     opens com.arturoar.ui to javafx.fxml;

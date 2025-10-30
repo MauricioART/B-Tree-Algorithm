@@ -15,6 +15,7 @@
     </properties>
 
     <dependencies>
+        
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -24,6 +25,39 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>22.0.1</version>
+        </dependency>
+
+            <!-- MaterialFX Core -->
+        <dependency>
+            <groupId>io.github.palexdev</groupId>
+            <artifactId>materialfx</artifactId>
+            <version>11.17.0</version>
+        </dependency>
+
+        <!-- MFXResources (para iconos) -->
+        <dependency>
+            <groupId>io.github.palexdev</groupId>
+            <artifactId>mfxresources</artifactId>
+            <version>11.9.1</version>
+        </dependency>
+
+        <!-- VirtualizedFX (requerido) -->
+        <dependency>
+            <groupId>io.github.palexdev</groupId>
+            <artifactId>virtualizedfx</artifactId>
+            <version>11.9.6</version>
+        </dependency>
+
+        <dependency>
+        <groupId>org.kordamp.ikonli</groupId>
+            <artifactId>ikonli-javafx</artifactId>
+            <version>12.3.1</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.kordamp.ikonli</groupId>
+            <artifactId>ikonli-fontawesome5-pack</artifactId>
+            <version>12.3.1</version>
         </dependency>
 
         <dependency>

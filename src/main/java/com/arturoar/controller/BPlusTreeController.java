@@ -1,43 +1,56 @@
 package com.arturoar.controller;
 
+import java.util.ResourceBundle;
+
 import com.arturoar.model.*;
 import com.arturoar.util.BPlusTraversalResult;
 import com.arturoar.util.TreeAnimator;
 import com.arturoar.util.TreeViewTransformer;
 import com.arturoar.view.TreeView;
 
+import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.event.EventType;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
+import io.github.palexdev.mfxresources.fonts.IconDescriptor;
+import io.github.palexdev.mfxresources.fonts.IconsProviders;
+import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
+import io.github.palexdev.mfxresources.fonts.fontawesome.FontAwesomeBrands;
+import io.github.palexdev.mfxresources.fonts.fontawesome.FontAwesomeRegular;
+import io.github.palexdev.mfxresources.fonts.fontawesome.FontAwesomeSolid;
 
-public class BPlusTreeController {
+import java.net.URL;
 
-   // private static final double DEFAULT_X_SPACING = 20.0;
-   // private static final double DEFAULT_Y_SPACING = 80.0;
+
+public class BPlusTreeController implements Initializable{
+
     private static final int DEFAULT_BRANCHING_FACTOR = 4;
 
+
+    @FXML private AnchorPane rootPane;
     @FXML private Pane canvas;
-    @FXML private Button insertBtn;
-    @FXML private Button removeBtn;
-    @FXML private Button searchBtn;
-    @FXML private Button homeBtn;
-    @FXML private Slider speedSlider;
-    @FXML private Button themeModeBtn;
-    @FXML private Label speedLabel;
+    @FXML private MFXFontIcon insertBtn;
+    @FXML private MFXFontIcon removeBtn;
+    @FXML private MFXFontIcon searchBtn;
+    @FXML private MFXFontIcon homeBtn;
+    @FXML private MFXFontIcon minimizeBtn;
+    @FXML private MFXFontIcon maximizeBtn;
+    @FXML private MFXFontIcon closeBtn;
+    //@FXML private Slider speedSlider;
+    //@FXML private Button themeModeBtn;
+    //@FXML private Label speedLabel;
     //@FXML private AnchorPane anchorPane;
     
-    //private double xSpacing = DEFAULT_X_SPACING;
-    //private double ySpacing = DEFAULT_Y_SPACING;
     private int branchingFactor = DEFAULT_BRANCHING_FACTOR;
-    //private double zoomFactor = 1.0;
-    private double lastMouseX;
-    private double lastMouseY;
-    //private Double centerX;
-    //private Double centerY;
 
     // BPlusTree model instance
     private final BPlusTree<Integer, String> tree;
@@ -55,17 +68,39 @@ public class BPlusTreeController {
         TreeAnimator.getInstance().getAnimationSpeedProperty().bind(this.animationSpeed);
     }
 
-    @FXML
-    public void initialize() {
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        setupIcons();
+        closeBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, _ -> Platform.exit());
+		minimizeBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, _ -> ((Stage) rootPane.getScene().getWindow()).setIconified(true));
+		maximizeBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, _ -> { ((Stage) rootPane.getScene().getWindow()).setMaximized( !((Stage) rootPane.getScene().getWindow()).isMaximized() );});
+
         setupCanvas();
-        this.canvas.setOnMouseClicked(event->{
-            this.lastMouseX = event.getX();
-            this.lastMouseY = event.getY();
-            System.out.println("Coords: (" + this.lastMouseX + ", " + this.lastMouseY + ")");
-        });
         this.transformer = new TreeViewTransformer(canvas, treeView);
+        addStyleClasses();
         setupButtonActions();
-        setupSpeedSlider();
+        //setupSpeedSlider();
+    }
+
+    private void setupIcons(){
+        // Use FontAwesomeSolid enum constants directly (they implement IconDescriptor)
+        
+        
+        /*      
+        this.homeBtn.setDescription("fa-etch fa-solid fa-house");
+        this.insertBtn.setDescription("fa-etch fa-solid fa-plus-circle"); 
+        this.removeBtn.setDescription("fa-etch fa-solid fa-minus-circle");
+        this.searchBtn.setDescription("fa-etch fa-solid fa-magnifying-glass");
+        this.closeBtn.setDescription("fa-etch fa-solid fa-times-circle");
+        this.maximizeBtn.setDescription("fa-etch fa-solid fa-window-maximize");
+        this.minimizeBtn.setDescription("fa-etch fa-solid fa-window-minimize");
+        this.homeBtn.setIconDescriptor(FontAwesomeSolid.HOME);
+        this.insertBtn.setIconDescriptor(FontAwesomeSolid.PLUS_CIRCLE);
+        this.removeBtn.setIconDescriptor(FontAwesomeSolid.MINUS_CIRCLE);
+        this.searchBtn.setIconDescriptor(FontAwesomeSolid.SEARCH);
+        this.closeBtn.setIconDescriptor(FontAwesomeSolid.TIMES_CIRCLE);
+        this.maximizeBtn.setIconDescriptor(FontAwesomeSolid.WINDOW_MAXIMIZE);
+        this.minimizeBtn.setIconDescriptor(FontAwesomeSolid.WINDOW_MINIMIZE); */
     }
 
     private void setupCanvas() {
@@ -84,18 +119,38 @@ public class BPlusTreeController {
         treeView.canvasHeightProperty().bind(this.canvas.heightProperty());
         treeView.canvasWidthProperty().bind(this.canvas.widthProperty());
 
+        canvas.setOnMouseClicked(_->{
+            rootPane.getStyleClass().remove("rootPane"); 
+            rootPane.getStyleClass().add("light");
+            System.out.println("◆◆◆◆◆ Modo claro activado ◆◆◆◆◆");
+        });
+
     }
 
+    private void addStyleClasses() {
+        rootPane.getStyleClass().add("light");
+    }
 
     private void setupButtonActions() {
-        this.homeBtn.setOnAction  (_ -> transformer.resetView());
-        this.insertBtn.setOnAction(_ -> handleInsert());
-        this.removeBtn.setOnAction(_ -> handleRemove());
-        this.searchBtn.setOnAction(_ -> handleSearch());
+        
+        //MFXFontIcon icon = new MFXFontIcon(FontAwesomeSolid.HOUSE.getDescription(), 16);
+        //this.homeBtn.setGraphic(icon);
+
+        this.homeBtn.setOnMouseClicked(_ -> transformer.resetView());
+        this.insertBtn.setOnMouseClicked(_-> handleInsert());
+        this.removeBtn.setOnMouseClicked(_-> handleRemove());
+        this.searchBtn.setOnMouseClicked(_-> handleSearch());
+
+        this.rootPane.setOnMouseClicked(_ -> {
+            
+            rootPane.getStyleClass().remove("rootPane"); 
+            rootPane.getStyleClass().add("light");
+            System.out.println("◆◆◆◆◆ Modo claro activado ◆◆◆◆◆");
+        });
     }
 
     
-    private void setupSpeedSlider() {
+    /*private void setupSpeedSlider() {
         this.speedSlider.setBlockIncrement(0.25);
         this.speedSlider.setValue(1.0);
         this.speedSlider.setMin(0.25);
@@ -107,7 +162,7 @@ public class BPlusTreeController {
         this.speedLabel.textProperty().bind(
             animationSpeed.asString("Speed: %.2fx")
         );
-    }
+    }*/
     
     private void handleInsert() {
         Dialog<String[]> dialog = createKeyValueDialog("New Node", "Insert the new key:", true);

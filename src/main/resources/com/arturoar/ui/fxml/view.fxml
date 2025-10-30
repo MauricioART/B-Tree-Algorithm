@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import io.github.palexdev.materialfx.controls.MFXToggleButton?>
+<?import io.github.palexdev.mfxresources.fonts.MFXFontIcon?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+
+<AnchorPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" styleClass="rootPane" stylesheets="@../css/theme.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <HBox alignment="CENTER_RIGHT" prefHeight="50.0" prefWidth="1282.0" spacing="15.0">
+         <children>
+            <MFXFontIcon fx:id="minimizeBtn" description="fas-circle" size="15.0" styleClass="minimize-btn" />
+            <MFXFontIcon fx:id="maximizeBtn" description="fas-circle" size="15.0" styleClass="maximize-btn" />
+            <MFXFontIcon fx:id="closeBtn" description="fas-circle" size="15.0" styleClass="close-btn" />
+         </children>
+         <padding>
+            <Insets right="20.0" />
+         </padding>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" layoutX="-1.0" layoutY="67.0" prefHeight="80.0" prefWidth="1280.0" spacing="60.0">
+         <padding>
+            <Insets left="50.0" right="50.0" />
+         </padding>
+         <children>
+            <MFXFontIcon fx:id="homeBtn" description="fas-house" styleClass="home-btn" />
+            <MFXFontIcon fx:id="searchBtn" description="fas-magnifying-glass" styleClass="search-btn" />
+            <MFXFontIcon fx:id="insertBtn" description="fas-plus" styleClass="insert-btn" />
+            <MFXFontIcon fx:id="removeBtn" description="fas-minus" styleClass="remove-btn" />
+            
+            <!-- Espaciador que empuja el último ícono a la derecha -->
+            <Region HBox.hgrow="ALWAYS" />
+            <MFXToggleButton fx:id="themeBtn" styleClass="theme-toggle" text="theme" />
+            
+            <MFXFontIcon fx:id="settingsBtn" description="fas-gears" styleClass="settings-btn" />
+         </children>
+      </HBox>
+      <Pane fx:id="canvas" layoutX="-1.0" layoutY="159.0" prefHeight="550.0" prefWidth="1280.0" />
+   </children>
+</AnchorPane>

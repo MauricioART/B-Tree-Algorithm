@@ -1,0 +1,252 @@
+.rootPane {
+    -fx-font-family: "Inter", "Segoe UI", system;
+    -fx-font-size: 14px;
+    -fx-text-fill: #222222;
+    -fx-padding: 0;
+}
+
+ .light {
+    /*-fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #fefedf 0%, #7a5085 100%);*/
+    -fx-background-color: #7a5793;
+    -fx-text-fill: #2a2133;
+}
+
+.rootPane.light .card {
+    -fx-background-color: rgba(255,255,255,0.9);
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(34,34,34,0.06), 12, 0.0, 0.0, 6);
+    -fx-padding: 12;
+    -fx-border-color: transparent;
+}
+
+.rootPane.light .hbox {
+    -fx-background-color: transparent;
+}
+
+.rootPane.light .MFXFontIcon,
+.rootPane.light .mfx-font-icon {
+    -fx-font-size: 18px;
+    -fx-text-fill: #4b3a59;
+    -fx-alignment: center;
+    -fx-padding: 6;
+    -fx-cursor: hand;
+    -fx-shape: null;
+    -fx-background-radius: 999;
+}
+
+.rootPane.light .MFXFontIcon:hover,
+.rootPane.light .mfx-font-icon:hover {
+    -fx-background-color: rgba(132,94,194,0.10);
+    -fx-text-fill: #845ec2;
+    -fx-effect: dropshadow(gaussian, rgba(132,94,194,0.08), 6, 0.0, 0.0, 3);
+}
+
+.rootPane.light .home-btn,
+.rootPane.light .search-btn,
+.rootPane.light .insert-btn,
+.rootPane.light .remove-btn,
+.rootPane.light .settings-btn {
+    -fx-text-fill: #5b486b;
+}
+
+.rootPane.light .home-btn:hover {
+    -fx-background-color: rgba(132,94,194,0.12);
+    -fx-text-fill: #845ec2;
+}
+
+.rootPane.light .search-btn:hover {
+    -fx-background-color: rgba(0,201,167,0.10);
+    -fx-text-fill: #00c9a7;
+}
+
+.rootPane.light .insert-btn:hover {
+    -fx-background-color: rgba(243,197,255,0.12);
+    -fx-text-fill: #f3c5ff;
+}
+
+.rootPane.light .remove-btn:hover {
+    -fx-background-color: rgba(255,94,94,0.10);
+    -fx-text-fill: #ff5e5e;
+}
+
+.rootPane.light .settings-btn:hover {
+    -fx-background-color: rgba(132,94,194,0.12);
+    -fx-text-fill: #845ec2;
+}
+
+.rootPane.light .minimize-btn,
+.rootPane.light .maximize-btn,
+.rootPane.light .close-btn {
+    -fx-font-size: 15px;
+    -fx-text-fill: #6b5a78;
+    -fx-padding: 6;
+    -fx-background-radius: 999;
+}
+
+.rootPane.light .minimize-btn:hover,
+.rootPane.light .maximize-btn:hover {
+    -fx-background-color: rgba(132,94,194,0.08);
+    -fx-text-fill: #845ec2;
+}
+
+.rootPane.light .close-btn:hover {
+    -fx-background-color: rgba(255,94,94,0.12);
+    -fx-text-fill: #ff4d4d;
+}
+
+.rootPane.dark {
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #0b0610 0%, #1a0b25 100%);
+    -fx-text-fill: #f6f1fb;
+}
+
+.rootPane.dark .card {
+    -fx-background-color: rgba(15,10,20,0.65);
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 14, 0.0, 0.0, 6);
+    -fx-padding: 12;
+}
+
+.rootPane.dark .MFXFontIcon,
+.rootPane.dark .mfx-font-icon {
+    -fx-font-size: 18px;
+    -fx-text-fill: #bbaed0;
+    -fx-padding: 6;
+    -fx-background-radius: 999;
+    -fx-cursor: hand;
+}
+
+.rootPane.dark .MFXFontIcon:hover,
+.rootPane.dark .mfx-font-icon:hover {
+    -fx-background-color: rgba(132,94,194,0.16);
+    -fx-text-fill: #e8dff8;
+    -fx-effect: dropshadow(gaussian, rgba(132,94,194,0.12), 6, 0.0, 0.0, 3);
+}
+
+.rootPane.dark .minimize-btn,
+.rootPane.dark .maximize-btn,
+.rootPane.dark .close-btn {
+    -fx-font-size: 15px;
+    -fx-text-fill: #9a89ab;
+    -fx-padding: 6;
+}
+
+.rootPane.dark .minimize-btn:hover,
+.rootPane.dark .maximize-btn:hover {
+    -fx-background-color: rgba(132,94,194,0.14);
+    -fx-text-fill: #845ec2;
+}
+
+.rootPane.dark .close-btn:hover {
+    -fx-background-color: rgba(255,94,94,0.12);
+    -fx-text-fill: #ff7b7b;
+}
+
+.toggle-button.theme-toggle,
+.mfx-toggle-button.theme-toggle,
+.theme-toggle {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+    -fx-pref-width: 56;
+    -fx-pref-height: 32;
+}
+
+.theme-toggle .toggle-track {
+    -fx-pref-width: 56;
+    -fx-pref-height: 32;
+    -fx-background-radius: 999;
+    -fx-padding: 4;
+    -fx-alignment: center-left;
+    -fx-background-color: rgba(0,0,0,0.06);
+}
+
+.theme-toggle .toggle-thumb {
+    -fx-pref-width: 24;
+    -fx-pref-height: 24;
+    -fx-background-radius: 999;
+    -fx-background-color: white;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 8, 0.0, 0.0, 3);
+    -fx-translate-x: 4;
+}
+
+.theme-toggle .toggle-icon {
+    -fx-font-size: 14px;
+    -fx-text-fill: #6b5a78;
+    -fx-alignment: center;
+    -fx-padding: 0;
+    -fx-translate-x: 4;
+}
+
+.toggle-button.theme-toggle:selected .toggle-track,
+.mfx-toggle-button.theme-toggle:selected .toggle-track,
+.theme-toggle:selected .toggle-track {
+    -fx-background-color: linear-gradient(#845ec2, #693fb8);
+    -fx-effect: dropshadow(gaussian, rgba(132,94,194,0.12), 8, 0.0, 0.0, 3);
+}
+
+.toggle-button.theme-toggle:selected .toggle-thumb,
+.mfx-toggle-button.theme-toggle:selected .toggle-thumb,
+.theme-toggle:selected .toggle-thumb {
+    -fx-translate-x: 28;
+    -fx-background-color: white;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.28), 10, 0.0, 0.0, 4);
+}
+
+.theme-toggle:selected .toggle-icon {
+    -fx-text-fill: #ffffff;
+    -fx-translate-x: 28;
+}
+
+.theme-toggle:hover .toggle-track {
+    -fx-background-color: rgba(132,94,194,0.12);
+}
+
+.theme-toggle:hover .toggle-thumb {
+    -fx-effect: dropshadow(gaussian, rgba(132,94,194,0.08), 10, 0.0, 0.0, 4);
+}
+
+.theme-toggle.teal-style:selected .toggle-track {
+    -fx-background-color: linear-gradient(#00c9a7, #00b18f);
+}
+
+.theme-toggle.teal-style:hover .toggle-track {
+    -fx-background-color: rgba(0,201,167,0.12);
+}
+
+.rootPane.light .muted {
+    -fx-text-fill: rgba(43,33,51,0.72);
+}
+
+.rootPane.dark .muted {
+    -fx-text-fill: rgba(255,255,255,0.6);
+}
+
+.rootPane.compact .MFXFontIcon,
+.rootPane.compact .mfx-font-icon {
+    -fx-font-size: 15px;
+    -fx-padding: 4;
+}
+
+.rootPane.compact .theme-toggle {
+    -fx-pref-width: 48;
+    -fx-pref-height: 28;
+}
+
+.rootPane.compact .theme-toggle .toggle-thumb {
+    -fx-pref-width: 20;
+    -fx-pref-height: 20;
+    -fx-translate-x: 3;
+}
+
+.rootPane.compact .theme-toggle:selected .toggle-thumb {
+    -fx-translate-x: 24;
+}
+
+.rootPane.compact .card {
+    -fx-padding: 10;
+    -fx-background-radius: 10;
+}
+
+.centered {
+    -fx-alignment: center;
+}

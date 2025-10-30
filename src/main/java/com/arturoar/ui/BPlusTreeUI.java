@@ -12,12 +12,14 @@ public class BPlusTreeUI extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        FXMLLoader fxmlLoader = new FXMLLoader(BPlusTreeUI.class.getResource("vista.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(BPlusTreeUI.class.getResource("fxml/view.fxml"));
         Parent root = fxmlLoader.load();
         
         Scene scene = new Scene(root);
 
         scene.getStylesheets().add(getClass().getResource("css/styles.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getResource("css/theme.css").toExternalForm());
+        
         
         primaryStage.setResizable(true);
         primaryStage.setTitle(STYLESHEET_CASPIAN);
