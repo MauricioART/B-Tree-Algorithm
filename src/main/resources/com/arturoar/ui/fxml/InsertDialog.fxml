@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import io.github.palexdev.materialfx.controls.MFXButton?>
+<?import io.github.palexdev.materialfx.controls.MFXTextField?>
+<?import io.github.palexdev.mfxcore.controls.Label?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane fx:id="popupContainer" prefHeight="167.0" prefWidth="292.0" styleClass="dialog" stylesheets="@../css/Dialog.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.arturoar.controller.InsertDialogController">
+   <children>
+      <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="30.0">
+         <children>
+            <Label text="New key" />
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <MFXTextField fx:id="keyField" alignment="CENTER" floatMode="BORDER" floatingText="Key" HBox.hgrow="ALWAYS" />
+                  <Region prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
+                  <MFXTextField fx:id="valueField" floatMode="BORDER" floatingText="Data" />
+               </children>
+               <opaqueInsets>
+                  <Insets left="50.0" right="50.0" />
+               </opaqueInsets>
+               <padding>
+                  <Insets left="20.0" right="20.0" />
+               </padding>
+            </HBox>
+            <HBox alignment="BOTTOM_RIGHT" prefHeight="180.0" prefWidth="297.0" spacing="15.0">
+               <children>
+                  <MFXButton fx:id="cancelBtn" buttonType="RAISED" depthLevel="LEVEL1" rippleColor="#d93c3c" text="Cancel" />
+                  <MFXButton fx:id="insertBtn" buttonType="RAISED" rippleAnimateShadow="true" rippleColor="#29ae96" text="OK" />
+               </children>
+               <opaqueInsets>
+                  <Insets />
+               </opaqueInsets>
+               <padding>
+                  <Insets bottom="10.0" right="10.0" />
+               </padding>
+            </HBox>
+         </children>
+      </VBox>
+   </children>
+   <padding>
+      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+   </padding>
+</StackPane>
