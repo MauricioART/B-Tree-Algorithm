@@ -15,7 +15,9 @@ import com.arturoar.util.TreeAnimator;
 
 import javafx.animation.Transition;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Group;
@@ -33,7 +35,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     private final Map<Key<Integer>, KeyView> keyToKeyView = new HashMap<>();
     private final Map<BPlusNode<Integer, String>, NodeView> nodeToNodeView = new HashMap<>();
     private final Map<NodeView, Edge> childrenToEdge = new HashMap<>();
-    public List<List<NodeView>> treeLevels = new ArrayList<>();
+    private List<List<NodeView>> treeLevels = new ArrayList<>();
     private List<Edge> unshownEdges = new ArrayList<>();
     private List<KeyView> borrowedKeys = new ArrayList<>();
 
@@ -41,6 +43,8 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     private DoubleProperty canvasHeight = new SimpleDoubleProperty();
     private TreeAnimator animator;
 
+    private IntegerProperty depthProperty = new SimpleIntegerProperty(0);
+    private IntegerProperty widthProperty = new SimpleIntegerProperty(0);
 
     private DoubleProperty scaleProperty = new SimpleDoubleProperty(1.0);
     
@@ -116,6 +120,10 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                 animator.combineLastsTransitionsOnQueue(2);
             }
             updateYLayout();
+           /* animator.addListenerToLastTransition(() -> {
+                depthProperty.set(treeLevels.size());
+            });
+            depthProperty.set(treeLevels.size());*/
 
         }else{
             NodeView newNode = NodeFactory.createNode(e.getNewRoot().isLeaf(), this.canvasWidth.get()/2, Y_PADDING);
@@ -275,7 +283,15 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         // Animate insertion
         int level = e.getNode().getLevel();
         updateLevelLayout(level);
-        animator.addTransitionToQueue(animator.fadeNode(newKey,0,1));
+        
+        Transition keyFadeIn = animator.fadeNode(newKey,0,1);
+        /*keyFadeIn.setOnFinished(_->{
+            if (e.getNode().isLeaf()){
+
+                widthProperty.set(widthProperty.get() + 1);
+            }
+        });*/
+        animator.addTransitionToQueue(keyFadeIn);
         
         if (!this.unshownEdges.isEmpty()){
             showEdges();
@@ -666,6 +682,10 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     public Double getCanvasHeight() { return canvasHeight.get(); }
 
     public DoubleProperty scaleProperty() { return scaleProperty; }
+
+    public IntegerProperty depthProperty() { return depthProperty; }
+
+    public IntegerProperty widthProperty() { return widthProperty; }
 
 
 
