@@ -1,10 +1,15 @@
 
 package com.arturoar.ui;
 
+import io.github.palexdev.materialfx.theming.JavaFXThemes;
+import io.github.palexdev.materialfx.theming.MaterialFXStylesheets;
+import io.github.palexdev.materialfx.theming.UserAgentBuilder;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.scene.Parent;
 
 
@@ -12,14 +17,30 @@ public class BPlusTreeUI extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        FXMLLoader fxmlLoader = new FXMLLoader(BPlusTreeUI.class.getResource("fxml/view.fxml"));
+
+         UserAgentBuilder.builder()
+			.themes(JavaFXThemes.MODENA)
+			.themes(MaterialFXStylesheets.forAssemble(true))
+			.setDeploy(true)
+			.setResolveAssets(true)
+			.build()
+			.setGlobal();
+
+        FXMLLoader fxmlLoader = new FXMLLoader(BPlusTreeUI.class.getResource("fxml/BPlusTreeView.fxml"));
         Parent root = fxmlLoader.load();
         
         Scene scene = new Scene(root);
 
-        scene.getStylesheets().add(getClass().getResource("css/styles.css").toExternalForm());
-        scene.getStylesheets().add(getClass().getResource("css/theme.css").toExternalForm());
         
+        primaryStage.initStyle(StageStyle.TRANSPARENT);
+        scene.setFill(Color.TRANSPARENT);
+
+        //scene.getStylesheets().add(getClass().getResource("css/styles.css").toExternalForm());
+         // Aplicar clipping para redondear la ventana completa
+        //Rectangle clip = new Rectangle(scene.getWidth(), scene.getHeight());
+        //clip.setArcWidth(40); // Radio de las esquinas
+        //clip.setArcHeight(40);
+       // root.setClip(clip);
         
         primaryStage.setResizable(true);
         primaryStage.setTitle(STYLESHEET_CASPIAN);
