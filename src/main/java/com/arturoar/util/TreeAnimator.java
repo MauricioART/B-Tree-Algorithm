@@ -30,7 +30,7 @@ import javafx.util.Duration;
 public class TreeAnimator {
 
     private final int BASE_DURATION = 300;
-    private DoubleProperty animationSpeed = new SimpleDoubleProperty();
+    private DoubleProperty animationSpeed = new SimpleDoubleProperty(1.0);
     private DoubleProperty animationDuration = new SimpleDoubleProperty();
     private Interpolator interpolator = Interpolator.EASE_BOTH;
 
