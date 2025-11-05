@@ -20,6 +20,7 @@ public class SettingsDialogController {
     @FXML private MFXSlider speedSlider;
     @FXML private MFXToggleButton themeToggle;
     @FXML private Label speedLabel;
+
     
     @FXML
     public void initialize() {
@@ -34,16 +35,18 @@ public class SettingsDialogController {
         MFXFontIcon lightbulbIcon = new MFXFontIcon("fas-lightbulb", 16);
         themeToggle.setGraphic(lightbulbIcon);
         themeToggle.setSelected(false);
-        themeToggle.setColors(Color.LIGHTGRAY, Color.FLORALWHITE);
+        //themeToggle.setColors(Color.LIGHTGRAY, Color.FLORALWHITE);
 
         themeToggle.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
             if (isNowSelected) {
                 // Cambiar a tema oscuro
                 MFXFontIcon moonIcon = new MFXFontIcon("fas-moon", 16);
+                moonIcon.setColor(Color.WHITE);
                 themeToggle.setGraphic(moonIcon);
             } else {
                 // Cambiar a tema claro
                 themeToggle.setGraphic(lightbulbIcon);
+                
             }
         });
     }
@@ -68,6 +71,7 @@ public class SettingsDialogController {
     private void setupTraversalToggle() {
         // Lógica para inicializar el toggle de recorrido
         traversalToggle.setSelected(true);
+        traversalToggle.setText("Enable");
         traversalToggle.selectedProperty().addListener((_,_,newVal)->{
             if (newVal){
                 traversalToggle.setText("Enable");

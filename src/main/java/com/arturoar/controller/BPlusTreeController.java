@@ -2,6 +2,7 @@ package com.arturoar.controller;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,9 +34,15 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.scene.control.Label;
+import io.github.palexdev.materialfx.controls.MFXButton;
+import io.github.palexdev.materialfx.dialogs.MFXGenericDialog;
+import io.github.palexdev.materialfx.dialogs.MFXGenericDialogBuilder;
+import io.github.palexdev.materialfx.dialogs.MFXStageDialog;
+import io.github.palexdev.materialfx.enums.ScrimPriority;
 import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
 
 public class BPlusTreeController implements Initializable {
@@ -68,6 +75,9 @@ public class BPlusTreeController implements Initializable {
     @FXML private Label messageLabel;
     @FXML private Label treeInfoLabel;
 
+
+    
+
     private BooleanProperty themeMode = new SimpleBooleanProperty();
     private DoubleProperty animationSpeed = new SimpleDoubleProperty(1.0);
     private DoubleProperty mParameter = new SimpleDoubleProperty();
@@ -90,9 +100,14 @@ public class BPlusTreeController implements Initializable {
     private double yOffset = 0;
 
     private BooleanProperty isDialogActive = new SimpleBooleanProperty(false);
+
+    private Stage stage;
+    private MFXGenericDialog dialogContent;
+    private MFXStageDialog dialog;
     
 
-    public BPlusTreeController() {
+    public BPlusTreeController(Stage stage) {
+        this.stage = stage;
         this.tree = new BPlusTree<>(this.branchingFactor);
         this.treeView = new TreeView(this.tree.getRoot());
         this.tree.addObserver(this.treeView);
@@ -147,7 +162,7 @@ public class BPlusTreeController implements Initializable {
                     treeView.widthProperty().get()
                 ), mParameter, treeView.depthProperty(), treeView.widthProperty()
         ));
-
+        setupDialog();
     }
 
     private void setupWindowControls() {
@@ -318,6 +333,54 @@ public class BPlusTreeController implements Initializable {
         AnchorPane.setLeftAnchor(treeInfoLabel, 20.0);
 
 
+
+    }
+
+    private void setupDialog(){
+
+        Platform.runLater(() -> {
+            this.dialogContent = MFXGenericDialogBuilder.build()
+                    .setContentText("The current Tree would reset. Are you sure you wnat to continue?")
+                    .makeScrollable(true)
+                    .get();
+                    
+            this.dialog = MFXGenericDialogBuilder.build(dialogContent)
+                    .toStageDialogBuilder()
+                    .initOwner(stage)
+                    .initModality(Modality.WINDOW_MODAL)
+                    .setDraggable(true)
+                    .setTitle("Dialogs Preview")
+                    .setOwnerNode(rootPane)
+                    .setScrimPriority(ScrimPriority.WINDOW)
+                    .setScrimOwner(true)
+                    .get();
+
+            dialogContent.addActions(
+                    Map.entry(new MFXButton("Confirm"), event -> {
+                        // Acción de confirmar
+                        dialog.close();
+                    }),
+                    Map.entry(new MFXButton("Cancel"), event -> dialog.close())
+            );
+        });	
+    }
+
+    public void showDialog() {
+        Platform.runLater(() -> {
+            if (dialog != null) {
+                dialog.showDialog(); // Modal - bloquea la ventana padre
+                // dialog.show();    // No modal - no bloquea
+            }
+        });
+    }
+
+    // Método para cerrar
+    public void closeDialog() {
+        Platform.runLater(() -> {
+            if (dialog != null) {
+                dialog.close();
+            }
+        });
     }
 
     private void setupCanvas() {
