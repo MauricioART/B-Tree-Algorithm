@@ -10,12 +10,12 @@
 
 <StackPane fx:id="popupContainer" prefHeight="162.0" prefWidth="215.0" styleClass="dialog" stylesheets="@../css/Dialog.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.arturoar.controller.RemoveDialogController">
    <children>
-      <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+      <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="20.0">
          <children>
             <Label text="Delete Key" />
             <HBox alignment="CENTER" prefHeight="80.0" prefWidth="200.0">
                <children>
-                  <MFXTextField fx:id="keyField" alignment="CENTER" floatMode="BORDER" floatingText="Key" />
+                  <MFXTextField fx:id="keyField" alignment="CENTER" floatingText="Key" />
                </children>
                <opaqueInsets>
                   <Insets left="50.0" right="50.0" />

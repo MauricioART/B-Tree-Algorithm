@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import io.github.palexdev.materialfx.dialogs.MFXGenericDialog?>
 <?import io.github.palexdev.mfxresources.fonts.MFXFontIcon?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
@@ -26,8 +27,9 @@
       </HBox>
       <Pane fx:id="canvas" layoutX="20.0" layoutY="155.0" prefHeight="550.0" prefWidth="1240.0" styleClass="canvas" />
       <Label fx:id="treeInfoLabel" styleClass="tree-info" />
-      <Label fx:id="messageLabel" />
+      <Label fx:id="messageLabel" styleClass="message-info" />
       <Pane fx:id="dialogOverlay" prefHeight="729.0" prefWidth="1283.0" styleClass="dialog-overlay" visible="false" />
+      <MFXGenericDialog fx:id="resetTreeDialog" alwaysOnTop="true" />
       <HBox fx:id="controlBar" alignment="CENTER" layoutY="67.0" prefHeight="80.0" prefWidth="1280.0" spacing="120.0" styleClass="control-bar">
          <children>
             <!-- Botones centrados -->

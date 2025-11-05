@@ -16,7 +16,7 @@
             <Label text="New key" />
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
                <children>
-                  <MFXTextField fx:id="keyField" alignment="CENTER" floatMode="BORDER" floatingText="Key" HBox.hgrow="ALWAYS" />
+                  <MFXTextField fx:id="keyField" alignment="CENTER" floatMode="BORDER" floatingText="Key" HBox.hgrow="ALWAYS" styleClass="text-fild" />
                   <Region prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
                   <MFXTextField fx:id="valueField" floatMode="BORDER" floatingText="Data" />
                </children>

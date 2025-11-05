@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<StackPane prefHeight="500.0" prefWidth="400.0"  xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.arturoar.controller.SettingsDialogController">
+<StackPane prefHeight="500.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.arturoar.controller.SettingsDialogController">
    <children>
       <VBox alignment="CENTER" prefHeight="350.0" prefWidth="450.0">
          <children>
