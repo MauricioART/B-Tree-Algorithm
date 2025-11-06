@@ -2,6 +2,7 @@ module com.arturoar.bplustree {
     
     requires javafx.controls;
     requires javafx.fxml;
+    requires javafx.media;
     requires transitive javafx.graphics;
     requires java.xml;
     requires javafx.base;

@@ -27,6 +27,15 @@ import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
+import javafx.scene.media.*;
+
+import java.io.File;
+import java.net.MalformedURLException;
+
+
+
+
+
 public class TreeAnimator {
 
     private final int BASE_DURATION = 300;
@@ -38,6 +47,10 @@ public class TreeAnimator {
     public List<Transition>  parallelList = new ArrayList<>();
     public List<Transition> transitionQueue = new ArrayList<>();
     public List<Transition> traversalList = new ArrayList<>();
+
+    private Media sparkleMedia;
+    private Media movingMedia;
+    private Media errorMedia;
     
     private static TreeAnimator instance = new TreeAnimator();
     
@@ -49,6 +62,22 @@ public class TreeAnimator {
     private TreeAnimator() {
         // Private constructor to prevent instantiation
         animationDuration.bind(animationSpeed.multiply(BASE_DURATION));
+
+        try{
+
+            File sparkleFile = new File("assets/media/Golden-48569.mp4");
+            sparkleMedia = new Media(sparkleFile.toURI().toURL().toString());
+    
+            File mediaFile = new File("assets/media/Golden-48569.mp4");
+            movingMedia = new Media(mediaFile.toURI().toURL().toString());
+    
+            File errorFile = new File("assets/media/Golden-48569.mp4");
+            errorMedia = new Media(errorFile.toURI().toURL().toString());
+
+        }catch(MalformedURLException exception){
+
+        }
+
     }
 
     public Transition fadeNode(Node node, double from, double to) {
@@ -297,6 +326,7 @@ public class TreeAnimator {
         fadeOut.setFromValue(1.0);
         fadeOut.setToValue(0.0);
         fadeOut.setInterpolator(interpolator);
+        fadeOut.setOnStarted();
 
         FadeTransition fadeIn = new FadeTransition(Duration.millis(animationDuration.get()/2), text);
         fadeIn.setFromValue(0.0);
@@ -324,11 +354,16 @@ public class TreeAnimator {
         this.animationSpeed.set(newSpeed);
     }
 
-    public enum Theme {
-        DAY, NIGHT
-    }
+    
+    
+}
 
-    public static class Palette {
+
+/*
+public enum Theme {
+    DAY, NIGHT
+}
+* public static class Palette {
         public final Color nodeHighlight;
         public final Color keyHighlight;
         public final Color arrowHighlight;
@@ -375,4 +410,4 @@ public class TreeAnimator {
         return currentPalette;
     }
 
-}
+ */
