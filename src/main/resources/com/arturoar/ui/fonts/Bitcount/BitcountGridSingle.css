@@ -1,0 +1,217 @@
+@font-face {
+    font-family: 'Bitcount Grid Single Black';
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle-Black.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Bold';
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle-Bold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single ExtraBold';
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle-ExtraBold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single ExtraLight';
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle-ExtraLight.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Light';
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle-Light.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Medium';
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle-Medium.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single';
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single SemiBold';
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle-SemiBold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Thin';
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle-Thin.ttf') format('truetype');
+}
+
+/* Cursive Variants */
+@font-face {
+    font-family: 'Bitcount Grid Single Cursive Black';
+    font-weight: 900;
+    font-style: italic;
+    font-display: swap;
+    src: url('BitcountGridSingle_Cursive-Black.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Cursive Bold';
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+    src: url('BitcountGridSingle_Cursive-Bold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Cursive ExtraBold';
+    font-weight: 800;
+    font-style: italic;
+    font-display: swap;
+    src: url('BitcountGridSingle_Cursive-ExtraBold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Cursive ExtraLight';
+    font-weight: 200;
+    font-style: italic;
+    font-display: swap;
+    src: url('BitcountGridSingle_Cursive-ExtraLight.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Cursive Light';
+    font-weight: 300;
+    font-style: italic;
+    font-display: swap;
+    src: url('BitcountGridSingle_Cursive-Light.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Cursive Medium';
+    font-weight: 500;
+    font-style: italic;
+    font-display: swap;
+    src: url('BitcountGridSingle_Cursive-Medium.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Cursive';
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+    src: url('BitcountGridSingle_Cursive-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Cursive SemiBold';
+    font-weight: 600;
+    font-style: italic;
+    font-display: swap;
+    src: url('BitcountGridSingle_Cursive-SemiBold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Cursive Thin';
+    font-weight: 100;
+    font-style: italic;
+    font-display: swap;
+    src: url('BitcountGridSingle_Cursive-Thin.ttf') format('truetype');
+}
+
+/* Roman Variants */
+@font-face {
+    font-family: 'Bitcount Grid Single Roman Black';
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle_Roman-Black.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Roman Bold';
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle_Roman-Bold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Roman ExtraBold';
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle_Roman-ExtraBold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Roman ExtraLight';
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle_Roman-ExtraLight.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Roman Light';
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle_Roman-Light.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Roman Medium';
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle_Roman-Medium.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Roman';
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle_Roman-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Roman SemiBold';
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle_Roman-SemiBold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Bitcount Grid Single Roman Thin';
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+    src: url('BitcountGridSingle_Roman-Thin.ttf') format('truetype');
+}
