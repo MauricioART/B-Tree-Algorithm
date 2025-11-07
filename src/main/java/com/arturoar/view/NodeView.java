@@ -176,7 +176,7 @@ public abstract class NodeView extends Group {
             //if (byX == 0.0) return;
 
             // Create a transition for the key movement
-            Transition movingKey = TreeAnimator.getInstance().moveNode(key, byX, 0.0);
+            Transition movingKey = TreeAnimator.getInstance().moveNode(key, byX, 0.0,false);
             TreeAnimator.getInstance().addParallelTransition(movingKey);
             // Update the new origin for the key
             key.setNewOriginX(key.getNewXOrigin() + deltaX);

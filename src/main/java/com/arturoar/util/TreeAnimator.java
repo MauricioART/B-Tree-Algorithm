@@ -3,11 +3,13 @@ package com.arturoar.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.arturoar.ui.BPlusTreeUI;
 import com.arturoar.view.Edge;
 import com.arturoar.view.KeyView;
 import com.arturoar.view.LeafLinkEdge;
 import com.arturoar.view.TreeEdge;
 
+import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
 import javafx.animation.FillTransition;
 import javafx.animation.Interpolator;
@@ -17,8 +19,10 @@ import javafx.animation.SequentialTransition;
 import javafx.animation.StrokeTransition;
 import javafx.animation.Transition;
 import javafx.animation.TranslateTransition;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
@@ -27,13 +31,13 @@ import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
-import javafx.scene.media.*;
+import javafx.scene.media.Media;
+import javafx.scene.media.AudioClip;
+
 
 import java.io.File;
 import java.net.MalformedURLException;
-
-
-
+import java.net.URL;
 
 
 public class TreeAnimator {
@@ -42,15 +46,18 @@ public class TreeAnimator {
     private DoubleProperty animationSpeed = new SimpleDoubleProperty();
     private DoubleProperty animationDuration = new SimpleDoubleProperty();
     private Interpolator interpolator = Interpolator.EASE_BOTH;
+    private BooleanProperty mute = new SimpleBooleanProperty(false);
 
 
     public List<Transition>  parallelList = new ArrayList<>();
     public List<Transition> transitionQueue = new ArrayList<>();
     public List<Transition> traversalList = new ArrayList<>();
 
-    private Media sparkleMedia;
-    private Media movingMedia;
-    private Media errorMedia;
+    private AudioClip highlightingSound;
+    private AudioClip fadeOutSound;
+    private AudioClip movingSound;
+    private AudioClip fadeInSound;
+    //private AudioClip errorMedia;
     
     private static TreeAnimator instance = new TreeAnimator();
     
@@ -64,32 +71,56 @@ public class TreeAnimator {
         animationDuration.bind(animationSpeed.multiply(BASE_DURATION));
 
         try{
+            URL resource = BPlusTreeUI.class.getResource("sounds/pop-402324.mp3");
+            //File sparkleFile = new File("");
+            highlightingSound = new AudioClip(resource.toExternalForm());
+            
+            URL resource2 = BPlusTreeUI.class.getResource("sounds/air-blow-380645.mp3");
+            fadeOutSound = new AudioClip(resource2.toExternalForm());
 
-            File sparkleFile = new File("assets/media/Golden-48569.mp4");
-            sparkleMedia = new Media(sparkleFile.toURI().toURL().toString());
-    
-            File mediaFile = new File("assets/media/Golden-48569.mp4");
-            movingMedia = new Media(mediaFile.toURI().toURL().toString());
-    
+            URL resource3 = BPlusTreeUI.class.getResource("sounds/whoosh-09-410876.mp3");
+            movingSound = new AudioClip(resource3.toExternalForm());
+
+            URL resource4 = BPlusTreeUI.class.getResource("sounds/pop-402321.mp3");
+            fadeInSound = new AudioClip(resource4.toExternalForm());
+            
+            /*
             File errorFile = new File("assets/media/Golden-48569.mp4");
-            errorMedia = new Media(errorFile.toURI().toURL().toString());
+            errorMedia = new AudioClip(errorFile.toURI().toURL().toString());*/
 
-        }catch(MalformedURLException exception){
-
+        }catch(Exception exception){
+            System.err.println(exception);
         }
 
     }
 
-    public Transition fadeNode(Node node, double from, double to) {
+    public Transition fadeNode(Node node, double from, double to, boolean sound) {
         FadeTransition fade = new FadeTransition(Duration.millis(animationDuration.get()), node);
         fade.setInterpolator(Interpolator.EASE_IN);
         fade.setFromValue(from);
         fade.setToValue(to);
         fade.setInterpolator(interpolator);
+
+
+        if (!mute.get() && sound){
+            AudioClip audio = null;
+            if (from > to){
+                audio = fadeOutSound;
+            }else{
+                audio = fadeInSound;
+            }
+            final AudioClip audioFinal = audio;
+            fade.statusProperty().addListener((_, oldStatus, newStatus)->{
+                if (newStatus == Animation.Status.RUNNING && oldStatus == Animation.Status.STOPPED) {
+                    if (audioFinal != null) audioFinal.play();
+                }
+            });
+        }
+
         return fade;
     }
 
-    public Transition moveNode(Node node, double byX, double byY) {
+    public Transition moveNode(Node node, double byX, double byY, boolean sound) {
         
         double distance = Math.sqrt(Math.pow(byX, 2) + Math.pow(byY,2));
         int duration = calculateDuration(distance);
@@ -97,6 +128,15 @@ public class TreeAnimator {
         translate.setByX(byX);
         translate.setByY(byY);
         translate.setInterpolator(interpolator);
+
+        if (!mute.get() && sound){
+            translate.statusProperty().addListener((_, oldStatus, newStatus)->{
+                if (newStatus == Animation.Status.RUNNING && oldStatus == Animation.Status.STOPPED) {
+                    if (movingSound != null) movingSound.play();
+                }
+            });
+        }
+
         return translate;
     }
 
@@ -151,14 +191,22 @@ public class TreeAnimator {
         StrokeTransition strokeHighlight = new StrokeTransition(Duration.millis(animationDuration.get()), rect, originalStroke, highlightStroke);
         strokeHighlight.setInterpolator(interpolator);
 
+        if (!mute.get()){
+            strokeHighlight.statusProperty().addListener((_, oldStatus, newStatus)->{
+                if (newStatus == Animation.Status.RUNNING && oldStatus == Animation.Status.STOPPED) {
+                    if (highlightingSound != null) highlightingSound.play();
+                }
+            });
+        }
+
         StrokeTransition strokeRestore = new StrokeTransition(Duration.millis(animationDuration.get()), rect, highlightStroke, originalStroke);
         strokeRestore.setInterpolator(interpolator);
 
         // 🔹 Transiciones para el texto (usando FillTransition en lugar de Transition manual)
-        FillTransition textHighlight = new FillTransition(Duration.millis(250), text, originalText, highlightText);
+        FillTransition textHighlight = new FillTransition(Duration.millis(animationDuration.get()), text, originalText, highlightText);
         textHighlight.setInterpolator(interpolator);
 
-        FillTransition textRestore = new FillTransition(Duration.millis(250), text, highlightText, originalText);
+        FillTransition textRestore = new FillTransition(Duration.millis(animationDuration.get()), text, highlightText, originalText);
         textRestore.setInterpolator(interpolator);
 
         // 🔹 Agrupar en paralelo
@@ -185,17 +233,25 @@ public class TreeAnimator {
         StrokeTransition highlightCurve = new StrokeTransition(Duration.millis(animationDuration.get()), body, originalStroke, highlightStroke);
         FillTransition highlightArrowHead = new FillTransition(Duration.millis(animationDuration.get()), edge.getHead(), originalStroke, highlightStroke);
 
-
+        
         StrokeTransition restoreCurve = new StrokeTransition(Duration.millis(animationDuration.get()), body, highlightStroke, originalStroke);
         FillTransition restoreArrowHead = new FillTransition(Duration.millis(animationDuration.get()), edge.getHead(), highlightStroke, originalStroke);
-
+        
         highlightCurve.setInterpolator(interpolator);
         restoreCurve.setInterpolator(interpolator);
         highlightArrowHead.setInterpolator(interpolator);
         restoreArrowHead.setInterpolator(interpolator);
         ParallelTransition highlight = new ParallelTransition(highlightCurve, highlightArrowHead);
         ParallelTransition restore = new ParallelTransition(restoreCurve, restoreArrowHead);
-
+        
+        if (!mute.get()){
+            highlight.statusProperty().addListener((_, oldStatus, newStatus)-> {
+                if (newStatus == Animation.Status.RUNNING && oldStatus == Animation.Status.STOPPED) {
+                    if (highlightingSound != null) highlightingSound.play();
+                }
+            });
+        }
+        
         return new SequentialTransition(highlight, restore);
     }
 
@@ -326,7 +382,6 @@ public class TreeAnimator {
         fadeOut.setFromValue(1.0);
         fadeOut.setToValue(0.0);
         fadeOut.setInterpolator(interpolator);
-        fadeOut.setOnStarted();
 
         FadeTransition fadeIn = new FadeTransition(Duration.millis(animationDuration.get()/2), text);
         fadeIn.setFromValue(0.0);

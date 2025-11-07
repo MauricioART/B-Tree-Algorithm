@@ -112,7 +112,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         if (nodeToNodeView.containsKey(e.getNewRoot())) {
             NodeView root = this.treeLevels.removeFirst().getFirst();
             for(Edge edge : ((InnerNodeView)root).getEdges()){
-                animator.addTransitionToQueue(animator.fadeNode(edge, 1, 0));
+                animator.addTransitionToQueue(animator.fadeNode(edge, 1, 0, false));
                 animator.combineLastsTransitionsOnQueue(2);
             }
             updateYLayout();
@@ -205,7 +205,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             if (deletedNodeLevel > 0){
                 if (nodeIndex == this.treeLevels.get(deletedNodeLevel).size() ){
                     LeafNodeView previousNode = (LeafNodeView) this.treeLevels.get(deletedNodeLevel).get(nodeIndex - 1);
-                    Transition edgeFadeOut = animator.fadeNode(previousNode.nextLeaf, 1, 0);
+                    Transition edgeFadeOut = animator.fadeNode(previousNode.nextLeaf, 1, 0, false);
                     edgeFadeOut.setOnFinished(_ -> {
                         this.getChildren().remove(previousNode.nextLeaf);
                     });
@@ -213,7 +213,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                     animator.combineLastsTransitionsOnQueue(2);
                 }else{
 
-                    Transition edgeFadeOut = animator.fadeNode(deletedLeaf.nextLeaf, 1, 0);
+                    Transition edgeFadeOut = animator.fadeNode(deletedLeaf.nextLeaf, 1, 0, false);
                     edgeFadeOut.setOnFinished(_ -> {
                         this.getChildren().remove(deletedLeaf.nextLeaf);
                     });
@@ -275,7 +275,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         // Animate insertion
         int level = e.getNode().getLevel();
         updateLevelLayout(level);
-        animator.addTransitionToQueue(animator.fadeNode(newKey,0,1));
+        animator.addTransitionToQueue(animator.fadeNode(newKey,0,1, true));
         
         if (!this.unshownEdges.isEmpty()){
             showEdges();
@@ -303,7 +303,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         int removeKeyIndex = node.remove(removedKey);
 
         
-        Transition keyFading = animator.fadeNode(removedKey, 1, 0);
+        Transition keyFading = animator.fadeNode(removedKey, 1, 0, true);
         animator.addTransitionToQueue(keyFading);
         keyFading.setOnFinished(_ -> {
             
@@ -495,7 +495,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         NodeView deletedNode = nodeToNodeView.get(e.getChild());
         Edge edge = childrenToEdge.remove(deletedNode);
 
-        Transition edgeFadeOut = animator.fadeNode(edge, 1, 0);
+        Transition edgeFadeOut = animator.fadeNode(edge, 1, 0, false);
         animator.addTransitionToQueue(edgeFadeOut);
         animator.combineLastsTransitionsOnQueue(2);
         edgeFadeOut.setOnFinished(_ -> {
@@ -578,7 +578,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             if ( nodeToNodeView.size() == 1 && node.keys.size() == 1){
                 animator.addParallelTransition(animator.moveNode(node, deltaX, 0, 0.1));
             }else{
-                animator.addParallelTransition(animator.moveNode(node, deltaX, 0));
+                animator.addParallelTransition(animator.moveNode(node, deltaX, 0,true));
             }
             node.updateLayout(deltaX);
             startX += node.getWidth() + nodeSpacing;
@@ -597,11 +597,11 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             for (NodeView node : this.treeLevels.get(i)) {
                 double deltaY = startY - node.yOriginProperty().get();
                 node.setYOrigin(startY);
-                animator.addParallelTransition(animator.moveNode(node, 0, deltaY));
+                animator.addParallelTransition(animator.moveNode(node, 0, deltaY, true));
                 if (!node.keys.isEmpty()) {
                     node.keys.forEach(key -> {
                         double byY = key.getDeltaY() + deltaY;
-                        Transition movingKey = animator.moveNode(key, 0.0, byY);
+                        Transition movingKey = animator.moveNode(key, 0.0, byY,false);
                         key.setNewOriginY(key.getNewYOrigin() + deltaY);
                         key.setCurrentYOrigin(key.getNewYOrigin());
                         animator.addParallelTransition(movingKey);
@@ -621,7 +621,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
     private  void showEdges(){
         for (Edge edges : this.unshownEdges) {
-            Transition fadeIn = animator.fadeNode(edges, 0, 1);
+            Transition fadeIn = animator.fadeNode(edges, 0, 1, false);
             animator.addParallelTransition(fadeIn);
         }
         this.unshownEdges.clear();
