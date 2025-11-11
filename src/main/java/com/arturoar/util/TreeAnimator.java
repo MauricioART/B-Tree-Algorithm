@@ -78,10 +78,10 @@ public class TreeAnimator {
             URL resource2 = BPlusTreeUI.class.getResource("sounds/air-blow-380645.mp3");
             fadeOutSound = new AudioClip(resource2.toExternalForm());
 
-            URL resource3 = BPlusTreeUI.class.getResource("sounds/whoosh-09-410876.mp3");
+            URL resource3 = BPlusTreeUI.class.getResource("sounds/whoosh-09-4108761.mp3");
             movingSound = new AudioClip(resource3.toExternalForm());
 
-            URL resource4 = BPlusTreeUI.class.getResource("sounds/pop-402321.mp3");
+            URL resource4 = BPlusTreeUI.class.getResource("sounds/pop-cartoon-328167.mp3");
             fadeInSound = new AudioClip(resource4.toExternalForm());
             
             /*
