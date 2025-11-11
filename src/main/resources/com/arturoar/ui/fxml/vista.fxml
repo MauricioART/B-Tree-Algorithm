@@ -14,7 +14,7 @@
    <children>
       <Label layoutX="289.0" layoutY="42.0" text="B Plus Tree Implementation" textAlignment="CENTER">
          <font>
-            <Font name="Consolas" size="20.0" />
+            <Font name="Consolas" />
          </font>
       </Label>
       <Pane fx:id="canvas" layoutX="34.0" layoutY="95.0" prefHeight="510.0" prefWidth="796.0" style="-fx-background-color: white; -fx-background-radius: 13px; -fx-border-color: black;">

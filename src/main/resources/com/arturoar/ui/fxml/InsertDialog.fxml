@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import io.github.palexdev.materialfx.controls.MFXButton?>
-<?import io.github.palexdev.materialfx.controls.MFXTextField?>
-<?import io.github.palexdev.mfxcore.controls.Label?>
+<?import com.jfoenix.controls.JFXButton?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
@@ -16,9 +16,9 @@
             <Label text="New key" />
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
                <children>
-                  <MFXTextField fx:id="keyField" alignment="CENTER" floatMode="BORDER" floatingText="Key" HBox.hgrow="ALWAYS" styleClass="text-fild" />
+                  <TextField fx:id="keyField" alignment="CENTER" HBox.hgrow="ALWAYS" />
                   <Region prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
-                  <MFXTextField fx:id="valueField" floatMode="BORDER" floatingText="Data" />
+                  <TextField fx:id="valueField" />
                </children>
                <opaqueInsets>
                   <Insets left="50.0" right="50.0" />
@@ -29,8 +29,8 @@
             </HBox>
             <HBox alignment="BOTTOM_RIGHT" prefHeight="180.0" prefWidth="297.0" spacing="15.0">
                <children>
-                  <MFXButton fx:id="cancelBtn" buttonType="RAISED" depthLevel="LEVEL1" rippleColor="#d93c3c" text="Cancel" />
-                  <MFXButton fx:id="insertBtn" buttonType="RAISED" rippleAnimateShadow="true" rippleColor="#29ae96" text="OK" />
+                  <JFXButton fx:id="cancelBtn" buttonType="RAISED" text="Cancel" viewOrder="3.0" />
+                  <JFXButton fx:id="insertBtn" text="OK" />
                </children>
                <opaqueInsets>
                   <Insets />

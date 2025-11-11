@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import io.github.palexdev.materialfx.dialogs.MFXGenericDialog?>
-<?import io.github.palexdev.mfxresources.fonts.MFXFontIcon?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -17,9 +16,9 @@
          <children>
             <Label text="B+ Tree Visualizer" />
             <Region HBox.hgrow="ALWAYS" />
-            <MFXFontIcon fx:id="minimizeBtn" description="fas-circle" size="15.0" styleClass="minimize-btn" />
-            <MFXFontIcon fx:id="maximizeBtn" description="fas-circle" size="15.0" styleClass="maximize-btn" />
-            <MFXFontIcon fx:id="closeBtn" description="fas-circle" size="15.0" styleClass="close-btn" />
+            <FontIcon fx:id="minimizeBtn" styleClass="minimize-btn" />
+            <FontIcon fx:id="maximizeBtn" styleClass="maximize-btn" />
+            <FontIcon fx:id="closeBtn"    styleClass="close-btn" />
          </children>
          <padding>
             <Insets left="50.0" right="20.0" />
@@ -29,33 +28,32 @@
       <Label fx:id="treeInfoLabel" styleClass="tree-info" />
       <Label fx:id="messageLabel" styleClass="message-info" />
       <Pane fx:id="dialogOverlay" prefHeight="729.0" prefWidth="1283.0" styleClass="dialog-overlay" visible="false" />
-      <MFXGenericDialog fx:id="resetTreeDialog" alwaysOnTop="true" />
       <HBox fx:id="controlBar" alignment="CENTER" layoutY="67.0" prefHeight="80.0" prefWidth="1280.0" spacing="120.0" styleClass="control-bar">
          <children>
             <!-- Botones centrados -->
              <VBox fx:id="homeBtnBox" alignment="CENTER" spacing="5" styleClass="buton">
-               <MFXFontIcon fx:id="homeBtn" description="fas-house" styleClass="control,home-btn" />
+               <FontIcon fx:id="homeBtn"  styleClass="control,home-btn" />
                <Label styleClass="control-label" text="Home" />
             </VBox>
 
             <VBox fx:id="searchBtnBox" alignment="CENTER" spacing="5" styleClass="buton">
-               <MFXFontIcon fx:id="searchBtn" description="fas-magnifying-glass" styleClass="control,search-btn" />
+               <FontIcon fx:id="searchBtn"  styleClass="control,search-btn" />
                <Label styleClass="control-label" text="Search" />
             </VBox>
 
             <VBox fx:id="insertBtnBox" alignment="CENTER" spacing="5" styleClass="buton">
-               <MFXFontIcon fx:id="insertBtn" description="fas-plus" styleClass="control,insert-btn" />
+               <FontIcon fx:id="insertBtn" styleClass="control,insert-btn" />
                <Label styleClass="control-label" text="Insert" />
             </VBox>
 
             <VBox fx:id="removeBtnBox" alignment="CENTER" spacing="5" styleClass="buton">
-               <MFXFontIcon fx:id="removeBtn" description="fas-minus" styleClass="control,remove-btn" />
+               <FontIcon fx:id="removeBtn"  styleClass="control,remove-btn" />
                <Label styleClass="control-label" text="Delete" />
             </VBox>
             
             <!-- Settings en extremo derecho -->
             <VBox fx:id="settingsBtnBox" alignment="CENTER" spacing="5" styleClass="buton">
-               <MFXFontIcon fx:id="settingsBtn" description="fas-gears" size="20" styleClass="control,settings-btn" />
+               <FontIcon fx:id="settingsBtn"  styleClass="control,settings-btn" />
                <Label styleClass="control-label" text="Settings" />
             </VBox>
          </children>

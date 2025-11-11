@@ -1,11 +1,6 @@
 
 package com.arturoar.ui;
 
-import com.arturoar.controller.BPlusTreeController;
-
-import io.github.palexdev.materialfx.theming.JavaFXThemes;
-import io.github.palexdev.materialfx.theming.MaterialFXStylesheets;
-import io.github.palexdev.materialfx.theming.UserAgentBuilder;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -20,16 +15,8 @@ public class BPlusTreeUI extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
 
-         UserAgentBuilder.builder()
-			.themes(JavaFXThemes.MODENA)
-			.themes(MaterialFXStylesheets.forAssemble(true))
-			.setDeploy(true)
-			.setResolveAssets(true)
-			.build()
-			.setGlobal();
-
+       
         FXMLLoader fxmlLoader = new FXMLLoader(BPlusTreeUI.class.getResource("fxml/BPlusTreeView.fxml"));
-        fxmlLoader.setControllerFactory(c -> new BPlusTreeController(primaryStage));
         Parent root = fxmlLoader.load();
         
         Scene scene = new Scene(root);

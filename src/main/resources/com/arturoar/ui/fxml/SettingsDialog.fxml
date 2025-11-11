@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import io.github.palexdev.materialfx.controls.MFXSlider?>
-<?import io.github.palexdev.materialfx.controls.MFXToggleButton?>
-<?import io.github.palexdev.mfxcore.controls.Label?>
+<?import com.jfoenix.controls.JFXSlider?>
+<?import com.jfoenix.controls.JFXToggleButton?>
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -22,7 +22,7 @@
                   <Region HBox.hgrow="ALWAYS" />
                   <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="15.0">
                      <children>
-                        <MFXSlider fx:id="mSlider" />
+                        <JFXSlider fx:id="mSlider" />
                         <Label fx:id="mLabel" />
                      </children>
                   </VBox>
@@ -33,7 +33,7 @@
                <children>
                   <Label text="Traversal Animation" />
                   <Region HBox.hgrow="ALWAYS" />
-                  <MFXToggleButton id="customToggleButton" fx:id="traversalToggle" contentDisposition="TOP" selected="true" styleClass="customToggleButton" textAlignment="CENTER" />
+                  <JFXToggleButton fx:id="traversalToggle" />
                </children>
             </HBox>
             <Separator prefWidth="200.0" />
@@ -43,8 +43,9 @@
                   <Region HBox.hgrow="ALWAYS" />
                   <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="15.0">
                      <children>
-                        <MFXSlider fx:id="speedSlider" />
                         <Label fx:id="speedLabel" />
+                        <JFXSlider fx:id="speedSlider" />
+                        <Label fx:id="speedLabel" text="Label" />
                      </children>
                   </VBox>
                </children>
@@ -54,7 +55,7 @@
                <children>
                   <Label text="Light/Dark Mode" />
                   <Region HBox.hgrow="ALWAYS" />
-                  <MFXToggleButton fx:id="themeToggle" contentDisposition="TOP" />
+                  <JFXToggleButton fx:id="themeToggle" />
                </children>
             </HBox>
          </children>

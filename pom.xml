@@ -27,27 +27,13 @@
             <version>22.0.1</version>
         </dependency>
 
-            <!-- MaterialFX Core -->
+        <!-- https://mvnrepository.com/artifact/com.jfoenix/jfoenix -->
         <dependency>
-            <groupId>io.github.palexdev</groupId>
-            <artifactId>materialfx</artifactId>
-            <version>11.17.0</version>
+            <groupId>com.jfoenix</groupId>
+            <artifactId>jfoenix</artifactId>
+            <version>9.0.10</version>
         </dependency>
-
-        <!-- MFXResources (para iconos) -->
-        <dependency>
-            <groupId>io.github.palexdev</groupId>
-            <artifactId>mfxresources</artifactId>
-            <version>11.9.1</version>
-        </dependency>
-
-        <!-- VirtualizedFX (requerido) -->
-        <dependency>
-            <groupId>io.github.palexdev</groupId>
-            <artifactId>virtualizedfx</artifactId>
-            <version>11.9.6</version>
-        </dependency>
-
+        
         <dependency>
         <groupId>org.kordamp.ikonli</groupId>
             <artifactId>ikonli-javafx</artifactId>

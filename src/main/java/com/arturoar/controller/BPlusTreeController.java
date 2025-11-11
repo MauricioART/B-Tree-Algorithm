@@ -2,10 +2,9 @@ package com.arturoar.controller;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import com.arturoar.model.*;
 import com.arturoar.ui.BPlusTreeUI;
@@ -14,8 +13,6 @@ import com.arturoar.util.TreeAnimator;
 import com.arturoar.util.TreeViewTransformer;
 import com.arturoar.view.TreeView;
 
-import javafx.animation.PauseTransition;
-import javafx.animation.Transition;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -34,16 +31,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 import javafx.scene.control.Label;
-import io.github.palexdev.materialfx.controls.MFXButton;
-import io.github.palexdev.materialfx.dialogs.MFXGenericDialog;
-import io.github.palexdev.materialfx.dialogs.MFXGenericDialogBuilder;
-import io.github.palexdev.materialfx.dialogs.MFXStageDialog;
-import io.github.palexdev.materialfx.enums.ScrimPriority;
-import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
 
 public class BPlusTreeController implements Initializable {
 
@@ -56,14 +45,14 @@ public class BPlusTreeController implements Initializable {
     @FXML private StackPane searchSP;
     @FXML private StackPane insertSP;
     @FXML private StackPane deleteSP;
-    @FXML private MFXFontIcon insertIcon;
-    @FXML private MFXFontIcon removeIcon;
-    @FXML private MFXFontIcon searchIcon;
-    @FXML private MFXFontIcon homeIcon;
-    @FXML private MFXFontIcon settingsIcon;
-    @FXML private MFXFontIcon minimizeBtn;
-    @FXML private MFXFontIcon maximizeBtn;
-    @FXML private MFXFontIcon closeBtn;
+    @FXML private FontIcon insertIcon;
+    @FXML private FontIcon removeIcon;
+    @FXML private FontIcon searchIcon;
+    @FXML private FontIcon homeIcon;
+    @FXML private FontIcon settingsIcon;
+    @FXML private FontIcon minimizeBtn;
+    @FXML private FontIcon maximizeBtn;
+    @FXML private FontIcon closeBtn;
     @FXML private VBox searchBtnBox;
     @FXML private VBox insertBtnBox;
     @FXML private VBox removeBtnBox;
@@ -76,15 +65,10 @@ public class BPlusTreeController implements Initializable {
     @FXML private Label treeInfoLabel;
 
 
-    
-
     private BooleanProperty themeMode = new SimpleBooleanProperty();
     private DoubleProperty animationSpeed = new SimpleDoubleProperty(1.0);
     private DoubleProperty mParameter = new SimpleDoubleProperty();
     private BooleanProperty traversalAnimation = new SimpleBooleanProperty();
-
-    private final ExecutorService animationExecutor = Executors.newSingleThreadExecutor();
-
 
 
     private int branchingFactor = DEFAULT_BRANCHING_FACTOR;
@@ -100,14 +84,9 @@ public class BPlusTreeController implements Initializable {
     private double yOffset = 0;
 
     private BooleanProperty isDialogActive = new SimpleBooleanProperty(false);
+   
 
-    private Stage stage;
-    private MFXGenericDialog dialogContent;
-    private MFXStageDialog dialog;
-    
-
-    public BPlusTreeController(Stage stage) {
-        this.stage = stage;
+    public BPlusTreeController() {
         this.tree = new BPlusTree<>(this.branchingFactor);
         this.treeView = new TreeView(this.tree.getRoot());
         this.tree.addObserver(this.treeView);
@@ -162,7 +141,6 @@ public class BPlusTreeController implements Initializable {
                     treeView.widthProperty().get()
                 ), mParameter, treeView.depthProperty(), treeView.widthProperty()
         ));
-        setupDialog();
     }
 
     private void setupWindowControls() {
@@ -336,53 +314,7 @@ public class BPlusTreeController implements Initializable {
 
     }
 
-    private void setupDialog(){
-
-        Platform.runLater(() -> {
-            this.dialogContent = MFXGenericDialogBuilder.build()
-                    .setContentText("The current Tree would reset. Are you sure you wnat to continue?")
-                    .makeScrollable(true)
-                    .get();
-                    
-            this.dialog = MFXGenericDialogBuilder.build(dialogContent)
-                    .toStageDialogBuilder()
-                    .initOwner(stage)
-                    .initModality(Modality.WINDOW_MODAL)
-                    .setDraggable(true)
-                    .setTitle("Dialogs Preview")
-                    .setOwnerNode(rootPane)
-                    .setScrimPriority(ScrimPriority.WINDOW)
-                    .setScrimOwner(true)
-                    .get();
-
-            dialogContent.addActions(
-                    Map.entry(new MFXButton("Confirm"), event -> {
-                        // Acción de confirmar
-                        dialog.close();
-                    }),
-                    Map.entry(new MFXButton("Cancel"), event -> dialog.close())
-            );
-        });	
-    }
-
-    public void showDialog() {
-        Platform.runLater(() -> {
-            if (dialog != null) {
-                dialog.showDialog(); // Modal - bloquea la ventana padre
-                // dialog.show();    // No modal - no bloquea
-            }
-        });
-    }
-
-    // Método para cerrar
-    public void closeDialog() {
-        Platform.runLater(() -> {
-            if (dialog != null) {
-                dialog.close();
-            }
-        });
-    }
-
+    
     private void setupCanvas() {
 
         // Crear un Rectangle para el clip
@@ -398,6 +330,7 @@ public class BPlusTreeController implements Initializable {
         canvas.getChildren().add(treeView);
         treeView.canvasHeightProperty().bind(this.canvas.heightProperty());
         treeView.canvasWidthProperty().bind(this.canvas.widthProperty());
+        
 
     }
 
@@ -416,31 +349,25 @@ public class BPlusTreeController implements Initializable {
         
         BPlusTraversalResult<Boolean, Integer, String> result = this.tree.insert(key, data);
         
-        //disableButtons();
+        disableButtons();
         if (traversalAnimation.get()){
             treeView.animateTraversal(result.getVisitedKeys());
         }
         
-        animationExecutor.submit(() -> {
-            try {
-                Thread.sleep(100); // Pequeño delay para MaterialFX
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-    
-            
+        if (!result.getResult()){
+            messageLabel.setText("Key already on the Tree");
+            messageLabel.getStyleClass().add("warning");
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(messageLabel, 0.0, 1.0));
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(messageLabel, 1.0, 0.0));
+        }
 
-            if (!result.getResult()){
-                messageLabel.setText("Key already on the Tree");
-                messageLabel.getStyleClass().add("warning");
-                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(messageLabel, 0.0, 1.0));
-                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(messageLabel, 1.0, 0.0));
-            }
+        TreeAnimator.getInstance().addListenerToLastTransition( () -> enableButtons());
+        Platform.runLater(()->{
 
-            //TreeAnimator.getInstance().addListenerToLastTransition( () -> enableButtons());
+
             TreeAnimator.getInstance().animateQueue();
-            //Platform.runLater(() -> {});
         });
+          
     }
 
     private void handleRemove(Integer key) {
@@ -462,11 +389,12 @@ public class BPlusTreeController implements Initializable {
 
         TreeAnimator.getInstance().addListenerToLastTransition(() -> enableButtons());
         
-        Platform.runLater(() -> {
+        Platform.runLater(()->{
+
+
             TreeAnimator.getInstance().animateQueue();
         });
-
-
+        
 
 
     }
@@ -491,10 +419,12 @@ public class BPlusTreeController implements Initializable {
 
         TreeAnimator.getInstance().addListenerToLastTransition(() -> enableButtons());
         
-        Platform.runLater(() -> {
+        Platform.runLater(()->{
+
+
             TreeAnimator.getInstance().animateQueue();
         });
-
+        
     }
 
     private void disableButtons() {

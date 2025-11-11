@@ -1,24 +1,27 @@
 package com.arturoar.controller;
 
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
+import org.kordamp.ikonli.javafx.FontIcon;
+
+import com.jfoenix.controls.JFXSlider;
+import com.jfoenix.controls.JFXToggleButton;
+
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
-import io.github.palexdev.materialfx.controls.MFXSlider;
-import io.github.palexdev.materialfx.controls.MFXToggleButton;
-import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
 
 
 
 
 public class SettingsDialogController {
-    @FXML private MFXSlider mSlider;
+    @FXML private JFXSlider mSlider;
     @FXML private Label mLabel;
-    @FXML private MFXToggleButton traversalToggle;
-    @FXML private MFXSlider speedSlider;
-    @FXML private MFXToggleButton themeToggle;
+    @FXML private JFXToggleButton traversalToggle;
+    @FXML private JFXSlider speedSlider;
+    @FXML private JFXToggleButton themeToggle;
     @FXML private Label speedLabel;
 
     
@@ -32,7 +35,7 @@ public class SettingsDialogController {
     
     private void setupThemeToggle() {
         // Lógica para inicializar el toggle de tema
-        MFXFontIcon lightbulbIcon = new MFXFontIcon("fas-lightbulb", 16);
+        FontIcon lightbulbIcon = new FontIcon(FontAwesomeSolid.LIGHTBULB);
         themeToggle.setGraphic(lightbulbIcon);
         themeToggle.setSelected(false);
         //themeToggle.setColors(Color.LIGHTGRAY, Color.FLORALWHITE);
@@ -40,8 +43,8 @@ public class SettingsDialogController {
         themeToggle.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
             if (isNowSelected) {
                 // Cambiar a tema oscuro
-                MFXFontIcon moonIcon = new MFXFontIcon("fas-moon", 16);
-                moonIcon.setColor(Color.WHITE);
+                FontIcon moonIcon = new FontIcon(FontAwesomeSolid.MOON);
+                moonIcon.setFill(Color.WHITE);
                 themeToggle.setGraphic(moonIcon);
             } else {
                 // Cambiar a tema claro
@@ -54,7 +57,6 @@ public class SettingsDialogController {
     private void setupMSlider(){
         mSlider.setMax(10);
         mSlider.setMin(4);
-        mSlider.setDecimalPrecision(0);
         mSlider.setValue(4);
         mLabel.textProperty().bind(Bindings.createStringBinding(() -> String.format("%d", (int)mSlider.getValue()), mSlider.valueProperty()));
     }
@@ -63,7 +65,6 @@ public class SettingsDialogController {
         speedSlider.setValue(1.0);
         speedSlider.setMin(0.25);
         speedSlider.setMax(1.5);
-        speedSlider.setDecimalPrecision(1);
         speedLabel.textProperty().bind(Bindings.createStringBinding(() -> String.format("%.2fx", speedSlider.getValue()),speedSlider.valueProperty()));
     }
 

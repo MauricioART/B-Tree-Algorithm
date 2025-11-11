@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import io.github.palexdev.materialfx.controls.MFXButton?>
-<?import io.github.palexdev.materialfx.controls.MFXTextField?>
-<?import io.github.palexdev.mfxcore.controls.Label?>
+<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
@@ -13,11 +13,11 @@
       <VBox alignment="CENTER" prefHeight="298.0" prefWidth="579.0" spacing="10.0">
          <children>
             <Label text="Search Key" />
-            <MFXTextField fx:id="keyField" alignment="CENTER" floatMode="BORDER" floatingText="Key" />
+            <TextField fx:id="keyField" alignment="CENTER"  />
             <HBox alignment="BOTTOM_RIGHT" prefHeight="50.0" prefWidth="200.0" spacing="15.0">
                <children>
-                  <MFXButton fx:id="cancelBtn" buttonType="RAISED" text="Cancel" />
-                  <MFXButton fx:id="searchBtn" buttonType="RAISED" text="OK" />
+                  <JFXButton fx:id="cancelBtn" buttonType="RAISED" text="Cancel" />
+                  <JFXButton fx:id="searchBtn" buttonType="RAISED" text="OK" />
                </children>
                <opaqueInsets>
                   <Insets />

@@ -2,19 +2,20 @@ package com.arturoar.controller;
 
 import java.util.function.Consumer;
 
-import io.github.palexdev.materialfx.controls.MFXButton;
-import io.github.palexdev.materialfx.controls.MFXTextField;
+import com.jfoenix.controls.JFXButton;
+
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.TextField;
 import javafx.util.Pair;
 
 public class InsertDialogController implements Initializable{
 
-    @FXML private MFXTextField keyField;
-    @FXML private MFXTextField valueField;
-    @FXML private MFXButton insertBtn;
-    @FXML private MFXButton cancelBtn;
+    @FXML private TextField keyField;
+    @FXML private TextField valueField;
+    @FXML private JFXButton insertBtn;
+    @FXML private JFXButton cancelBtn;
 
     private Consumer<Pair<Integer, String>> onInsertCallback;
     private Runnable onCancelRunnable;

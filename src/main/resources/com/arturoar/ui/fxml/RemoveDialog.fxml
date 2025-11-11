@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import io.github.palexdev.materialfx.controls.MFXButton?>
-<?import io.github.palexdev.materialfx.controls.MFXTextField?>
-<?import io.github.palexdev.mfxcore.controls.Label?>
+<?import com.jfoenix.controls.JFXButton?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
 
 <StackPane fx:id="popupContainer" prefHeight="162.0" prefWidth="215.0" styleClass="dialog" stylesheets="@../css/Dialog.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.arturoar.controller.RemoveDialogController">
    <children>
@@ -15,7 +15,7 @@
             <Label text="Delete Key" />
             <HBox alignment="CENTER" prefHeight="80.0" prefWidth="200.0">
                <children>
-                  <MFXTextField fx:id="keyField" alignment="CENTER" floatingText="Key" />
+                  <TextField fx:id="keyField" alignment="CENTER"  />
                </children>
                <opaqueInsets>
                   <Insets left="50.0" right="50.0" />
@@ -23,8 +23,8 @@
             </HBox>
             <HBox alignment="BOTTOM_RIGHT" prefHeight="50.0" prefWidth="200.0" spacing="15.0">
                <children>
-                  <MFXButton fx:id="cancelBtn" buttonType="RAISED" rippleColor="#d12626" text="Cancel" />
-                  <MFXButton fx:id="removeBtn" buttonType="RAISED" rippleColor="#3f894c" text="OK" />
+                  <JFXButton fx:id="cancelBtn" buttonType="RAISED" text="Cancel" />
+                  <JFXButton fx:id="removeBtn" buttonType="RAISED" text="OK" />
                </children>
                <opaqueInsets>
                   <Insets />
