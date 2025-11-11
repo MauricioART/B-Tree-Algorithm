@@ -12,7 +12,7 @@ public class TreeEdge extends Edge {
         super();
         edgeType = EdgeType.TREE_EDGE;
         body = new CubicCurve();
-        body.setStrokeWidth(1);
+        body.setStrokeWidth(2);
         body.setStroke(Color.BLACK);
         body.setFill(null);
         initialize();

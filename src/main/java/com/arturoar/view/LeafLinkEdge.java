@@ -12,7 +12,7 @@ public class LeafLinkEdge extends Edge {
         super();
         edgeType = EdgeType.LEAF_LINK_EDGE;
         this.body = new Line();
-        body.setStrokeWidth(1);
+        body.setStrokeWidth(2);
         body.setStroke(Color.BLACK);
         body.setFill(null);
         initialize();

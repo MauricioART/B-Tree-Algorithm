@@ -30,6 +30,7 @@ public abstract class Edge extends Group {
         this.endY.set(endY);
 
         this.head = new Polygon();
+        this.head.setFill(Color.BLACK);
 
     }
 
