@@ -6,7 +6,7 @@ module com.arturoar.bplustree {
     requires java.xml;
     requires javafx.base;
     
-    requires com.jfoenix;
+    //requires com.jfoenix;
     
 
     requires org.kordamp.ikonli.fontawesome5;

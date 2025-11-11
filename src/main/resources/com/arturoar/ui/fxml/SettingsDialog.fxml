@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXSlider?>
-<?import com.jfoenix.controls.JFXToggleButton?>
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
@@ -22,7 +22,7 @@
                   <Region HBox.hgrow="ALWAYS" />
                   <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="15.0">
                      <children>
-                        <JFXSlider fx:id="mSlider" />
+                        <Slider fx:id="mSlider" />
                         <Label fx:id="mLabel" />
                      </children>
                   </VBox>
@@ -33,7 +33,7 @@
                <children>
                   <Label text="Traversal Animation" />
                   <Region HBox.hgrow="ALWAYS" />
-                  <JFXToggleButton fx:id="traversalToggle" />
+                  <ToggleButton fx:id="traversalToggle" />
                </children>
             </HBox>
             <Separator prefWidth="200.0" />
@@ -44,7 +44,7 @@
                   <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="15.0">
                      <children>
                         <Label fx:id="speedLabel" />
-                        <JFXSlider fx:id="speedSlider" />
+                        <Slider fx:id="speedSlider" />
                         <Label fx:id="speedLabel" text="Label" />
                      </children>
                   </VBox>
@@ -55,7 +55,7 @@
                <children>
                   <Label text="Light/Dark Mode" />
                   <Region HBox.hgrow="ALWAYS" />
-                  <JFXToggleButton fx:id="themeToggle" />
+                  <ToggleButton fx:id="themeToggle" />
                </children>
             </HBox>
          </children>

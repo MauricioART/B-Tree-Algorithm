@@ -2,20 +2,21 @@ package com.arturoar.controller;
 
 import java.util.function.Consumer;
 
-import com.jfoenix.controls.JFXButton;
+//import com.jfoenix.controls.JFXButton;
 
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TextField;
 import javafx.util.Pair;
+import javafx.scene.control.Button;
 
 public class InsertDialogController implements Initializable{
 
     @FXML private TextField keyField;
     @FXML private TextField valueField;
-    @FXML private JFXButton insertBtn;
-    @FXML private JFXButton cancelBtn;
+    @FXML private Button insertBtn;
+    @FXML private Button cancelBtn;
 
     private Consumer<Pair<Integer, String>> onInsertCallback;
     private Runnable onCancelRunnable;

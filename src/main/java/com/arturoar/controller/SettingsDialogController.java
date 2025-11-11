@@ -3,25 +3,27 @@ package com.arturoar.controller;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.javafx.FontIcon;
 
-import com.jfoenix.controls.JFXSlider;
-import com.jfoenix.controls.JFXToggleButton;
+//import com.jfoenix.controls.JFXSlider;
+//import com.jfoenix.controls.JFXToggleButton;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.paint.Color;
 
 
 
 
 public class SettingsDialogController {
-    @FXML private JFXSlider mSlider;
+    @FXML private Slider mSlider;
     @FXML private Label mLabel;
-    @FXML private JFXToggleButton traversalToggle;
-    @FXML private JFXSlider speedSlider;
-    @FXML private JFXToggleButton themeToggle;
+    @FXML private ToggleButton traversalToggle;
+    @FXML private Slider speedSlider;
+    @FXML private ToggleButton themeToggle;
     @FXML private Label speedLabel;
 
     

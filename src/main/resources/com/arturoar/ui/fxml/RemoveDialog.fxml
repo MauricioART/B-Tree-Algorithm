@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.jfoenix.controls.JFXButton?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Button?>
 
 <StackPane fx:id="popupContainer" prefHeight="162.0" prefWidth="215.0" styleClass="dialog" stylesheets="@../css/Dialog.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.arturoar.controller.RemoveDialogController">
    <children>
@@ -23,8 +23,8 @@
             </HBox>
             <HBox alignment="BOTTOM_RIGHT" prefHeight="50.0" prefWidth="200.0" spacing="15.0">
                <children>
-                  <JFXButton fx:id="cancelBtn" buttonType="RAISED" text="Cancel" />
-                  <JFXButton fx:id="removeBtn" buttonType="RAISED" text="OK" />
+                  <Button fx:id="cancelBtn"  text="Cancel" />
+                  <Button fx:id="removeBtn"  text="OK" />
                </children>
                <opaqueInsets>
                   <Insets />

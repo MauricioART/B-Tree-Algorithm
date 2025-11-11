@@ -4,18 +4,19 @@ import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Button;
 
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 
-import com.jfoenix.controls.JFXButton;
+//import com.jfoenix.controls.JFXButton;
 
 public class RemoveDialogController implements Initializable {
 
     @FXML private TextField keyField;
-    @FXML private JFXButton removeBtn;
-    @FXML private JFXButton cancelBtn;
+    @FXML private Button removeBtn;
+    @FXML private Button cancelBtn;
 
     private Consumer<Integer> onRemoveCallback;
     private Runnable onCancelRunnable;

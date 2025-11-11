@@ -362,11 +362,8 @@ public class BPlusTreeController implements Initializable {
         }
 
         TreeAnimator.getInstance().addListenerToLastTransition( () -> enableButtons());
-        Platform.runLater(()->{
-
-
-            TreeAnimator.getInstance().animateQueue();
-        });
+        TreeAnimator.getInstance().animateQueue();
+       
           
     }
 
@@ -389,11 +386,7 @@ public class BPlusTreeController implements Initializable {
 
         TreeAnimator.getInstance().addListenerToLastTransition(() -> enableButtons());
         
-        Platform.runLater(()->{
-
-
-            TreeAnimator.getInstance().animateQueue();
-        });
+        TreeAnimator.getInstance().animateQueue();
         
 
 
@@ -418,12 +411,8 @@ public class BPlusTreeController implements Initializable {
         }
 
         TreeAnimator.getInstance().addListenerToLastTransition(() -> enableButtons());
+        TreeAnimator.getInstance().animateQueue();
         
-        Platform.runLater(()->{
-
-
-            TreeAnimator.getInstance().animateQueue();
-        });
         
     }
 

@@ -2,18 +2,19 @@ package com.arturoar.controller;
 
 import java.util.function.Consumer;
 
-import com.jfoenix.controls.JFXButton;
+//import com.jfoenix.controls.JFXButton;
 
 import javafx.fxml.Initializable;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Button;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 
 public class SearchDialogController implements Initializable {
 
     @FXML private TextField keyField;
-    @FXML private JFXButton searchBtn;
-    @FXML private JFXButton cancelBtn;
+    @FXML private Button searchBtn;
+    @FXML private Button cancelBtn;
 
 
     private Consumer<Integer> onSearchCallback;
