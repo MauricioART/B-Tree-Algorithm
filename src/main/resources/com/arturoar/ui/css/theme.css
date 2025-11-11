@@ -19,15 +19,21 @@
 
 .header{
     -fx-background-color: #000;
+    /*-fx-background-image:  url("../images/header-bar.png");
+    -fx-background-size: 1282 50;*/
+
     -fx-border-radius: 20;
     -fx-border-width: 2;
     -fx-border-color: transparent;
     -fx-background-radius: 25;
+
+
+    
     
 }
 .header Label {
     -fx-font-family: "Bitcount Grid Single Medium", "Arial", sans-serif;
-    -fx-font-size: 20px;
+    -fx-font-size: 22px;
     -fx-font-weight: bold;
     -fx-text-fill: #fff;
     
@@ -68,21 +74,26 @@
 }
 /* Contenedores blancos */
 
-.canvas,
-.card {
-    -fx-background-radius: 12;
-    /*-fx-border-color: -primary-gradient; /* Color del borde */
-    -fx-border-width: 2;       /* Grosor del borde */
-    -fx-border-radius: 12;     /* Esquinas redondeadas */
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);
-    -fx-background-color: #e4f5f4;
+.canvas {
+    
+    
+    -fx-font-family: "Comfortaa", "Arial";
+    -fx-font-size: 12px;
+    -fx-background-color: #e5e5f7;
     -fx-opacity: 0.8;
-    /*-fx-background-image: radial-gradient(#444cf7 2px, #fff 2px);*/
-    -fx-background-size: 40px 40px;
+    
+    -fx-background-radius: 12;
+    -fx-border-color: #845ec2; /* Color primario de tu paleta */
+    -fx-border-width: 2;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 2);
+    
+
    }
 
 .canvas *{
-    
+    -fx-background-color: #944acc79;
+    -fx-font-weight: bold;
 }
 .dialog-overlay{
     -fx-background-color: -mfx-primary;
@@ -191,8 +202,8 @@
 }
 
 .rootPane.dark .header Label {
-    -fx-font-family: "Bitcount Grid Single", "Arial", sans-serif;
-    -fx-font-size: 25px;
+    -fx-font-family: "Bitcount Grid Single Medium", "Arial", sans-serif;
+    -fx-font-size: 22px;
     -fx-font-weight: bold;
     -fx-text-fill: #ffffff; /* Blanco puro */
 }
@@ -220,6 +231,7 @@
     -fx-border-width: 2;
     -fx-border-radius: 12;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 2);
+
 }
 
 /* Diálogos */
@@ -266,16 +278,17 @@
 
 /* Botones de ventana */
 .rootPane.dark .minimize-btn {
-    -mfx-color: #ffffff !important;
+    -mfx-color: #008e9b !important;
 }
 
 .rootPane.dark .maximize-btn {
-    -mfx-color: #ffffff !important;
+    -mfx-color: #0081cf !important;
 }
 
 .rootPane.dark .close-btn {
-    -mfx-color: #ffffff !important;
+    -mfx-color: #845ec2 !important;
 }
+
 
 .rootPane.dark .minimize-btn:hover {
     -fx-background-color: rgba(255,255,255,0.15);
@@ -294,3 +307,5 @@
     -fx-opacity: 1.0;
     -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.2), 8, 0, 0, 2);
 }
+
+
