@@ -86,12 +86,21 @@ public class KeyView extends Group {
         
         nodeShape = new Rectangle(this.widthProperty.get(), this.height);
         nodeShape.setStrokeWidth(1);
-        nodeShape.setStroke(this.strokeColor);
-        nodeShape.setFill(this.fillColor);
+        nodeShape.setFill(Color.web("#008e9b", 0.2)); // Relleno con opacidad 0.7
+        nodeShape.setStroke(Color.web("#008e9b"));     // Borde opacidad 1 (completo)
+        nodeShape.setStrokeWidth(2);      
         nodeShape.widthProperty().bind(widthProperty);
+
+        nodeShape.setArcWidth(10.0);
+        nodeShape.setArcHeight(10.0);   
+
+        nodeShape.getStyleClass().clear();
+        nodeShape.getStyleClass().add("keyview");
         
         keyLabel.setX(paddingX);
         keyLabel.setY(this.height - (2.0 * paddingY));
+        keyLabel.setFill(Color.web("#008e9b"));
+
         
         getChildren().addAll(this.nodeShape, this.keyLabel);
 
