@@ -24,6 +24,8 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -324,12 +326,22 @@ public class TreeAnimator {
     
 
     public void addListenerToLastTransition(Runnable onFinished) {
-        int size = transitionQueue.size();
-        if (size == 0) return;
+    int size = transitionQueue.size();
+    if (size == 0) return;
 
-        Transition last = transitionQueue.get(size - 1);
-        last.setOnFinished(_ -> onFinished.run());
-    }
+    Transition last = transitionQueue.get(size - 1);
+    
+    // Guardar el handler actual
+    final EventHandler<ActionEvent> currentHandler = last.getOnFinished();
+    
+    // Crear nuevo handler que ejecute ambos
+    last.setOnFinished(event -> {
+        if (currentHandler != null) {
+            currentHandler.handle(event);  // Ejecutar handler original
+        }
+        onFinished.run();                  // Ejecutar nuevo handler
+    });
+}
 
     /**
      * Creates a smooth transition for any property using a custom Transition
