@@ -31,12 +31,9 @@ import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
-import javafx.scene.media.Media;
 import javafx.scene.media.AudioClip;
 
 
-import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 
@@ -57,7 +54,6 @@ public class TreeAnimator {
     private AudioClip fadeOutSound;
     private AudioClip movingSound;
     private AudioClip fadeInSound;
-    //private AudioClip errorMedia;
     
     private static TreeAnimator instance = new TreeAnimator();
     
@@ -72,21 +68,11 @@ public class TreeAnimator {
 
         try{
             URL resource = BPlusTreeUI.class.getResource("sounds/pop-402324.mp3");
-            //File sparkleFile = new File("");
             highlightingSound = new AudioClip(resource.toExternalForm());
-            
-            URL resource2 = BPlusTreeUI.class.getResource("sounds/air-blow-380645.mp3");
-            fadeOutSound = new AudioClip(resource2.toExternalForm());
 
-            URL resource3 = BPlusTreeUI.class.getResource("sounds/whoosh-09-4108761.mp3");
-            movingSound = new AudioClip(resource3.toExternalForm());
-
-            URL resource4 = BPlusTreeUI.class.getResource("sounds/pop-cartoon-328167.mp3");
-            fadeInSound = new AudioClip(resource4.toExternalForm());
+            URL resource2 = BPlusTreeUI.class.getResource("sounds/pop-cartoon-328167.mp3");
+            fadeInSound = new AudioClip(resource2.toExternalForm());
             
-            /*
-            File errorFile = new File("assets/media/Golden-48569.mp4");
-            errorMedia = new AudioClip(errorFile.toURI().toURL().toString());*/
 
         }catch(Exception exception){
             System.err.println(exception);
