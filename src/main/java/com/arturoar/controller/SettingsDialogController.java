@@ -35,10 +35,11 @@ public class SettingsDialogController {
         MFXFontIcon lightbulbIcon = new MFXFontIcon("fas-lightbulb", 16);
         themeToggle.setGraphic(lightbulbIcon);
         themeToggle.setSelected(false);
-        //themeToggle.setColors(Color.LIGHTGRAY, Color.FLORALWHITE);
+        themeToggle.setColors(Color.LIGHTGRAY, Color.FLORALWHITE);
 
-        themeToggle.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
-            if (isNowSelected) {
+        themeToggle.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
+            
+            if (isSelected) {
                 // Cambiar a tema oscuro
                 MFXFontIcon moonIcon = new MFXFontIcon("fas-moon", 16);
                 moonIcon.setColor(Color.WHITE);

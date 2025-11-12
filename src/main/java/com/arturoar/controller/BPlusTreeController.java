@@ -36,7 +36,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 import javafx.scene.control.Label;
 import io.github.palexdev.materialfx.controls.MFXButton;
 import io.github.palexdev.materialfx.dialogs.MFXGenericDialog;
@@ -143,12 +142,10 @@ public class BPlusTreeController implements Initializable {
 
         themeMode.addListener((_,_,newVal)->{
             if (newVal){
-                rootPane.getStyleClass().remove("light");
                 rootPane.getStyleClass().add("dark");
                 
             }else{
                 rootPane.getStyleClass().remove("dark");
-                rootPane.getStyleClass().add("light");
             }
         });
 
@@ -413,33 +410,32 @@ public class BPlusTreeController implements Initializable {
     
     private void handleInsert(Integer key, String data) {
         
-        
+        disableButtons();
         BPlusTraversalResult<Boolean, Integer, String> result = this.tree.insert(key, data);
-        
-        //disableButtons();
         if (traversalAnimation.get()){
             treeView.animateTraversal(result.getVisitedKeys());
         }
-        
+
+        if (!result.getResult()){
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(messageLabel, 0.0, 1.0));
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(messageLabel, 1.0, 0.0));
+        }
         animationExecutor.submit(() -> {
-            try {
-                Thread.sleep(100); // Pequeño delay para MaterialFX
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-    
+           
+            TreeAnimator.getInstance().addListenerToLastTransition( () ->{
+                Platform.runLater(()->{
+                    enableButtons();
+                    if(!result.getResult()){            
+                        messageLabel.setText("Key already on the Tree");
+                        messageLabel.getStyleClass().add("warning");
+                    }
+                });
+            });
+
+            Platform.runLater(() -> {
+                    TreeAnimator.getInstance().animateQueue(treeView.allowTranslationProperty());
+            });
             
-
-            if (!result.getResult()){
-                messageLabel.setText("Key already on the Tree");
-                messageLabel.getStyleClass().add("warning");
-                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(messageLabel, 0.0, 1.0));
-                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(messageLabel, 1.0, 0.0));
-            }
-
-            //TreeAnimator.getInstance().addListenerToLastTransition( () -> enableButtons());
-            TreeAnimator.getInstance().animateQueue();
-            //Platform.runLater(() -> {});
         });
     }
 
@@ -463,7 +459,7 @@ public class BPlusTreeController implements Initializable {
         TreeAnimator.getInstance().addListenerToLastTransition(() -> enableButtons());
         
         Platform.runLater(() -> {
-            TreeAnimator.getInstance().animateQueue();
+            TreeAnimator.getInstance().animateQueue(treeView.allowTranslationProperty());
         });
 
 
@@ -492,7 +488,7 @@ public class BPlusTreeController implements Initializable {
         TreeAnimator.getInstance().addListenerToLastTransition(() -> enableButtons());
         
         Platform.runLater(() -> {
-            TreeAnimator.getInstance().animateQueue();
+            TreeAnimator.getInstance().animateQueue(treeView.allowTranslationProperty());
         });
 
     }

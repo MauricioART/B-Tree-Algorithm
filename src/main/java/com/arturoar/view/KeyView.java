@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import com.arturoar.util.TreeAnimator;
 
 import javafx.animation.Transition;
+import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ChangeListener;
@@ -121,7 +122,7 @@ public class KeyView extends Group {
             }
 
             TreeAnimator.getInstance().createParallelTransition();
-            TreeAnimator.getInstance().animateQueue();
+            TreeAnimator.getInstance().animateQueue(null);
 
             
         });

@@ -14,8 +14,10 @@ import com.arturoar.util.BPlusTreeObserver;
 import com.arturoar.util.TreeAnimator;
 
 import javafx.animation.Transition;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
@@ -47,6 +49,8 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     private IntegerProperty widthProperty = new SimpleIntegerProperty(0);
 
     private DoubleProperty scaleProperty = new SimpleDoubleProperty(1.0);
+
+    private SimpleBooleanProperty allowTranslation = new SimpleBooleanProperty(false);
     
 
     public TreeView(BPlusNode<Integer, String> root) {
@@ -70,7 +74,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         this.canvasHeight.addListener(listener);
 
         this.animator = TreeAnimator.getInstance();
-
+        
     }
 
     @Override
@@ -109,7 +113,6 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     }
 
     private void handleNewRoot(BPlusTreeEvent<Integer, String> event) {
-        // Implementation for handling new root if needed
         
         BPlusTreeEvent.NewRoot<Integer,String> e = (BPlusTreeEvent.NewRoot<Integer,String>) event;
 
@@ -120,10 +123,10 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                 animator.combineLastsTransitionsOnQueue(2);
             }
             updateYLayout();
-           /* animator.addListenerToLastTransition(() -> {
+            animator.addListenerToLastTransition(() -> {
                 depthProperty.set(treeLevels.size());
             });
-            depthProperty.set(treeLevels.size());*/
+            depthProperty.set(treeLevels.size());
 
         }else{
             NodeView newNode = NodeFactory.createNode(e.getNewRoot().isLeaf(), this.canvasWidth.get()/2, Y_PADDING);
@@ -262,6 +265,12 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     private void handleKeyInserted(BPlusTreeEvent<Integer, String> event) {
 
         KeyView newKey = createKeyView(event);
+
+        /*newKey.translateXProperty().addListener((_, oldVal, newVal)-> {
+            if (!allowTranslation.get()){
+                newKey.setTranslateX(oldVal.doubleValue());
+            }
+        });*/
 
         newKey.setOnWidthChangeCallback(level ->{updateLevelLayout(level);});
 
@@ -521,9 +530,6 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
         updateEdges(e.getChild());
 
-        //updateLevelLayout(affectedNode.getLevel());
-
-
     }
 
     private void handleChildNodeCreated(BPlusTreeEvent<Integer, String> event) {
@@ -687,6 +693,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
     public IntegerProperty widthProperty() { return widthProperty; }
 
+    public BooleanProperty allowTranslationProperty() { return allowTranslation; }
 
 
 }

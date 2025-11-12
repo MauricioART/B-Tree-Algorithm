@@ -17,6 +17,7 @@ import javafx.animation.SequentialTransition;
 import javafx.animation.StrokeTransition;
 import javafx.animation.Transition;
 import javafx.animation.TranslateTransition;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -222,11 +223,17 @@ public class TreeAnimator {
         parallelList.clear();
     }
 
-    public void animateQueue() {
+    public void animateQueue(BooleanProperty allowTranslation) {
         SequentialTransition traversal = new SequentialTransition();
         traversal.getChildren().addAll(traversalList);
         SequentialTransition seqTransitions = new SequentialTransition();
         seqTransitions.getChildren().addAll(transitionQueue);
+        
+        if (allowTranslation != null){
+            allowTranslation.set(true);
+            seqTransitions.setOnFinished(_-> allowTranslation.set(false) );
+        }
+        
         clearQueue();
         traversal.setOnFinished(_ -> {
             traversalList.clear();
@@ -271,6 +278,7 @@ public class TreeAnimator {
             {
                 setCycleDuration(Duration.millis(duration));
                 //setCycleDuration(ANIMATION_DURATION);
+                
                 // Set initial value
                 property.setValue(fromValue);
             }
