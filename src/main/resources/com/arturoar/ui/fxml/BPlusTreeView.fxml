@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import io.github.palexdev.materialfx.dialogs.MFXGenericDialog?>
 <?import io.github.palexdev.mfxresources.fonts.MFXFontIcon?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
@@ -11,11 +10,11 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" styleClass="rootPane, light" stylesheets="@../css/theme.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.arturoar.controller.BPlusTreeController">
+<AnchorPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" styleClass="rootPane" stylesheets="@../css/theme.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.arturoar.controller.BPlusTreeController">
    <children>
       <HBox fx:id="headerBox" alignment="CENTER_RIGHT" prefHeight="50.0" prefWidth="1282.0" spacing="15.0" styleClass="header">
          <children>
-            <Label text="B+ Tree Visualizer" />
+            <Label styleClass="title" text="B+ Tree Visualizer" />
             <Region HBox.hgrow="ALWAYS" />
             <MFXFontIcon fx:id="minimizeBtn" description="fas-circle" size="15.0" styleClass="minimize-btn" />
             <MFXFontIcon fx:id="maximizeBtn" description="fas-circle" size="15.0" styleClass="maximize-btn" />
@@ -29,7 +28,6 @@
       <Label fx:id="treeInfoLabel" styleClass="tree-info" />
       <Label fx:id="messageLabel" styleClass="message-info" />
       <Pane fx:id="dialogOverlay" prefHeight="729.0" prefWidth="1283.0" styleClass="dialog-overlay" visible="false" />
-      <MFXGenericDialog fx:id="resetTreeDialog" alwaysOnTop="true" />
       <HBox fx:id="controlBar" alignment="CENTER" layoutY="67.0" prefHeight="80.0" prefWidth="1280.0" spacing="120.0" styleClass="control-bar">
          <children>
             <!-- Botones centrados -->
