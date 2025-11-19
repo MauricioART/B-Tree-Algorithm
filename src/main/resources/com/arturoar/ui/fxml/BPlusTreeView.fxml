@@ -14,6 +14,7 @@
    <children>
       <HBox fx:id="headerBox" alignment="CENTER_RIGHT" prefHeight="50.0" prefWidth="1282.0" spacing="15.0" styleClass="header">
          <children>
+            <MFXFontIcon fx:id="logo" description="fas-sitemap" size="25.0" styleClass="logo" />
             <Label styleClass="title" text="B+ Tree Visualizer" />
             <Region HBox.hgrow="ALWAYS" />
             <MFXFontIcon fx:id="minimizeBtn" description="fas-circle" size="15.0" styleClass="minimize-btn" />
@@ -26,7 +27,6 @@
       </HBox>
       <Pane fx:id="canvas" layoutX="20.0" layoutY="155.0" prefHeight="550.0" prefWidth="1240.0" styleClass="canvas" />
       <Label fx:id="treeInfoLabel" styleClass="tree-info" />
-      <Label fx:id="messageLabel" styleClass="message-info" />
       <Pane fx:id="dialogOverlay" prefHeight="729.0" prefWidth="1283.0" styleClass="dialog-overlay" visible="false" />
       <HBox fx:id="controlBar" alignment="CENTER" layoutY="67.0" prefHeight="80.0" prefWidth="1280.0" spacing="120.0" styleClass="control-bar">
          <children>
@@ -58,6 +58,7 @@
             </VBox>
          </children>
       </HBox>
+      <VBox prefHeight="200.0" prefWidth="100.0" />
       <StackPane fx:id="searchSP" layoutX="375.0" layoutY="155.0" prefHeight="131.0" prefWidth="170.0" styleClass="settings-dialog" />
       <StackPane fx:id="insertSP" layoutX="534.0" layoutY="155.0" prefHeight="167.0" prefWidth="292.0" styleClass="settings-dialog" />
       <StackPane fx:id="deleteSP" layoutX="690.0" layoutY="155.0" prefHeight="162.0" prefWidth="215.0" styleClass="settings-dialog" />
