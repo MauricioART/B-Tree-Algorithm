@@ -18,8 +18,6 @@ public class BPlusTree<K extends Comparable<K>,V> {
 
     public BPlusTree(int m){
         this.m = m;
-        this.root = new BPlusLeafNode<K,V>(true, m, 0, null);
-        this.nodes = new ArrayList<>(List.of(this.root));
     }
 
     public BPlusNode<K,V> getRoot(){
@@ -38,8 +36,17 @@ public class BPlusTree<K extends Comparable<K>,V> {
             }
         }
     }
+
+    public boolean isEmpty(){
+        return root == null;
+    }
     
     public BPlusTraversalResult<Boolean,K,V> insert(K key, V data){
+        if (root == null){
+            this.root = new BPlusLeafNode<K,V>(true, m, 0, null);
+            this.nodes = new ArrayList<>(List.of(this.root));
+            notifyObservers(new BPlusTreeEvent.NewRoot<>(root));
+        }
         BPlusLeafNode<K,V> leafNode = searchLeafNode(key);
         BPlusTraversalResult<BPlusLeafNode<K, V>, K, V> containResult = this.contains(key);
         BPlusTraversalResult<Boolean, K, V> insertResult = new BPlusTraversalResult<>(containResult.getVisitedKeys(), false);
