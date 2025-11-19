@@ -30,8 +30,6 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     private final Double Y_PADDING = 50.0;
     private final Double MIN_NODE_SPACING = 15.0;
     private final Double MAX_NODE_SPACING = 50.0;
-    // private final Double MIN_LEVEL_SPACING = 80.0;
-    // private final Double MAX_LEVEL_SPACING = 150.0;
 
 
     private final Map<Key<Integer>, KeyView> keyToKeyView = new HashMap<>();
@@ -53,26 +51,18 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     private SimpleBooleanProperty allowTranslation = new SimpleBooleanProperty(false);
     
 
-    public TreeView(BPlusNode<Integer, String> root) {
+    public TreeView() {
 
         ChangeListener<Number> listener = new ChangeListener<>() {
-            private boolean first = true;
-
             @Override
             public void changed(ObservableValue<? extends Number> obs, Number oldValue, Number newValue) {
-                if (first) {
-                    System.out.println("Canvas size initialized: " + newValue);
-                    handleNewRoot(new BPlusTreeEvent.NewRoot<>(root));
-                    first = false; 
-                    canvasWidth.removeListener(this);
-                    canvasHeight.removeListener(this);
-                }
+                canvasWidth.removeListener(this);
+                canvasHeight.removeListener(this);
             }
         };
 
         this.canvasWidth.addListener(listener);
         this.canvasHeight.addListener(listener);
-
         this.animator = TreeAnimator.getInstance();
         
     }
@@ -123,11 +113,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                 animator.combineLastsTransitionsOnQueue(2);
             }
             updateYLayout();
-            animator.addListenerToLastTransition(() -> {
-                depthProperty.set(treeLevels.size());
-            });
-            depthProperty.set(treeLevels.size());
-
+            
         }else{
             NodeView newNode = NodeFactory.createNode(e.getNewRoot().isLeaf(), this.canvasWidth.get()/2, Y_PADDING);
             this.nodeToNodeView.put(e.getNewRoot(), newNode);
@@ -141,6 +127,9 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             }
             animator.combineLastsTransitionsOnQueue(2);
         }
+        animator.addListenerToLastTransition(() -> {
+            depthProperty.set(treeLevels.size());
+        });
     }
     
     
@@ -257,20 +246,12 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         }
         getChildren().remove(deletedNode);
         treeLevels.get(deletedNode.getLevel()).remove(deletedNode);
-//        updateLevelLayout(deletedNode.getLevel());
-//        updateYLayout();
         animator.combineLastsTransitionsOnQueue(2);
     }
 
     private void handleKeyInserted(BPlusTreeEvent<Integer, String> event) {
 
         KeyView newKey = createKeyView(event);
-
-        /*newKey.translateXProperty().addListener((_, oldVal, newVal)-> {
-            if (!allowTranslation.get()){
-                newKey.setTranslateX(oldVal.doubleValue());
-            }
-        });*/
 
         newKey.setOnWidthChangeCallback(level ->{updateLevelLayout(level);});
 
@@ -294,12 +275,12 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         updateLevelLayout(level);
         
         Transition keyFadeIn = animator.fadeNode(newKey,0,1);
-        /*keyFadeIn.setOnFinished(_->{
+        keyFadeIn.setOnFinished(_->{
             if (e.getNode().isLeaf()){
 
                 widthProperty.set(widthProperty.get() + 1);
             }
-        });*/
+        });
         animator.addTransitionToQueue(keyFadeIn);
         
         if (!this.unshownEdges.isEmpty()){
@@ -334,6 +315,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             
             this.getChildren().remove(removedKey);
             keyToKeyView.remove(e.getKey());
+            widthProperty.set(widthProperty.get() - 1);
         }
         );
         updateLevelLayout(e.getNode().getLevel());
