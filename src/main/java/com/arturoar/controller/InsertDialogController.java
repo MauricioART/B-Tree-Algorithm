@@ -32,6 +32,7 @@ public class InsertDialogController implements Initializable{
             if (onInsertCallback != null){
                 onInsertCallback.accept(new Pair<>(integerValue, valueField.getText()));
             }
+            keyField.setText("");
         });
 
         cancelBtn.setOnAction(_->{
@@ -40,6 +41,8 @@ public class InsertDialogController implements Initializable{
                 valueField.setText("");
                 onCancelRunnable.run();
             }
+            
+            keyField.setText("");
         });
         keyField.textProperty().addListener((_,_,currentText)->{
             try{

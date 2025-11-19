@@ -17,6 +17,7 @@ public class SearchDialogController implements Initializable {
 
     private Consumer<Integer> onSearchCallback;
     private Runnable onCancelRunnable;
+    
 
     private Integer integerValue;
 
@@ -32,12 +33,16 @@ public class SearchDialogController implements Initializable {
             if (onSearchCallback != null){
                 onSearchCallback.accept(integerValue);
             }
+            
+            keyField.setText("");
         });
 
         cancelBtn.setOnAction(_->{
             if (onCancelRunnable != null){
                 onCancelRunnable.run();
             }
+            
+            keyField.setText("");
         });
 
         keyField.textProperty().addListener((_,_,currentText)->{

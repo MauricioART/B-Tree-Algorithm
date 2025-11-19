@@ -31,12 +31,15 @@ public class RemoveDialogController implements Initializable {
             if (onRemoveCallback != null){
                 onRemoveCallback.accept(integerValue);
             }
+            keyField.setText("");
         });
 
         cancelBtn.setOnAction(_->{
             if (onCancelRunnable != null){
                 onCancelRunnable.run();
             }
+            
+            keyField.setText("");
         });
         keyField.textProperty().addListener((_,_,currentText)->{
             try{
