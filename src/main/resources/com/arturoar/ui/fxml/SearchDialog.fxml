@@ -8,12 +8,12 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" styleClass="dialog"  minWidth="-Infinity" prefHeight="131.0" prefWidth="170.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.arturoar.controller.SearchDialogController">
+<StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="131.0" prefWidth="170.0" styleClass="dialog" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.arturoar.controller.SearchDialogController">
    <children>
       <VBox alignment="CENTER" prefHeight="298.0" prefWidth="579.0" spacing="10.0">
          <children>
             <Label text="Search Key" />
-            <MFXTextField fx:id="keyField" alignment="CENTER" floatMode="BORDER" floatingText="Key" />
+            <MFXTextField fx:id="keyField" alignment="CENTER" floatMode="BORDER" floatingText="Key" selectable="false" />
             <HBox alignment="BOTTOM_RIGHT" prefHeight="50.0" prefWidth="200.0" spacing="15.0">
                <children>
                   <MFXButton fx:id="cancelBtn" buttonType="RAISED" text="Cancel" />

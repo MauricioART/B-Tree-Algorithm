@@ -15,7 +15,7 @@
             <Label text="Delete Key" />
             <HBox alignment="CENTER" prefHeight="80.0" prefWidth="200.0">
                <children>
-                  <MFXTextField fx:id="keyField" alignment="CENTER" floatingText="Key" />
+                  <MFXTextField fx:id="keyField" alignment="CENTER" floatMode="BORDER" floatingText="Key" selectable="false" />
                </children>
                <opaqueInsets>
                   <Insets left="50.0" right="50.0" />
