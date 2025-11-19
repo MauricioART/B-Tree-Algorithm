@@ -1,7 +1,6 @@
 package com.arturoar.view;
 
 import javafx.beans.value.ChangeListener;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 
 public class LeafLinkEdge extends Edge {
@@ -13,8 +12,8 @@ public class LeafLinkEdge extends Edge {
         edgeType = EdgeType.LEAF_LINK_EDGE;
         this.body = new Line();
         body.setStrokeWidth(2);
-        body.setStroke(Color.BLACK);
-        body.setFill(null);
+        body.strokeProperty().bind(colorProperty);
+        body.fillProperty().bind(colorProperty);
         initialize();
     }
 

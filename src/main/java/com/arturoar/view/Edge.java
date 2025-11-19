@@ -1,14 +1,20 @@
 package com.arturoar.view;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Group;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 
 public abstract class Edge extends Group {
+
+    protected final Paint LIGHT_COLOR = Color.web("#000");
+    protected final Paint DARK_COLOR = Color.web("#FFF");
 
     protected Polygon head;
     protected EdgeType edgeType;
@@ -17,7 +23,8 @@ public abstract class Edge extends Group {
     protected final DoubleProperty originY = new SimpleDoubleProperty();
     protected final DoubleProperty endX = new SimpleDoubleProperty();
     protected final DoubleProperty endY = new SimpleDoubleProperty();
-    protected final ObjectProperty<Color> color = new SimpleObjectProperty<>(Color.BLACK);
+    protected final ObjectProperty<Paint> colorProperty = new SimpleObjectProperty<>(LIGHT_COLOR);
+    protected BooleanProperty darkModeProperty = new SimpleBooleanProperty(false);
 
     public Edge() {
         this(0, 0, 0, 0);
@@ -30,7 +37,16 @@ public abstract class Edge extends Group {
         this.endY.set(endY);
 
         this.head = new Polygon();
-        this.head.setFill(Color.BLACK);
+        this.head.fillProperty().bind(colorProperty);
+
+        darkModeProperty.addListener((_,_, newVal)->{
+            if (newVal){
+                colorProperty.set(DARK_COLOR);
+            }else{
+                colorProperty.set(LIGHT_COLOR);
+            }
+        });
+
 
     }
 
@@ -77,9 +93,11 @@ public abstract class Edge extends Group {
     public final void setEndY(double value) { endY.set(value); }
     public DoubleProperty endYProperty() { return endY; }
 
-    public final Color getColor() { return color.get(); }
-    public final void setArrowColor(Color value) { color.set(value); }
-    public ObjectProperty<Color> arrowColorProperty() { return color; }
+    public final Paint getColorProperty() { return colorProperty.get(); }
+    public final void setArrowColor(Color value) { colorProperty.set(value); }
+    public ObjectProperty<Paint> colorProperty() { return colorProperty; }
+
+    public BooleanProperty darkModeProperty() { return darkModeProperty; }
     
     public enum EdgeType {
         TREE_EDGE(Math.PI / 2),

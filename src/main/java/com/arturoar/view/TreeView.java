@@ -41,6 +41,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
     private DoubleProperty canvasWidth = new SimpleDoubleProperty();
     private DoubleProperty canvasHeight = new SimpleDoubleProperty();
+    private BooleanProperty darkModeProperty = new SimpleBooleanProperty();
     private TreeAnimator animator;
 
     private IntegerProperty depthProperty = new SimpleIntegerProperty(0);
@@ -116,6 +117,10 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             
         }else{
             NodeView newNode = NodeFactory.createNode(e.getNewRoot().isLeaf(), this.canvasWidth.get()/2, Y_PADDING);
+             if (newNode instanceof LeafNodeView){
+            Edge nextLeaf = ((LeafNodeView)newNode).nextLeaf;
+            nextLeaf.darkModeProperty().bind(darkModeProperty);
+        }
             this.nodeToNodeView.put(e.getNewRoot(), newNode);
             newNode.levelProperty().bind(e.getNewRoot().levelProperty());
             this.getChildren().add(0,newNode);
@@ -138,6 +143,10 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         NodeView splitNode = this.nodeToNodeView.get(e.getNode());
         KeyView middleKey = keyToKeyView.get(e.getMiddleKey());
         NodeView newNode = NodeFactory.createNode(e.getNewNode().isLeaf(), middleKey.getTranslateX(), splitNode.getYOrigin());
+        if (newNode instanceof LeafNodeView){
+            Edge nextLeaf = ((LeafNodeView)newNode).nextLeaf;
+            nextLeaf.darkModeProperty().bind(darkModeProperty);
+        }
         newNode.levelProperty().bind(e.getNewNode().levelProperty());
         this.nodeToNodeView.put(e.getNewNode(), newNode);
         this.getChildren().add(newNode);
@@ -254,6 +263,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         KeyView newKey = createKeyView(event);
 
         newKey.setOnWidthChangeCallback(level ->{updateLevelLayout(level);});
+        newKey.darkModeProperty().bind(darkModeProperty);
 
         BPlusTreeEvent.KeyInserted<Integer,String> e = (BPlusTreeEvent.KeyInserted<Integer,String>) event;
 
@@ -518,6 +528,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         BPlusTreeEvent.NodeCreated<Integer,String> e = (BPlusTreeEvent.NodeCreated<Integer,String>) event;
         Edge newChildEdge = new TreeEdge();
         newChildEdge.setOpacity(0.0);
+        newChildEdge.darkModeProperty().bind(darkModeProperty);
         NodeView nodeView = nodeToNodeView.get(e.getParent());
         NodeView childNodeView = nodeToNodeView.get(e.getChild());
         int childIndex = findChildIndex(e.getParent(), e.getChild());
@@ -676,6 +687,8 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     public IntegerProperty widthProperty() { return widthProperty; }
 
     public BooleanProperty allowTranslationProperty() { return allowTranslation; }
+
+    public BooleanProperty darkModeProperty() { return darkModeProperty; }
 
 
 }
