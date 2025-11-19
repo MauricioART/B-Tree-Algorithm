@@ -3,6 +3,7 @@ package com.arturoar.controller;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
@@ -21,6 +22,7 @@ public class SettingsDialogController {
     @FXML private MFXToggleButton themeToggle;
     @FXML private Label speedLabel;
 
+    Runnable onMSliderChange;
     
     @FXML
     public void initialize() {
@@ -30,6 +32,12 @@ public class SettingsDialogController {
         setupTraversalToggle();
     }
     
+    public void setOnMSliderChange(Runnable onMSliderChange){
+        mSlider.setOnMouseReleased(_ -> { 
+            System.out.println("Done"); 
+            onMSliderChange.run();
+        });
+    }
     private void setupThemeToggle() {
         // Lógica para inicializar el toggle de tema
         MFXFontIcon lightbulbIcon = new MFXFontIcon("fas-lightbulb", 16);
@@ -98,5 +106,9 @@ public class SettingsDialogController {
 
     public BooleanProperty themeToggleProperty(){
         return themeToggle.selectedProperty();
+    }
+
+    public MFXSlider getMSlider(){
+        return mSlider;
     }
 }
