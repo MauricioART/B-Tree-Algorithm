@@ -9,6 +9,7 @@ import io.github.palexdev.materialfx.theming.UserAgentBuilder;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -19,6 +20,9 @@ public class BPlusTreeUI extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+
+        Image appIcon = new Image(getClass().getResourceAsStream("appIcon.png"));
+        primaryStage.getIcons().add(appIcon);
 
          UserAgentBuilder.builder()
 			.themes(JavaFXThemes.MODENA)
