@@ -12,10 +12,12 @@ import com.arturoar.ui.BPlusTreeUI;
 import com.arturoar.util.BPlusTraversalResult;
 import com.arturoar.util.TreeAnimator;
 import com.arturoar.util.TreeViewTransformer;
+import com.arturoar.view.KeyView;
 import com.arturoar.view.TreeView;
 
-import javafx.animation.PauseTransition;
-import javafx.animation.Transition;
+import org.kordamp.ikonli.coreui.CoreUiFree;
+
+import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -36,9 +38,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import io.github.palexdev.materialfx.controls.MFXButton;
 import io.github.palexdev.materialfx.dialogs.MFXGenericDialog;
 import io.github.palexdev.materialfx.dialogs.MFXGenericDialogBuilder;
@@ -74,7 +75,8 @@ public class BPlusTreeController implements Initializable {
 
     
     
-    private InfoMessage infoMessage;
+    private InfoMessage notFound;
+    private InfoMessage emptyTree;
     private SettingsDialogController settingsController;
     private InsertDialogController insertDialogController;
     private RemoveDialogController removeDialogController;
@@ -83,11 +85,12 @@ public class BPlusTreeController implements Initializable {
 
     private BooleanProperty darkMode = new SimpleBooleanProperty();
     private DoubleProperty animationSpeed = new SimpleDoubleProperty(1.0);
-    private DoubleProperty mParameter = new SimpleDoubleProperty(4);
+    private DoubleProperty mParameter = new SimpleDoubleProperty();
     private BooleanProperty traversalAnimation = new SimpleBooleanProperty();
+    private BooleanProperty isTreeEmptyProperty = new SimpleBooleanProperty();
 
 
-    private int m = (int)mParameter.get();
+    private int m;
 
     private final ExecutorService animationExecutor = Executors.newSingleThreadExecutor();
 
@@ -136,6 +139,11 @@ public class BPlusTreeController implements Initializable {
                 ), mParameter, treeView.depthProperty(), treeView.widthProperty()
         ));
 
+        isTreeEmptyProperty.bind(tree.emptyProperty());
+        
+        canvas.getChildren().add(treeView);
+        treeView.canvasHeightProperty().bind(this.canvas.heightProperty());
+        treeView.canvasWidthProperty().bind(this.canvas.widthProperty());
         
     }
 
@@ -175,9 +183,26 @@ public class BPlusTreeController implements Initializable {
         });
         
         setupDialog();
-        
-        initializeTree();
         setupCanvas();
+        m = (int)mParameter.get();
+        initializeTree();
+
+        isTreeEmptyProperty.addListener((_,_,newVal)->{
+            FadeTransition transition = new FadeTransition(Duration.millis(1000),emptyTree);
+            if (newVal){
+                transition.setFromValue(0.0);
+                transition.setToValue(1.0);
+                TreeAnimator.getInstance().addListenerToLastTransition(()->{
+                    
+                    transition.play();
+                });
+                
+            }else{
+                transition.setFromValue(1.0);
+                transition.setToValue(0.0);
+                transition.play();
+            }
+        });
     }
 
     private void setupWindowControls() {
@@ -192,13 +217,15 @@ public class BPlusTreeController implements Initializable {
             Parent settingsContent = loader.load();
             settingsController = (SettingsDialogController)loader.getController();
 
-            darkMode.bind(settingsController.themeToggleProperty());
-            animationSpeed.bind(settingsController.speedSliderValueProperty());
+            darkMode.bind(settingsController.themeToggleProperty());animationSpeed.bind(Bindings.createDoubleBinding(() -> {
+                double speedValue = settingsController.speedSliderValueProperty().get();
+                return speedValue != 0 ? 1.0 / speedValue : 1.0; 
+            }, settingsController.speedSliderValueProperty()));
             mParameter.bind(settingsController.mProperty());
             traversalAnimation.bind(settingsController.traversalToggleProperty());
             
             ((SettingsDialogController)loader.getController()).setOnMSliderChange(()->{
-                if (!tree.isEmpty()){
+                if (!tree.emptyProperty().get()){
                     showDialog();
                 }
             });
@@ -359,43 +386,45 @@ public class BPlusTreeController implements Initializable {
 
     }
 
-    private void setupDialog(){
+    private void setupDialog() {
+    Platform.runLater(() -> {
+        // Crear icono de advertencia para el header
+        MFXFontIcon warningIcon = new MFXFontIcon("fas-exclamation-triangle", 48);
+        warningIcon.getStyleClass().add("warning-icon");
 
-        Platform.runLater(() -> {
-            this.dialogContent = MFXGenericDialogBuilder.build()
-                    .setContentText("The current Tree would reset. Are you sure you wnat to continue?")
-                    .makeScrollable(true)
-                    .get();
-                    
-            this.dialog = MFXGenericDialogBuilder.build(dialogContent)
-                    .toStageDialogBuilder()
-                    .initOwner(stage)
-                    .initModality(Modality.WINDOW_MODAL)
-                    .setDraggable(true)
-                    .setTitle("Dialogs Preview")
-                    .setOwnerNode(rootPane)
-                    .setScrimPriority(ScrimPriority.WINDOW)
-                    .setScrimOwner(true)
-                    .get();
+        this.dialogContent = MFXGenericDialogBuilder.build()
+                .setHeaderIcon(warningIcon)
+                .setHeaderText("Warning")
+                .setContentText("The current Tree would reset. Are you sure you want to continue?")
+                .makeScrollable(true)
+                .get();
 
-            dialogContent.addActions(
-                    Map.entry(new MFXButton("Confirm"), event -> {
-                        m = (int) mParameter.get();
-                        initializeTree();
-                        canvas.getChildren().add(treeView);
-                        treeView.canvasHeightProperty().bind(this.canvas.heightProperty());
-                        treeView.canvasWidthProperty().bind(this.canvas.widthProperty());
-                        closeAllDialogs();
-                        dialog.close();
-                    }),
-                    Map.entry(new MFXButton("Cancel"), event -> {
-                        settingsController.getMSlider().setValue(m);
-                        dialog.close();
-                    })
-            );
-        });	
-    }
+        this.dialog = MFXGenericDialogBuilder.build(dialogContent)
+                .toStageDialogBuilder()
+                .initOwner(stage)
+                .initModality(Modality.WINDOW_MODAL)
+                .setDraggable(true)
+                .setTitle("Reset Tree Confirmation")
+                .setOwnerNode(rootPane)
+                .setScrimPriority(ScrimPriority.WINDOW)
+                .setScrimOwner(true)
+                .get();
 
+        dialogContent.addActions(
+                Map.entry(new MFXButton("Confirm"), event -> {
+                    m = (int) mParameter.get();
+                    isTreeEmptyProperty.unbind();
+                    initializeTree();
+                    closeAllDialogs();
+                    dialog.close();
+                }),
+                Map.entry(new MFXButton("Cancel"), event -> {
+                    settingsController.getMSlider().setValue(m);
+                    dialog.close();
+                })
+        );
+    });
+}
     public void showDialog() {
         Platform.runLater(() -> {
             if (dialog != null) {
@@ -425,24 +454,34 @@ public class BPlusTreeController implements Initializable {
         
         // Aplicar el clip al Pane
         canvas.setClip(clip);
-
-        canvas.getChildren().add(treeView);
-        treeView.canvasHeightProperty().bind(this.canvas.heightProperty());
-        treeView.canvasWidthProperty().bind(this.canvas.widthProperty());
-
         
-        infoMessage = new InfoMessage();
-        infoMessage.setIcon("fas-sitemap");
-        infoMessage.setMessage("Empty tree");
+        emptyTree = new InfoMessage();
+        emptyTree.setIcon("fas-sitemap");
+        emptyTree.setMessage("Empty tree");
+        emptyTree.getStyleClass().add("message");
 
-        infoMessage.layoutXProperty().bind(
-            canvas.widthProperty().subtract(infoMessage.widthProperty()).divide(2)
+        emptyTree.layoutXProperty().bind(
+            canvas.widthProperty().subtract(emptyTree.widthProperty()).divide(2)
         );
-        infoMessage.layoutYProperty().bind(
-            canvas.heightProperty().subtract(infoMessage.heightProperty()).divide(2)
+        emptyTree.layoutYProperty().bind(
+            canvas.heightProperty().subtract(emptyTree.heightProperty()).divide(2).subtract(100)
+        );
+        canvas.getChildren().add(emptyTree);
+
+
+        notFound = new InfoMessage();
+        notFound.setIcon("fas-mitten");
+        notFound.setMessage("Key not Found!");
+
+        notFound.layoutXProperty().bind(
+           canvas.widthProperty().subtract(notFound.widthProperty()).divide(2)
+        );
+        notFound.layoutYProperty().bind(
+            canvas.heightProperty().subtract(notFound.heightProperty()).divide(2)
         );
 
-        canvas.getChildren().add(infoMessage);
+        canvas.getChildren().add(notFound);
+        notFound.setOpacity(0.0);
 
     }
 
@@ -457,6 +496,7 @@ public class BPlusTreeController implements Initializable {
     }
     
     private void handleInsert(Integer key, String data) {
+
         
         disableButtons();
         BPlusTraversalResult<Boolean, Integer, String> result = this.tree.insert(key, data);
@@ -464,19 +504,23 @@ public class BPlusTreeController implements Initializable {
             treeView.animateTraversal(result.getVisitedKeys());
         }
 
+
         if (!result.getResult()){
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 0.0, 1.0));
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 1.0, 0.0));
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 0.0, 1.0));
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1300));
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 1.0, 0.0));
         }
         animationExecutor.submit(() -> {
            
             TreeAnimator.getInstance().addListenerToLastTransition( () ->{
                 Platform.runLater(()->{
                     enableButtons();
-                    if(!result.getResult()){            
-                        infoMessage.setMessage("Key already on the Tree");
-                        infoMessage.getStyleClass().add("warning");
+                    if(!result.getResult()){        
+                        canvas.getChildren().remove(notFound);
+                        canvas.getChildren().add(notFound);    
+                        notFound.setIcon("far-frown-open");
+                        notFound.setMessage("Key already on the Tree");
+                        notFound.getStyleClass().add("warning");
                     }
                 });
             });
@@ -498,6 +542,13 @@ public class BPlusTreeController implements Initializable {
 
         disableButtons();
 
+        if (result.getResult() == null) {
+            notFound.setMessage("Key not found");
+            notFound.getStyleClass().add("warning");
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 0.0, 1.0));
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 1.0, 0.0));
+        }
         
 
 
@@ -505,14 +556,9 @@ public class BPlusTreeController implements Initializable {
            
             TreeAnimator.getInstance().addListenerToLastTransition( () ->{
                 Platform.runLater(()->{
+                    canvas.getChildren().remove(notFound);
+                    canvas.getChildren().add(notFound);   
                     enableButtons();
-                    if (result.getResult() == null) {
-                        infoMessage.setMessage("Key not found");
-                        infoMessage.getStyleClass().add("warning");
-                        TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 0.0, 1.0));
-                        TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
-                        TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 1.0, 0.0));
-                    }
                 });
             });
 
@@ -532,24 +578,29 @@ public class BPlusTreeController implements Initializable {
         
         BPlusTraversalResult<BPlusLeafNode<Integer, String>, Integer, String>  result =  this.tree.search(key);
         
+        if (result.getResult() == null) {
+            notFound.setMessage("Key not found");
+            notFound.getStyleClass().add("warning");
+            
+                canvas.getChildren().remove(notFound);
+                canvas.getChildren().add(notFound);   
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 0.0, 1.0));
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 1.0, 0.0));
+        }else{
+            KeyView searchedKey = this.treeView.getKeyView( result.getVisitedKeys().getLast());
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().highlightData(searchedKey.getData()));
+        }
+
         if (traversalAnimation.get()){
             treeView.animateTraversal(result.getVisitedKeys());
         }        
 
         disableButtons();
 
-        if (result.getResult() == null) {
-            infoMessage.setMessage("Key not found");
-            infoMessage.getStyleClass().add("warning");
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 0.0, 1.0));
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 1.0, 0.0));
-        }
       
         TreeAnimator.getInstance().addListenerToLastTransition( () ->{
-            Platform.runLater(()->{
                 enableButtons();
-            });
         });
 
         Platform.runLater(() -> {
