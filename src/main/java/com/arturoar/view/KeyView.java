@@ -59,12 +59,17 @@ public class KeyView extends Group {
         darkModeProperty.addListener((_,_,newVal)->{
             if (newVal){
                 colorProperty.set(DARK_COLOR);
-                dataLabel.setTextFill(DARK_COLOR);
+                if(dataLabel != null) {
+                    dataLabel.setTextFill(DARK_COLOR);
+                }
             }else{
                 colorProperty.set(LIGHT_COLOR);
-                dataLabel.setTextFill(Color.BLACK);
+                if (dataLabel != null){
+                    dataLabel.setTextFill(Color.BLACK);
+                } 
             }
         });
+        
     }
     public KeyView(Integer key, String nodeData ) {
         this(key);
@@ -92,6 +97,8 @@ public class KeyView extends Group {
         dataLabel.setLayoutY(dataLabel.getHeight() + this.height + 10);  // 5 unidades por debajo del contenedor
         dataLabel.translateXProperty().bind(widthProperty.divide(2).add(11.0));
         dataLabel.getStyleClass().add("rotated-label-modern");
+
+        
 
         getChildren().add(dataLabel);
     }
@@ -248,6 +255,10 @@ public class KeyView extends Group {
 
     public ObjectProperty<Paint> colorProperty(){
         return colorProperty;
+    }
+
+    public Label getData(){
+        return dataLabel;
     }
 
     public BooleanProperty darkModeProperty() { return darkModeProperty; }
