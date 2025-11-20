@@ -671,6 +671,10 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             keyView.updateNode();
         }
     }
+
+    public KeyView getKeyView(Key<Integer> key){
+        return keyToKeyView.get(key);
+    }
     
     public DoubleProperty canvasWidthProperty() { return canvasWidth; }
 
