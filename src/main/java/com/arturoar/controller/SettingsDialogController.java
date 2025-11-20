@@ -3,7 +3,6 @@ package com.arturoar.controller;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
@@ -64,14 +63,14 @@ public class SettingsDialogController {
         mSlider.setMax(10);
         mSlider.setMin(4);
         mSlider.setDecimalPrecision(0);
-        mSlider.setValue(4);
+        mSlider.setValue(7);
         mLabel.textProperty().bind(Bindings.createStringBinding(() -> String.format("%d", (int)mSlider.getValue()), mSlider.valueProperty()));
     }
 
     private void setupSpeedSlider() {
         speedSlider.setValue(1.0);
-        speedSlider.setMin(0.25);
-        speedSlider.setMax(1.5);
+        speedSlider.setMin(0.50);
+        speedSlider.setMax(2.0);
         speedSlider.setDecimalPrecision(1);
         speedLabel.textProperty().bind(Bindings.createStringBinding(() -> String.format("%.2fx", speedSlider.getValue()),speedSlider.valueProperty()));
     }
