@@ -10,6 +10,7 @@ module com.arturoar.bplustree {
     requires VirtualizedFX;
 
     requires org.kordamp.ikonli.fontawesome5;
+    requires org.kordamp.ikonli.coreui;
     requires org.kordamp.ikonli.javafx;
 
     // Abre los paquetes para el uso reflexivo por parte de javafx.fxml
