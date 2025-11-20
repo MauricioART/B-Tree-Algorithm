@@ -10,11 +10,16 @@ import com.arturoar.util.BPlusTraversalResult;
 import com.arturoar.util.BPlusTreeEvent;
 import com.arturoar.util.BPlusTreeObserver;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+
+
 public class BPlusTree<K extends Comparable<K>,V> {
 
     private BPlusNode<K,V> root;
     private int m;
     private ArrayList<BPlusNode<K,V>> nodes;
+    private BooleanProperty emptyProperty = new SimpleBooleanProperty(true);
 
     public BPlusTree(int m){
         this.m = m;
@@ -37,8 +42,8 @@ public class BPlusTree<K extends Comparable<K>,V> {
         }
     }
 
-    public boolean isEmpty(){
-        return root == null;
+    public BooleanProperty emptyProperty(){
+        return emptyProperty;
     }
     
     public BPlusTraversalResult<Boolean,K,V> insert(K key, V data){
@@ -46,6 +51,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
             this.root = new BPlusLeafNode<K,V>(true, m, 0, null);
             this.nodes = new ArrayList<>(List.of(this.root));
             notifyObservers(new BPlusTreeEvent.NewRoot<>(root));
+            emptyProperty.set(false);
         }
         BPlusLeafNode<K,V> leafNode = searchLeafNode(key);
         BPlusTraversalResult<BPlusLeafNode<K, V>, K, V> containResult = this.contains(key);
@@ -84,14 +90,19 @@ public class BPlusTree<K extends Comparable<K>,V> {
             Key<K> deletedKey =  leafNode.deleteKey(key);
             leafNode.getData().remove(keyIndex);
 
+            
             removeResult.setResult(deletedKey);
-
+            
             notifyObservers(new BPlusTreeEvent.KeyRemoved<>(leafNode, deletedKey));
-
-
+            
+            
             if (leafNode.isUnderFlow()) 
                 handleUnderFlow(leafNode);
             
+            if (leafNode == root && root.isEmpty()){
+                root = null;
+                emptyProperty.set(true);
+            }
         }
 
         return removeResult;
@@ -370,6 +381,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
             this.root = leftNode;
             notifyObservers(new BPlusTreeEvent.NewRoot<>(leftNode));   
             this.nodes.remove(leftNode.getParent());
+
     
             for (BPlusNode<K,V> currentNode: this.nodes){
                 currentNode.decreaseLevel();
