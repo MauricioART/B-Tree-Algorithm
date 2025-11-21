@@ -45,13 +45,13 @@
 }
 
 .control-bar.lightup .control{
-    -mfx-color: #fff;
+    -fx-icon-color: #fff;
     -fx-text-fill: #fff;
     -fx-background-color: transparent;
 }
 
 .control-bar.lightup .control-label{
-    -mfx-color: #fff;    
+    -fx-icon-color: #fff;    
     -fx-text-fill: #fff;
     -fx-background-color: transparent;
 }
@@ -101,7 +101,7 @@
 
 .rootPane.dark .canvas .message .image{
     -fx-text-fill: #fff;
-    -mfx-color: #fff;
+    -fx-icon-color: #fff;
 }
 
 .message-info{
@@ -121,7 +121,7 @@
     -fx-background-radius: 20;
     -fx-border-radius: 20;
     -fx-border-size: 2;
-    -fx-border-color: #000;
+    -fx-border-color: #845ec2;
     -fx-padding: 20 60 20 60;
 
 }
@@ -200,11 +200,13 @@
 .rootPane.dark .control-bar .control-label {
     -mfx-color: #ffffff !important;
     -fx-text-fill: #ffffff !important;
+    -fx-icon-color: #fff;
 }
 
 .rootPane.dark .control-bar.lightup .control,
 .rootPane.dark .control-bar.lightup .control-label {
     -mfx-color: #ffffff !important;
+    
     -fx-text-fill: #ffffff !important;
     -fx-background-color: transparent;
 }

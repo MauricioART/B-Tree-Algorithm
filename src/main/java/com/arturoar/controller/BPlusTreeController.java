@@ -7,6 +7,9 @@ import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.kordamp.ikonli.coreui.CoreUiFree;
+import org.kordamp.ikonli.javafx.FontIcon;
+
 import com.arturoar.model.*;
 import com.arturoar.ui.BPlusTreeUI;
 import com.arturoar.util.BPlusTraversalResult;
@@ -14,8 +17,6 @@ import com.arturoar.util.TreeAnimator;
 import com.arturoar.util.TreeViewTransformer;
 import com.arturoar.view.KeyView;
 import com.arturoar.view.TreeView;
-
-import org.kordamp.ikonli.coreui.CoreUiFree;
 
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
@@ -55,11 +56,11 @@ public class BPlusTreeController implements Initializable {
     @FXML private StackPane searchSP;
     @FXML private StackPane insertSP;
     @FXML private StackPane deleteSP;
-    @FXML private MFXFontIcon insertIcon;
-    @FXML private MFXFontIcon removeIcon;
-    @FXML private MFXFontIcon searchIcon;
-    @FXML private MFXFontIcon homeIcon;
-    @FXML private MFXFontIcon settingsIcon;
+    @FXML private FontIcon insertIcon;
+    @FXML private FontIcon removeIcon;
+    @FXML private FontIcon searchIcon;
+    @FXML private FontIcon homeIcon;
+    @FXML private FontIcon settingsIcon;
     @FXML private MFXFontIcon minimizeBtn;
     @FXML private MFXFontIcon maximizeBtn;
     @FXML private MFXFontIcon closeBtn;
@@ -186,6 +187,7 @@ public class BPlusTreeController implements Initializable {
         setupCanvas();
         m = (int)mParameter.get();
         initializeTree();
+        
 
         isTreeEmptyProperty.addListener((_,_,newVal)->{
             FadeTransition transition = new FadeTransition(Duration.millis(1000),emptyTree);
@@ -201,6 +203,7 @@ public class BPlusTreeController implements Initializable {
                 transition.setFromValue(1.0);
                 transition.setToValue(0.0);
                 transition.play();
+                
             }
         });
     }
@@ -389,7 +392,7 @@ public class BPlusTreeController implements Initializable {
     private void setupDialog() {
     Platform.runLater(() -> {
         // Crear icono de advertencia para el header
-        MFXFontIcon warningIcon = new MFXFontIcon("fas-exclamation-triangle", 48);
+        FontIcon warningIcon = new FontIcon(CoreUiFree.WARNING);
         warningIcon.getStyleClass().add("warning-icon");
 
         this.dialogContent = MFXGenericDialogBuilder.build()
@@ -456,7 +459,7 @@ public class BPlusTreeController implements Initializable {
         canvas.setClip(clip);
         
         emptyTree = new InfoMessage();
-        emptyTree.setIcon("fas-sitemap");
+        emptyTree.setIcon(CoreUiFree.SITEMAP);
         emptyTree.setMessage("Empty tree");
         emptyTree.getStyleClass().add("message");
 
@@ -470,7 +473,7 @@ public class BPlusTreeController implements Initializable {
 
 
         notFound = new InfoMessage();
-        notFound.setIcon("fas-mitten");
+        notFound.setIcon(CoreUiFree.SAD);
         notFound.setMessage("Key not Found!");
 
         notFound.layoutXProperty().bind(
@@ -518,7 +521,7 @@ public class BPlusTreeController implements Initializable {
                     if(!result.getResult()){        
                         canvas.getChildren().remove(notFound);
                         canvas.getChildren().add(notFound);    
-                        notFound.setIcon("far-frown-open");
+                        notFound.setIcon(CoreUiFree.REPORT_SLASH);
                         notFound.setMessage("Key already on the Tree");
                         notFound.getStyleClass().add("warning");
                     }
