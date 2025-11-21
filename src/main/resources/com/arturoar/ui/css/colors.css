@@ -1,0 +1,24 @@
+* {
+    /* Paleta de colores principal */
+    -mfx-primary: #845ec2;
+    -mfx-secondary: #2c73d2;
+    -mfx-accent: #0081cf;
+    -mfx-info: #0089ba;
+    -mfx-success: #008e9b;
+    
+    /* Colores adicionales */
+    -mfx-charcoal: #445055;
+    -mfx-onyx: #353935;
+    -mfx-red: #EF6E6B;
+    -mfx-yellow: #FFEA00;
+    -mfx-orange: #ff9800;
+
+    /* Texto */
+    -mfx-text-he: rgba(0, 0, 0, 0.87); /* High Emphasis */
+    -mfx-text-me: rgba(0, 0, 0, 0.60); /* Medium Emphasis*/
+    -mfx-text-disabled: rgba(0, 0, 0, 0.38); /* Disabled */
+
+    /* Gradientes */
+    -primary-gradient: linear-gradient(to right top, #008e9b, #008ea7, #008cb3, #008abd, #0087c6, #1183ca, #247fce, #377ad0, #4e74cf, #626ecc, #7466c8, #845ec2);
+    -secondary-gradient: linear-gradient(to right bottom, #845ec2, #7466c8, #626ecc, #4e74cf, #377ad0, #247fce, #1183ca, #0087c6, #008abd, #008cb3, #008ea7, #008e9b);
+}

@@ -1,7 +1,6 @@
 package com.arturoar.view;
 
 import javafx.beans.value.ChangeListener;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.CubicCurve;
 
 public class TreeEdge extends Edge {
@@ -12,8 +11,8 @@ public class TreeEdge extends Edge {
         super();
         edgeType = EdgeType.TREE_EDGE;
         body = new CubicCurve();
-        body.setStrokeWidth(1);
-        body.setStroke(Color.BLACK);
+        body.setStrokeWidth(2);
+        body.strokeProperty().bind(colorProperty);
         body.setFill(null);
         initialize();
     }

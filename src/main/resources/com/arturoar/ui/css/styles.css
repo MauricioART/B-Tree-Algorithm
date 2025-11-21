@@ -1,6 +1,6 @@
 /* Label rotado moderno */
 .rotated-label-modern {
-    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-family: "Comfortaa", "Arial", sans-serif;
     -fx-font-size: 16px;
     -fx-font-weight: bold;
     -fx-text-fill: linear-gradient(to bottom, #2c3e50, #34495e);
@@ -17,6 +17,14 @@
     /* Fondo con gradiente sutil */
     -fx-background-color: linear-gradient(to bottom, #ffffff, #f8f9fa);
     -fx-background-radius: 6;
+}
+
+.keyview {
+     -fx-font-family: "Comfortaa", "Arial", sans-serif;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-background-color: #68a2dc;
+    -fx-border-color: #406387;
 }
 
 /* Efecto hover */

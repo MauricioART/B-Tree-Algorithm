@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+<?import io.github.palexdev.mfxresources.fonts.MFXFontIcon?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" styleClass="rootPane" stylesheets="@../css/theme.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.arturoar.controller.BPlusTreeController">
+   <children>
+      <HBox fx:id="headerBox" alignment="CENTER_RIGHT" prefHeight="50.0" prefWidth="1282.0" spacing="15.0" styleClass="header">
+         <children>
+            <FontIcon fx:id="logo" iconLiteral="cil-sitemap" iconSize="25" iconColor="WHITE" styleClass="logo" />
+            <Label styleClass="title" text="B+ Tree Visualizer" />
+            <Region HBox.hgrow="ALWAYS" />
+            <MFXFontIcon fx:id="minimizeBtn" description="fas-circle"  styleClass="minimize-btn" />
+            <MFXFontIcon fx:id="maximizeBtn" description="fas-circle"  styleClass="maximize-btn" />
+            <MFXFontIcon fx:id="closeBtn" description="fas-circle"  styleClass="close-btn" />
+         </children>
+         <padding>
+            <Insets left="50.0" right="20.0" />
+         </padding>
+      </HBox>
+      <Pane fx:id="canvas" layoutX="20.0" layoutY="155.0" prefHeight="550.0" prefWidth="1240.0" styleClass="canvas" />
+      <Label fx:id="treeInfoLabel" styleClass="tree-info" />
+      <Pane fx:id="dialogOverlay" prefHeight="729.0" prefWidth="1283.0" styleClass="dialog-overlay" visible="false" />
+      <HBox fx:id="controlBar" alignment="CENTER" layoutY="67.0" prefHeight="80.0" prefWidth="1280.0" spacing="120.0" styleClass="control-bar">
+         <children>
+            <!-- Botones centrados -->
+             <VBox fx:id="homeBtnBox" alignment="CENTER" spacing="5" styleClass="buton">
+               <FontIcon iconSize="25" fx:id="homeBtn" iconLiteral="cil-home" styleClass="control,home-btn" />
+               <Label styleClass="control-label" text="Home" />
+            </VBox>
+
+            <VBox fx:id="searchBtnBox" alignment="CENTER" spacing="5" styleClass="buton">
+               <FontIcon iconSize="25" fx:id="searchBtn" iconLiteral="cil-search" styleClass="control,search-btn" />
+               <Label styleClass="control-label" text="Search" />
+            </VBox>
+
+            <VBox fx:id="insertBtnBox" alignment="CENTER" spacing="5" styleClass="buton">
+               <FontIcon iconSize="25" fx:id="insertBtn" iconLiteral="cil-plus" styleClass="control,insert-btn" />
+               <Label styleClass="control-label" text="Insert" />
+            </VBox>
+
+            <VBox fx:id="removeBtnBox" alignment="CENTER" spacing="5" styleClass="buton">
+               <FontIcon iconSize="25" fx:id="removeBtn" iconLiteral="cil-minus" styleClass="control,remove-btn" />
+               <Label styleClass="control-label" text="Delete" />
+            </VBox>
+            
+            <!-- Settings en extremo derecho -->
+            <VBox fx:id="settingsBtnBox" alignment="CENTER" spacing="5" styleClass="buton">
+               <FontIcon iconSize="25" fx:id="settingsBtn" iconLiteral="cil-settings" styleClass="control,settings-btn" />
+               <Label styleClass="control-label" text="Settings" />
+            </VBox>
+         </children>
+      </HBox>
+      <VBox prefHeight="200.0" prefWidth="100.0" />
+      <StackPane fx:id="searchSP" layoutX="375.0" layoutY="155.0" prefHeight="131.0" prefWidth="170.0" styleClass="settings-dialog" />
+      <StackPane fx:id="insertSP" layoutX="534.0" layoutY="155.0" prefHeight="167.0" prefWidth="292.0" styleClass="settings-dialog" />
+      <StackPane fx:id="deleteSP" layoutX="690.0" layoutY="155.0" prefHeight="162.0" prefWidth="215.0" styleClass="settings-dialog" />
+      <StackPane fx:id="settingsSP" layoutX="860.0" layoutY="155.0" prefHeight="450.0" prefWidth="350.0" styleClass="settings-dialog" />
+   </children>
+   <padding>
+      <Insets left="20.0" right="20.0" />
+   </padding>
+</AnchorPane>

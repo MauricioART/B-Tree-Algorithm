@@ -1,0 +1,291 @@
+/*
+
+@import '../fonts/Fonts.css';*/
+@import 'colors.css';
+
+.rootPane {
+    -fx-font-size: 14px;
+    -fx-font-weight: normal;
+    /*-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0, 0, 0);*/
+    -fx-padding: 0;
+    -fx-border-radius: 20;
+    -fx-border-width: 2;
+    -fx-background-radius: 25;
+    -fx-background-color: #fff;
+}
+
+.header{
+    -fx-background-color: #000;
+    -fx-border-radius: 20;
+    -fx-background-radius: 25;
+
+}
+.logo{
+    -mfx-color: #fff;
+}
+.header .title{
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #fff;
+}
+
+/* Botones de la barra de control con gradiente individual */
+.control-bar .buton {
+    -fx-cursor: hand;
+    -fx-opacity: 0.85;
+    -fx-padding: 8;
+    -fx-min-width: 40;
+    -fx-min-height: 40;
+    -fx-alignment: center;
+}
+
+.control-bar .buton:hover {
+    -fx-opacity: 1.0;
+    /*-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, 2);*/
+}
+
+.control-bar.lightup .control{
+    -fx-icon-color: #fff;
+    -fx-text-fill: #fff;
+    -fx-background-color: transparent;
+}
+
+.control-bar.lightup .control-label{
+    -fx-icon-color: #fff;    
+    -fx-text-fill: #fff;
+    -fx-background-color: transparent;
+}
+/* Contenedores blancos */
+
+.canvas {
+    -fx-font-size: 12px;
+    -fx-background-color: #e5e5f7;
+    -fx-opacity: 0.8;
+    -fx-background-radius: 12;
+    -fx-border-width: 2;
+    -fx-border-radius: 12;
+    
+    -fx-border-color: #845ec2; /* Color primario de tu paleta */
+    /*-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 2);
+    -fx-border-color: #845ec2; /* Color primario de tu paleta */
+        
+   }
+   
+
+.canvas *{
+    
+    -fx-transition: none !important;
+    /* Desactiva cualquier transformación CSS automática */
+    -fx-transform: none !important;
+    /* Desactiva efectos de sombra o brillo que puedan interferir */
+    -fx-effect: none !important;
+}
+
+.dialog-overlay{
+    -fx-background-color: -mfx-primary;
+    -fx-opacity: 0.7;
+    -fx-border-radius: 20;
+    -fx-border-width: 2;
+    -fx-border-color: transparent;
+    -fx-background-radius: 25;
+    /*-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 20, 0, 0, 0);   */
+}
+
+.tree-info{
+    -fx-opacity: 0.5;
+}
+
+.rootPane.dark .tree-info, .rootPane.dark .message-info{
+    -fx-text-fill: #fff;
+}
+
+.rootPane.dark .canvas .message .image{
+    -fx-text-fill: #fff;
+    -fx-icon-color: #fff;
+}
+
+.message-info{
+    -fx-font-size: 24px;
+    -fx-font-family: "Consolas";
+    -fx-text-fill: #000;
+
+}
+.message-info.warning{
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #000;
+}
+
+.warning{
+    -fx-background-color: #fff;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-size: 2;
+    -fx-border-color: #845ec2;
+    -fx-padding: 20 60 20 60;
+
+}
+
+.rootPane.dark .message-info.warning{
+    -fx-text-fill: #fff;
+}
+
+.rootPane.dark .message-info{
+    -fx-text-fill: #fff;
+}
+
+/* Botones de control de ventana */
+.minimize-btn {
+    -mfx-color: #008e9b !important;
+}
+
+.maximize-btn {
+    -mfx-color: #0081cf !important;
+}
+
+.close-btn {
+    -mfx-color: #845ec2 !important;
+}
+
+.control-bar.buton:hover {
+    -fx-border-radius: 20;
+    -fx-border-width: 1;
+    -fx-border-color: -primary-gradient;
+}
+
+.minimize-btn:hover {
+    -fx-background-color: rgba(0,142,155,0.15);
+    -fx-background-radius: 20;
+}
+
+.maximize-btn:hover {
+    -fx-background-color: rgba(0,129,207,0.15);
+    -fx-background-radius: 20;
+}
+
+.close-btn:hover {
+    -fx-background-color: rgba(132,94,194,0.15);
+    -fx-background-radius: 20;
+}
+
+.settings-dialog {
+    -fx-font-size: 14px;
+    -fx-padding: 20px;
+    -fx-background-color: #fff;
+    -fx-background-radius: 20;
+    -fx-border-radius: 12;
+    -fx-border-size: 2;
+    /*-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0, 0, 0);*/
+}
+
+/* Efectos hover suaves */
+.mfx-font-icon {
+    -fx-cursor: hand;
+}
+.control-bar .buton:hover{
+    -fx-cursor: hand;
+}
+
+/* Tema oscuro */
+.rootPane.dark {
+    -fx-background-color: #1a1a2e;
+}
+
+.rootPane.dark .header Label {
+    -fx-text-fill: #ffffff; /* Blanco puro */
+}
+
+/* Botones de control completamente blancos */
+.rootPane.dark .control-bar .control,
+.rootPane.dark .control-bar .control-label {
+    -mfx-color: #ffffff !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-icon-color: #fff;
+}
+
+.rootPane.dark .control-bar.lightup .control,
+.rootPane.dark .control-bar.lightup .control-label {
+    -mfx-color: #ffffff !important;
+    
+    -fx-text-fill: #ffffff !important;
+    -fx-background-color: transparent;
+}
+
+/* Canvas menos oscuro */
+.rootPane.dark .canvas,
+.rootPane.dark .card {
+    -fx-background-color: #2d3047; /* Gris azulado medio */
+    -fx-border-color: #845ec2; /* Color primario de tu paleta */
+    
+}
+
+/* Diálogos */
+.rootPane.dark .settings-dialog {
+    -fx-background-color: #2d3047;
+    /*-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 20, 0, 0, 0);*/
+}
+
+
+
+.mfx-text-field {
+    
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-font-fill: #008e9b;
+}
+
+.text-fild{
+    
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -mfx-floating-text-background-color: transparent;
+    -mfx-floating-text-color: #a91313;
+}
+
+.rootPane.dark .settings-dialog .mfx-toggle-button, .rootPane.dark .settings-dialog .mfx-text-field,
+ .rootPane.dark .settings-dialog VBox Label {
+	-fx-text-fill: #fff;
+} 
+.rootPane.dark .mfx-text-field .floating-text{
+    -fx-background-color: #2d3047;
+}
+
+
+.rootPane.dark .dialog-overlay {
+    -fx-background-color: rgba(26, 26, 46, 0.8);
+    -fx-opacity: 0.7;
+}
+
+/* Botones de ventana */
+.rootPane.dark .minimize-btn {
+    -mfx-color: #008e9b !important;
+}
+
+.rootPane.dark .maximize-btn {
+    -mfx-color: #0081cf !important;
+}
+
+.rootPane.dark .close-btn {
+    -mfx-color: #845ec2 !important;
+}
+
+
+.rootPane.dark .minimize-btn:hover {
+    -fx-background-color: rgba(255,255,255,0.15);
+}
+
+.rootPane.dark .maximize-btn:hover {
+    -fx-background-color: rgba(255,255,255,0.15);
+}
+
+.rootPane.dark .close-btn:hover {
+    -fx-background-color: rgba(255,255,255,0.15);
+}
+
+/* Efectos hover */
+.rootPane.dark .control-bar .buton:hover {
+    -fx-opacity: 1.0;
+    /*-fx-effect: dropshadow(gaussian, rgba(255,255,255,0.2), 8, 0, 0, 2);*/
+}
+
+

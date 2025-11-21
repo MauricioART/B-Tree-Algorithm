@@ -6,30 +6,32 @@ import java.util.List;
 import com.arturoar.ui.BPlusTreeUI;
 import com.arturoar.view.Edge;
 import com.arturoar.view.KeyView;
-import com.arturoar.view.LeafLinkEdge;
-import com.arturoar.view.TreeEdge;
+import javafx.scene.paint.Paint;
 
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
 import javafx.animation.FillTransition;
 import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
 import javafx.animation.ParallelTransition;
+import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.SequentialTransition;
-import javafx.animation.StrokeTransition;
+import javafx.animation.Timeline;
 import javafx.animation.Transition;
 import javafx.animation.TranslateTransition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
@@ -42,8 +44,9 @@ import java.net.URL;
 public class TreeAnimator {
 
     private final int BASE_DURATION = 300;
-    private DoubleProperty animationSpeed = new SimpleDoubleProperty();
+    private DoubleProperty animationSpeed = new SimpleDoubleProperty(1.0);
     private DoubleProperty animationDuration = new SimpleDoubleProperty();
+    private BooleanProperty darkMode = new SimpleBooleanProperty();
     private Interpolator interpolator = Interpolator.EASE_BOTH;
     private BooleanProperty mute = new SimpleBooleanProperty(false);
 
@@ -157,90 +160,62 @@ public class TreeAnimator {
         return scale;
     }
     
-    public Transition colorTransition(javafx.scene.shape.Shape shape, Color fromColor, Color toColor) {
-        FillTransition fillTransition = new FillTransition(Duration.millis(animationDuration.get()), shape);
-        fillTransition.setFromValue(fromColor);
-        fillTransition.setToValue(toColor);
-        fillTransition.setInterpolator(interpolator);
-        return fillTransition;
+    public Transition colorTransition(Duration duration, ObjectProperty<Paint> color, Paint fromColor, Paint toColor) {
+        Timeline timeline = new Timeline(
+            new KeyFrame(Duration.ZERO, 
+                new KeyValue(color, fromColor)),
+            new KeyFrame(duration, 
+                new KeyValue(color, toColor))
+        );        
+        return new SequentialTransition(timeline);
     }   
 
-    public SequentialTransition highlightKeyView(KeyView keyView) {
-        Rectangle rect = keyView.getKeyShape();
-        Text text = keyView.getKeyLabel();
-
-        Color originalStroke = (Color) rect.getStroke();
-        Color highlightStroke = Color.web("#bca20eff"); // Amarillo dorado
-
-        Color originalText = (Color) text.getFill();
-        Color highlightText = Color.web("#bca20eff"); // Blanco
-
-        // Transiciones para el borde
-        StrokeTransition strokeHighlight = new StrokeTransition(Duration.millis(animationDuration.get()), rect, originalStroke, highlightStroke);
-        strokeHighlight.setInterpolator(interpolator);
-
-        if (!mute.get()){
-            strokeHighlight.statusProperty().addListener((_, oldStatus, newStatus)->{
-                if (newStatus == Animation.Status.RUNNING && oldStatus == Animation.Status.STOPPED) {
-                    if (highlightingSound != null) highlightingSound.play();
-                }
-            });
-        }
-
-        StrokeTransition strokeRestore = new StrokeTransition(Duration.millis(animationDuration.get()), rect, highlightStroke, originalStroke);
-        strokeRestore.setInterpolator(interpolator);
-
-        // 🔹 Transiciones para el texto (usando FillTransition en lugar de Transition manual)
-        FillTransition textHighlight = new FillTransition(Duration.millis(animationDuration.get()), text, originalText, highlightText);
-        textHighlight.setInterpolator(interpolator);
-
-        FillTransition textRestore = new FillTransition(Duration.millis(animationDuration.get()), text, highlightText, originalText);
-        textRestore.setInterpolator(interpolator);
-
-        // 🔹 Agrupar en paralelo
-        ParallelTransition highlightPhase = new ParallelTransition(strokeHighlight, textHighlight);
-        ParallelTransition restorePhase = new ParallelTransition(strokeRestore, textRestore);
-
-        // 🔹 Secuencia completa
-        return new SequentialTransition(highlightPhase, restorePhase);
+    public PauseTransition pauseTransition(int miliseconds){
+        return new PauseTransition(Duration.millis(miliseconds));
     }
 
-  
+    public SequentialTransition highlightKeyView(KeyView keyView) {
+
+        Paint highlightColor = Color.web("#bca20eff");
+        Paint originalColor = keyView.colorProperty().get();
+
+        Transition highlightTransition = colorTransition(Duration.millis(animationDuration.get()),keyView.colorProperty(), originalColor, highlightColor);
+        
+        Transition restoreTransition = colorTransition(Duration.millis(animationDuration.get()),keyView.colorProperty(), highlightColor, originalColor);
+
+        return new SequentialTransition(highlightTransition, restoreTransition);
+}
+    public SequentialTransition highlightData(Label data) {
+
+        Paint highlightColor = Color.web("#bca20eff");
+        Paint originalColor = data.getTextFill();
+
+        Transition highlightText = colorTransition(Duration.millis(800),data.textFillProperty(), originalColor, highlightColor);
+        
+        //ParallelTransition highlightTransition = new ParallelTransition(highlightText,scaleText);
+        Transition pause = new PauseTransition(Duration.millis(100));
+        Transition restoreText = colorTransition(Duration.millis(800),data.textFillProperty(), highlightColor, originalColor);
+        
+        //ParallelTransition restoreTransition = new ParallelTransition(restoreText, rescaleText);
+
+        return new SequentialTransition(highlightText, pause, restoreText);
+}
+
+    
+
+
     public SequentialTransition highlightEdge(Edge edge) {
 
-        Shape body;
-        if (edge instanceof TreeEdge ) {
-            body = ((TreeEdge) edge).getBody();
-        }else {
-            body = ((LeafLinkEdge) edge).getBody();
-        }
-        Color originalStroke = (Color) edge.getColor();
-        Color highlightStroke = Color.web("#bca20eff"); // Azul claro
 
+        Paint originalColor = edge.colorProperty().get();
 
-        StrokeTransition highlightCurve = new StrokeTransition(Duration.millis(animationDuration.get()), body, originalStroke, highlightStroke);
-        FillTransition highlightArrowHead = new FillTransition(Duration.millis(animationDuration.get()), edge.getHead(), originalStroke, highlightStroke);
+        Paint highlighColor = Color.web("#bca20eff");
 
-        
-        StrokeTransition restoreCurve = new StrokeTransition(Duration.millis(animationDuration.get()), body, highlightStroke, originalStroke);
-        FillTransition restoreArrowHead = new FillTransition(Duration.millis(animationDuration.get()), edge.getHead(), highlightStroke, originalStroke);
-        
-        highlightCurve.setInterpolator(interpolator);
-        restoreCurve.setInterpolator(interpolator);
-        highlightArrowHead.setInterpolator(interpolator);
-        restoreArrowHead.setInterpolator(interpolator);
-        ParallelTransition highlight = new ParallelTransition(highlightCurve, highlightArrowHead);
-        ParallelTransition restore = new ParallelTransition(restoreCurve, restoreArrowHead);
-        
-        if (!mute.get()){
-            highlight.statusProperty().addListener((_, oldStatus, newStatus)-> {
-                if (newStatus == Animation.Status.RUNNING && oldStatus == Animation.Status.STOPPED) {
-                    if (highlightingSound != null) highlightingSound.play();
-                }
-            });
-        }
-        
-        return new SequentialTransition(highlight, restore);
+        Transition highlightTransition = colorTransition(Duration.millis(animationDuration.get()),edge.colorProperty(), originalColor, highlighColor);
+
+        Transition restoreTransition = colorTransition(Duration.millis(animationDuration.get()),edge.colorProperty(), highlighColor, originalColor);
+
+        return new SequentialTransition(highlightTransition, restoreTransition);
     }
 
     public void addParallelTransition(List<Transition> transitions) {
@@ -271,6 +246,7 @@ public class TreeAnimator {
         }
     }
 
+
     public void addSequentialTransition(List<Transition> transitions) {
         SequentialTransition sequentialTransition = new SequentialTransition();
         for (Transition transition : transitions) {
@@ -295,11 +271,17 @@ public class TreeAnimator {
         parallelList.clear();
     }
 
-    public void animateQueue() {
+    public void animateQueue(BooleanProperty allowTranslation) {
         SequentialTransition traversal = new SequentialTransition();
         traversal.getChildren().addAll(traversalList);
         SequentialTransition seqTransitions = new SequentialTransition();
         seqTransitions.getChildren().addAll(transitionQueue);
+        
+        if (allowTranslation != null){
+            allowTranslation.set(true);
+            seqTransitions.setOnFinished(_-> allowTranslation.set(false) );
+        }
+        
         clearQueue();
         traversal.setOnFinished(_ -> {
             traversalList.clear();
@@ -331,15 +313,15 @@ public class TreeAnimator {
 
     Transition last = transitionQueue.get(size - 1);
     
-    // Guardar el handler actual
+
     final EventHandler<ActionEvent> currentHandler = last.getOnFinished();
     
-    // Crear nuevo handler que ejecute ambos
+   
     last.setOnFinished(event -> {
         if (currentHandler != null) {
-            currentHandler.handle(event);  // Ejecutar handler original
+            currentHandler.handle(event);  
         }
-        onFinished.run();                  // Ejecutar nuevo handler
+        onFinished.run();                  
     });
 }
 
@@ -354,6 +336,7 @@ public class TreeAnimator {
             {
                 setCycleDuration(Duration.millis(duration));
                 //setCycleDuration(ANIMATION_DURATION);
+                
                 // Set initial value
                 property.setValue(fromValue);
             }
@@ -393,6 +376,7 @@ public class TreeAnimator {
 
     } 
 
+
     public void addToTraversalList(Transition transition) {
         if (transition != null) {
             traversalList.add(transition);
@@ -407,60 +391,9 @@ public class TreeAnimator {
         this.animationSpeed.set(newSpeed);
     }
 
-    
-    
+    public BooleanProperty darkModeProperty(){
+        return darkMode;
+    }
 }
 
-
-/*
-public enum Theme {
-    DAY, NIGHT
-}
-* public static class Palette {
-        public final Color nodeHighlight;
-        public final Color keyHighlight;
-        public final Color arrowHighlight;
-        public final Color nodeStroke;
-        public final Color keyStroke;
-        public final Color arrowStroke;
-
-        public Palette(Color nodeHighlight, Color keyHighlight, Color arrowHighlight,
-                       Color nodeStroke, Color keyStroke, Color arrowStroke) {
-            this.nodeHighlight = nodeHighlight;
-            this.keyHighlight = keyHighlight;
-            this.arrowHighlight = arrowHighlight;
-            this.nodeStroke = nodeStroke;
-            this.keyStroke = keyStroke;
-            this.arrowStroke = arrowStroke;
-        }
-    }
-
-    public static final Palette DAY_PALETTE = new Palette(
-        Color.web("#FFD700"), // nodeHighlight (gold)
-        Color.web("#FFFACD"), // keyHighlight (lemon chiffon)
-        Color.web("#00BFFF"), // arrowHighlight (deep sky blue)
-        Color.web("#333333"), // nodeStroke
-        Color.web("#333333"), // keyStroke
-        Color.web("#333333")  // arrowStroke
-    );
-
-    public static final Palette NIGHT_PALETTE = new Palette(
-        Color.web("#FF8C00"), // nodeHighlight (dark orange)
-        Color.web("#FF4500"), // keyHighlight (orange red)
-        Color.web("#1E90FF"), // arrowHighlight (dodger blue)
-        Color.web("#CCCCCC"), // nodeStroke
-        Color.web("#CCCCCC"), // keyStroke
-        Color.web("#CCCCCC")  // arrowStroke
-    );
-
-    private static Palette currentPalette = DAY_PALETTE;
-
-    public static void setTheme(Theme theme) {
-        currentPalette = (theme == Theme.DAY) ? DAY_PALETTE : NIGHT_PALETTE;
-    }
-
-    public static Palette getPalette() {
-        return currentPalette;
-    }
-
- */
+ 

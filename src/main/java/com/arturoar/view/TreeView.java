@@ -14,8 +14,12 @@ import com.arturoar.util.BPlusTreeObserver;
 import com.arturoar.util.TreeAnimator;
 
 import javafx.animation.Transition;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Group;
@@ -26,47 +30,42 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     private final Double Y_PADDING = 50.0;
     private final Double MIN_NODE_SPACING = 15.0;
     private final Double MAX_NODE_SPACING = 50.0;
-    // private final Double MIN_LEVEL_SPACING = 80.0;
-    // private final Double MAX_LEVEL_SPACING = 150.0;
 
 
     private final Map<Key<Integer>, KeyView> keyToKeyView = new HashMap<>();
     private final Map<BPlusNode<Integer, String>, NodeView> nodeToNodeView = new HashMap<>();
     private final Map<NodeView, Edge> childrenToEdge = new HashMap<>();
-    public List<List<NodeView>> treeLevels = new ArrayList<>();
+    private List<List<NodeView>> treeLevels = new ArrayList<>();
     private List<Edge> unshownEdges = new ArrayList<>();
     private List<KeyView> borrowedKeys = new ArrayList<>();
 
     private DoubleProperty canvasWidth = new SimpleDoubleProperty();
     private DoubleProperty canvasHeight = new SimpleDoubleProperty();
+    private BooleanProperty darkModeProperty = new SimpleBooleanProperty();
     private TreeAnimator animator;
 
+    private IntegerProperty depthProperty = new SimpleIntegerProperty(0);
+    private IntegerProperty widthProperty = new SimpleIntegerProperty(0);
 
     private DoubleProperty scaleProperty = new SimpleDoubleProperty(1.0);
+
+    private SimpleBooleanProperty allowTranslation = new SimpleBooleanProperty(false);
     
 
-    public TreeView(BPlusNode<Integer, String> root) {
+    public TreeView() {
 
         ChangeListener<Number> listener = new ChangeListener<>() {
-            private boolean first = true;
-
             @Override
             public void changed(ObservableValue<? extends Number> obs, Number oldValue, Number newValue) {
-                if (first) {
-                    System.out.println("Canvas size initialized: " + newValue);
-                    handleNewRoot(new BPlusTreeEvent.NewRoot<>(root));
-                    first = false; 
-                    canvasWidth.removeListener(this);
-                    canvasHeight.removeListener(this);
-                }
+                canvasWidth.removeListener(this);
+                canvasHeight.removeListener(this);
             }
         };
 
         this.canvasWidth.addListener(listener);
         this.canvasHeight.addListener(listener);
-
         this.animator = TreeAnimator.getInstance();
-
+        
     }
 
     @Override
@@ -105,7 +104,6 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     }
 
     private void handleNewRoot(BPlusTreeEvent<Integer, String> event) {
-        // Implementation for handling new root if needed
         
         BPlusTreeEvent.NewRoot<Integer,String> e = (BPlusTreeEvent.NewRoot<Integer,String>) event;
 
@@ -116,9 +114,13 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                 animator.combineLastsTransitionsOnQueue(2);
             }
             updateYLayout();
-
+            
         }else{
             NodeView newNode = NodeFactory.createNode(e.getNewRoot().isLeaf(), this.canvasWidth.get()/2, Y_PADDING);
+             if (newNode instanceof LeafNodeView){
+            Edge nextLeaf = ((LeafNodeView)newNode).nextLeaf;
+            nextLeaf.darkModeProperty().bind(darkModeProperty);
+        }
             this.nodeToNodeView.put(e.getNewRoot(), newNode);
             newNode.levelProperty().bind(e.getNewRoot().levelProperty());
             this.getChildren().add(0,newNode);
@@ -130,6 +132,9 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             }
             animator.combineLastsTransitionsOnQueue(2);
         }
+        animator.addListenerToLastTransition(() -> {
+            depthProperty.set(treeLevels.size());
+        });
     }
     
     
@@ -138,6 +143,10 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         NodeView splitNode = this.nodeToNodeView.get(e.getNode());
         KeyView middleKey = keyToKeyView.get(e.getMiddleKey());
         NodeView newNode = NodeFactory.createNode(e.getNewNode().isLeaf(), middleKey.getTranslateX(), splitNode.getYOrigin());
+        if (newNode instanceof LeafNodeView){
+            Edge nextLeaf = ((LeafNodeView)newNode).nextLeaf;
+            nextLeaf.darkModeProperty().bind(darkModeProperty);
+        }
         newNode.levelProperty().bind(e.getNewNode().levelProperty());
         this.nodeToNodeView.put(e.getNewNode(), newNode);
         this.getChildren().add(newNode);
@@ -246,8 +255,6 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         }
         getChildren().remove(deletedNode);
         treeLevels.get(deletedNode.getLevel()).remove(deletedNode);
-//        updateLevelLayout(deletedNode.getLevel());
-//        updateYLayout();
         animator.combineLastsTransitionsOnQueue(2);
     }
 
@@ -256,6 +263,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         KeyView newKey = createKeyView(event);
 
         newKey.setOnWidthChangeCallback(level ->{updateLevelLayout(level);});
+        newKey.darkModeProperty().bind(darkModeProperty);
 
         BPlusTreeEvent.KeyInserted<Integer,String> e = (BPlusTreeEvent.KeyInserted<Integer,String>) event;
 
@@ -275,7 +283,15 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         // Animate insertion
         int level = e.getNode().getLevel();
         updateLevelLayout(level);
-        animator.addTransitionToQueue(animator.fadeNode(newKey,0,1, true));
+        
+        Transition keyFadeIn = animator.fadeNode(newKey,0,1,true);
+        keyFadeIn.setOnFinished(_->{
+            if (e.getNode().isLeaf()){
+
+                widthProperty.set(widthProperty.get() + 1);
+            }
+        });
+        animator.addTransitionToQueue(keyFadeIn);
         
         if (!this.unshownEdges.isEmpty()){
             showEdges();
@@ -309,6 +325,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             
             this.getChildren().remove(removedKey);
             keyToKeyView.remove(e.getKey());
+            widthProperty.set(widthProperty.get() - 1);
         }
         );
         updateLevelLayout(e.getNode().getLevel());
@@ -505,15 +522,13 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
         updateEdges(e.getChild());
 
-        //updateLevelLayout(affectedNode.getLevel());
-
-
     }
 
     private void handleChildNodeCreated(BPlusTreeEvent<Integer, String> event) {
         BPlusTreeEvent.NodeCreated<Integer,String> e = (BPlusTreeEvent.NodeCreated<Integer,String>) event;
         Edge newChildEdge = new TreeEdge();
         newChildEdge.setOpacity(0.0);
+        newChildEdge.darkModeProperty().bind(darkModeProperty);
         NodeView nodeView = nodeToNodeView.get(e.getParent());
         NodeView childNodeView = nodeToNodeView.get(e.getChild());
         int childIndex = findChildIndex(e.getParent(), e.getChild());
@@ -656,6 +671,10 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             keyView.updateNode();
         }
     }
+
+    public KeyView getKeyView(Key<Integer> key){
+        return keyToKeyView.get(key);
+    }
     
     public DoubleProperty canvasWidthProperty() { return canvasWidth; }
 
@@ -667,6 +686,13 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
     public DoubleProperty scaleProperty() { return scaleProperty; }
 
+    public IntegerProperty depthProperty() { return depthProperty; }
+
+    public IntegerProperty widthProperty() { return widthProperty; }
+
+    public BooleanProperty allowTranslationProperty() { return allowTranslation; }
+
+    public BooleanProperty darkModeProperty() { return darkModeProperty; }
 
 
 }
