@@ -12,6 +12,8 @@ module com.arturoar.bplustree {
     requires org.kordamp.ikonli.fontawesome5;
     requires org.kordamp.ikonli.coreui;
     requires org.kordamp.ikonli.javafx;
+    requires org.kordamp.ikonli.core;
+    requires mfx.resources;
 
     // Abre los paquetes para el uso reflexivo por parte de javafx.fxml
     opens com.arturoar.ui to javafx.fxml;
