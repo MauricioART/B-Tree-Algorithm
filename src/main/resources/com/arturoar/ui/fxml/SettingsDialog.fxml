@@ -2,9 +2,9 @@
 
 <?import io.github.palexdev.materialfx.controls.MFXSlider?>
 <?import io.github.palexdev.materialfx.controls.MFXToggleButton?>
-<?import io.github.palexdev.mfxcore.controls.Label?>
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -33,7 +33,7 @@
                <children>
                   <Label text="Traversal Animation" />
                   <Region HBox.hgrow="ALWAYS" />
-                  <MFXToggleButton id="customToggleButton" fx:id="traversalToggle" contentDisposition="TOP" selected="true" styleClass="customToggleButton" textAlignment="CENTER" />
+                  <MFXToggleButton id="customToggleButton" fx:id="traversalToggle" selected="true" styleClass="customToggleButton" textAlignment="CENTER" />
                </children>
             </HBox>
             <Separator prefWidth="200.0" />
@@ -50,11 +50,19 @@
                </children>
             </HBox>
             <Separator prefWidth="200.0" />
+            <HBox alignment="CENTER" prefHeight="354.0" prefWidth="200.0">
+               <children>
+                  <Label text="Sound" />
+                  <Region  HBox.hgrow="ALWAYS" />
+                  <MFXToggleButton fx:id="soundToggle" />
+               </children>
+            </HBox>
+            <Separator prefWidth="200.0" />
             <HBox alignment="CENTER" prefHeight="354.0" prefWidth="450.0">
                <children>
                   <Label text="Light/Dark Mode" />
                   <Region HBox.hgrow="ALWAYS" />
-                  <MFXToggleButton fx:id="themeToggle" contentDisposition="TOP" />
+                  <MFXToggleButton fx:id="themeToggle" />
                </children>
             </HBox>
          </children>
