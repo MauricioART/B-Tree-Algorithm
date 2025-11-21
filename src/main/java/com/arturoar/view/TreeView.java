@@ -11,6 +11,7 @@ import com.arturoar.model.BPlusNode;
 import com.arturoar.model.Key;
 import com.arturoar.util.BPlusTreeEvent;
 import com.arturoar.util.BPlusTreeObserver;
+import com.arturoar.util.SoundType;
 import com.arturoar.util.TreeAnimator;
 
 import javafx.animation.Transition;
@@ -110,7 +111,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         if (nodeToNodeView.containsKey(e.getNewRoot())) {
             NodeView root = this.treeLevels.removeFirst().getFirst();
             for(Edge edge : ((InnerNodeView)root).getEdges()){
-                animator.addTransitionToQueue(animator.fadeNode(edge, 1, 0, false));
+                animator.addTransitionToQueue(animator.fadeNode(edge, 1, 0, null));
                 animator.combineLastsTransitionsOnQueue(2);
             }
             updateYLayout();
@@ -214,7 +215,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             if (deletedNodeLevel > 0){
                 if (nodeIndex == this.treeLevels.get(deletedNodeLevel).size() ){
                     LeafNodeView previousNode = (LeafNodeView) this.treeLevels.get(deletedNodeLevel).get(nodeIndex - 1);
-                    Transition edgeFadeOut = animator.fadeNode(previousNode.nextLeaf, 1, 0, false);
+                    Transition edgeFadeOut = animator.fadeNode(previousNode.nextLeaf, 1, 0, null);
                     edgeFadeOut.setOnFinished(_ -> {
                         this.getChildren().remove(previousNode.nextLeaf);
                     });
@@ -222,7 +223,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                     animator.combineLastsTransitionsOnQueue(2);
                 }else{
 
-                    Transition edgeFadeOut = animator.fadeNode(deletedLeaf.nextLeaf, 1, 0, false);
+                    Transition edgeFadeOut = animator.fadeNode(deletedLeaf.nextLeaf, 1, 0, null);
                     edgeFadeOut.setOnFinished(_ -> {
                         this.getChildren().remove(deletedLeaf.nextLeaf);
                     });
@@ -284,7 +285,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         int level = e.getNode().getLevel();
         updateLevelLayout(level);
         
-        Transition keyFadeIn = animator.fadeNode(newKey,0,1,true);
+        Transition keyFadeIn = animator.fadeNode(newKey,0,1,null);
         keyFadeIn.setOnFinished(_->{
             if (e.getNode().isLeaf()){
 
@@ -319,7 +320,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         int removeKeyIndex = node.remove(removedKey);
 
         
-        Transition keyFading = animator.fadeNode(removedKey, 1, 0, true);
+        Transition keyFading = animator.fadeNode(removedKey, 1, 0, SoundType.FADE_OUT);
         animator.addTransitionToQueue(keyFading);
         keyFading.setOnFinished(_ -> {
             
@@ -512,7 +513,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         NodeView deletedNode = nodeToNodeView.get(e.getChild());
         Edge edge = childrenToEdge.remove(deletedNode);
 
-        Transition edgeFadeOut = animator.fadeNode(edge, 1, 0, false);
+        Transition edgeFadeOut = animator.fadeNode(edge, 1, 0, SoundType.FADE_OUT);
         animator.addTransitionToQueue(edgeFadeOut);
         animator.combineLastsTransitionsOnQueue(2);
         edgeFadeOut.setOnFinished(_ -> {
@@ -593,7 +594,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             if ( nodeToNodeView.size() == 1 && node.keys.size() == 1){
                 animator.addParallelTransition(animator.moveNode(node, deltaX, 0, 0.1));
             }else{
-                animator.addParallelTransition(animator.moveNode(node, deltaX, 0,true));
+                animator.addParallelTransition(animator.moveNode(node, deltaX, 0,null));
             }
             node.updateLayout(deltaX);
             startX += node.getWidth() + nodeSpacing;
@@ -612,11 +613,11 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             for (NodeView node : this.treeLevels.get(i)) {
                 double deltaY = startY - node.yOriginProperty().get();
                 node.setYOrigin(startY);
-                animator.addParallelTransition(animator.moveNode(node, 0, deltaY, true));
+                animator.addParallelTransition(animator.moveNode(node, 0, deltaY, null));
                 if (!node.keys.isEmpty()) {
                     node.keys.forEach(key -> {
                         double byY = key.getDeltaY() + deltaY;
-                        Transition movingKey = animator.moveNode(key, 0.0, byY,false);
+                        Transition movingKey = animator.moveNode(key, 0.0, byY,null);
                         key.setNewOriginY(key.getNewYOrigin() + deltaY);
                         key.setCurrentYOrigin(key.getNewYOrigin());
                         animator.addParallelTransition(movingKey);
@@ -636,7 +637,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
     private  void showEdges(){
         for (Edge edges : this.unshownEdges) {
-            Transition fadeIn = animator.fadeNode(edges, 0, 1, false);
+            Transition fadeIn = animator.fadeNode(edges, 0, 1, null);
             animator.addParallelTransition(fadeIn);
         }
         this.unshownEdges.clear();
@@ -658,11 +659,11 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             }else{
                 if (currentNode != currentKey.getNode()){
                     currentNode = currentKey.getNode();
-                    animator.addToTraversalList(animator.highlightEdge(childrenToEdge.get(currentNode)));
+                    animator.addToTraversalList(animator.highlightEdge(childrenToEdge.get(currentNode),SoundType.HIGHLIGHTING));
                 }
             }
 
-            animator.addToTraversalList(animator.highlightKeyView(currentKey));
+            animator.addToTraversalList(animator.highlightKeyView(currentKey,SoundType.HIGHLIGHTING));
         }
     }
 

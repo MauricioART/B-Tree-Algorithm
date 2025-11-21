@@ -17,6 +17,7 @@ import com.arturoar.util.TreeAnimator;
 import com.arturoar.util.TreeViewTransformer;
 import com.arturoar.view.KeyView;
 import com.arturoar.view.TreeView;
+import com.arturoar.util.SoundType;
 
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
@@ -47,6 +48,7 @@ import io.github.palexdev.materialfx.dialogs.MFXGenericDialogBuilder;
 import io.github.palexdev.materialfx.dialogs.MFXStageDialog;
 import io.github.palexdev.materialfx.enums.ScrimPriority;
 import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
+
 
 public class BPlusTreeController implements Initializable {
 
@@ -89,6 +91,7 @@ public class BPlusTreeController implements Initializable {
     private DoubleProperty mParameter = new SimpleDoubleProperty();
     private BooleanProperty traversalAnimation = new SimpleBooleanProperty();
     private BooleanProperty isTreeEmptyProperty = new SimpleBooleanProperty();
+    private BooleanProperty mute = new SimpleBooleanProperty();
 
 
     private int m;
@@ -115,7 +118,8 @@ public class BPlusTreeController implements Initializable {
 
     public BPlusTreeController(Stage stage) {
         this.stage = stage;
-        TreeAnimator.getInstance().getAnimationSpeedProperty().bind(this.animationSpeed);
+        TreeAnimator.getInstance().animationSpeedProperty().bind(this.animationSpeed);
+        TreeAnimator.getInstance().muteProperty().bind(this.mute.not());
     }
 
     private void initializeTree(){
@@ -220,7 +224,11 @@ public class BPlusTreeController implements Initializable {
             Parent settingsContent = loader.load();
             settingsController = (SettingsDialogController)loader.getController();
 
-            darkMode.bind(settingsController.themeToggleProperty());animationSpeed.bind(Bindings.createDoubleBinding(() -> {
+            mute.bind(settingsController.soundToggleProperty());
+
+            darkMode.bind(settingsController.themeToggleProperty());
+            
+            animationSpeed.bind(Bindings.createDoubleBinding(() -> {
                 double speedValue = settingsController.speedSliderValueProperty().get();
                 return speedValue != 0 ? 1.0 / speedValue : 1.0; 
             }, settingsController.speedSliderValueProperty()));
@@ -509,9 +517,9 @@ public class BPlusTreeController implements Initializable {
 
 
         if (!result.getResult()){
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 0.0, 1.0));
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 0.0, 1.0,SoundType.ERROR));
             TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1300));
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 1.0, 0.0));
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 1.0, 0.0,null));
         }
         animationExecutor.submit(() -> {
            
@@ -548,9 +556,9 @@ public class BPlusTreeController implements Initializable {
         if (result.getResult() == null) {
             notFound.setMessage("Key not found");
             notFound.getStyleClass().add("warning");
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 0.0, 1.0));
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 0.0, 1.0,SoundType.ERROR));
             TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 1.0, 0.0));
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 1.0, 0.0,null));
         }
         
 
@@ -587,12 +595,12 @@ public class BPlusTreeController implements Initializable {
             
                 canvas.getChildren().remove(notFound);
                 canvas.getChildren().add(notFound);   
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 0.0, 1.0));
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 0.0, 1.0,SoundType.ERROR));
             TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 1.0, 0.0));
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 1.0, 0.0,null));
         }else{
             KeyView searchedKey = this.treeView.getKeyView( result.getVisitedKeys().getLast());
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().highlightData(searchedKey.getData()));
+            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().highlightData(searchedKey.getData(),SoundType.SUCCESS));
         }
 
         if (traversalAnimation.get()){

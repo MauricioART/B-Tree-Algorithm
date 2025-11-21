@@ -6,6 +6,11 @@ import javafx.beans.property.DoubleProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
+
+import org.kordamp.ikonli.coreui.CoreUiFree;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
+import org.kordamp.ikonli.javafx.FontIcon;
+
 import io.github.palexdev.materialfx.controls.MFXSlider;
 import io.github.palexdev.materialfx.controls.MFXToggleButton;
 import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
@@ -20,6 +25,11 @@ public class SettingsDialogController {
     @FXML private MFXSlider speedSlider;
     @FXML private MFXToggleButton themeToggle;
     @FXML private Label speedLabel;
+    @FXML private MFXToggleButton soundToggle;
+
+    private FontIcon traversalToggleIcon;
+    private FontIcon soundToggleIcon;
+    private FontIcon themeToggleIcon;
 
     Runnable onMSliderChange;
     
@@ -29,6 +39,7 @@ public class SettingsDialogController {
         setupThemeToggle();
         setupSpeedSlider();
         setupTraversalToggle();
+        setupSoundToggle();
     }
     
     public void setOnMSliderChange(Runnable onMSliderChange){
@@ -39,21 +50,24 @@ public class SettingsDialogController {
     }
     private void setupThemeToggle() {
         // Lógica para inicializar el toggle de tema
-        MFXFontIcon lightbulbIcon = new MFXFontIcon("fas-lightbulb", 16);
-        themeToggle.setGraphic(lightbulbIcon);
+        themeToggleIcon = new FontIcon(FontAwesomeSolid.LIGHTBULB);
+        themeToggle.setGraphic(themeToggleIcon);
         themeToggle.setSelected(false);
-        themeToggle.setColors(Color.LIGHTGRAY, Color.FLORALWHITE);
 
         themeToggle.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
             
             if (isSelected) {
-                // Cambiar a tema oscuro
-                MFXFontIcon moonIcon = new MFXFontIcon("fas-moon", 16);
-                moonIcon.setColor(Color.WHITE);
-                themeToggle.setGraphic(moonIcon);
+
+                themeToggleIcon.setIconColor(Color.WHITE);
+                traversalToggleIcon.setIconColor(Color.WHITE);
+                soundToggleIcon.setIconColor(Color.WHITE);
+                
+                themeToggleIcon.setIconCode(FontAwesomeSolid.MOON);
             } else {
-                // Cambiar a tema claro
-                themeToggle.setGraphic(lightbulbIcon);
+                themeToggleIcon.setIconColor(Color.BLACK);
+                traversalToggleIcon.setIconColor(Color.BLACK);
+                soundToggleIcon.setIconColor(Color.BLACK);
+                themeToggleIcon.setIconCode(FontAwesomeSolid.LIGHTBULB);
                 
             }
         });
@@ -78,16 +92,31 @@ public class SettingsDialogController {
 
     private void setupTraversalToggle() {
         // Lógica para inicializar el toggle de recorrido
+        traversalToggleIcon = new FontIcon(FontAwesomeSolid.PLAY_CIRCLE);
         traversalToggle.setSelected(true);
-        traversalToggle.setText("Enable");
+        traversalToggle.setGraphic(traversalToggleIcon);
         traversalToggle.selectedProperty().addListener((_,_,newVal)->{
             if (newVal){
-                traversalToggle.setText("Enable");
+                traversalToggleIcon.setIconCode(FontAwesomeSolid.PLAY_CIRCLE);
             }else{
-                traversalToggle.setText("Disable");
+                traversalToggleIcon.setIconCode(FontAwesomeSolid.STOP_CIRCLE);
             }
         });
-        //traversalToggle.setColors(Color.ANTIQUEWHITE, Color.BEIGE);
+    }
+
+    private void setupSoundToggle(){
+        soundToggleIcon = new FontIcon(FontAwesomeSolid.VOLUME_UP);
+
+        soundToggle.setSelected(true);
+        soundToggle.setGraphic(soundToggleIcon);
+
+        soundToggle.selectedProperty().addListener((_,_,isSelected)->{
+            if (isSelected){
+                soundToggleIcon.setIconCode(FontAwesomeSolid.VOLUME_UP);
+            }else{
+                soundToggleIcon.setIconCode(FontAwesomeSolid.VOLUME_MUTE);
+            }
+        });
     }
 
 
@@ -107,7 +136,12 @@ public class SettingsDialogController {
         return themeToggle.selectedProperty();
     }
 
+    public BooleanProperty soundToggleProperty(){
+        return soundToggle.selectedProperty();
+    }
+
     public MFXSlider getMSlider(){
         return mSlider;
     }
+
 }

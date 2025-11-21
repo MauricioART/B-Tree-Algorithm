@@ -35,11 +35,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
-import javafx.scene.media.AudioClip;
-
-
-import java.net.URL;
-
 
 public class TreeAnimator {
 
@@ -54,14 +49,10 @@ public class TreeAnimator {
     public List<Transition>  parallelList = new ArrayList<>();
     public List<Transition> transitionQueue = new ArrayList<>();
     public List<Transition> traversalList = new ArrayList<>();
-
-    private AudioClip highlightingSound;
-    private AudioClip fadeOutSound;
-    private AudioClip movingSound;
-    private AudioClip fadeInSound;
     
     private static TreeAnimator instance = new TreeAnimator();
     
+
     public static TreeAnimator getInstance(){
         return instance;
     }
@@ -70,40 +61,25 @@ public class TreeAnimator {
     private TreeAnimator() {
         // Private constructor to prevent instantiation
         animationDuration.bind(animationSpeed.multiply(BASE_DURATION));
-
-        try{
-            URL resource = BPlusTreeUI.class.getResource("sounds/pop-402324.mp3");
-            highlightingSound = new AudioClip(resource.toExternalForm());
-
-            URL resource2 = BPlusTreeUI.class.getResource("sounds/pop-cartoon-328167.mp3");
-            fadeInSound = new AudioClip(resource2.toExternalForm());
-            
-
-        }catch(Exception exception){
-            System.err.println(exception);
+        try {
+            SoundType.loadAllSounds();
+        } catch (Exception exception) {
+            System.err.println("Error loading sounds: " + exception);
         }
-
     }
 
-    public Transition fadeNode(Node node, double from, double to, boolean sound) {
+    public Transition fadeNode(Node node, double from, double to, SoundType sound) {
+       
         FadeTransition fade = new FadeTransition(Duration.millis(animationDuration.get()), node);
         fade.setInterpolator(Interpolator.EASE_IN);
         fade.setFromValue(from);
         fade.setToValue(to);
         fade.setInterpolator(interpolator);
 
-
-        if (!mute.get() && sound){
-            AudioClip audio = null;
-            if (from > to){
-                audio = fadeOutSound;
-            }else{
-                audio = fadeInSound;
-            }
-            final AudioClip audioFinal = audio;
+        if (!mute.get() && sound != null){
             fade.statusProperty().addListener((_, oldStatus, newStatus)->{
                 if (newStatus == Animation.Status.RUNNING && oldStatus == Animation.Status.STOPPED) {
-                    if (audioFinal != null) audioFinal.play();
+                    if (sound != null) sound.play();
                 }
             });
         }
@@ -111,7 +87,7 @@ public class TreeAnimator {
         return fade;
     }
 
-    public Transition moveNode(Node node, double byX, double byY, boolean sound) {
+    public Transition moveNode(Node node, double byX, double byY, SoundType sound) {
         
         double distance = Math.sqrt(Math.pow(byX, 2) + Math.pow(byY,2));
         int duration = calculateDuration(distance);
@@ -120,10 +96,10 @@ public class TreeAnimator {
         translate.setByY(byY);
         translate.setInterpolator(interpolator);
 
-        if (!mute.get() && sound){
+        if (!mute.get() && sound != null){
             translate.statusProperty().addListener((_, oldStatus, newStatus)->{
                 if (newStatus == Animation.Status.RUNNING && oldStatus == Animation.Status.STOPPED) {
-                    if (movingSound != null) movingSound.play();
+                    if (sound != null) sound.play();
                 }
             });
         }
@@ -174,24 +150,39 @@ public class TreeAnimator {
         return new PauseTransition(Duration.millis(miliseconds));
     }
 
-    public SequentialTransition highlightKeyView(KeyView keyView) {
+    public SequentialTransition highlightKeyView(KeyView keyView, SoundType sound) {
 
         Paint highlightColor = Color.web("#bca20eff");
         Paint originalColor = keyView.colorProperty().get();
 
         Transition highlightTransition = colorTransition(Duration.millis(animationDuration.get()),keyView.colorProperty(), originalColor, highlightColor);
-        
+
+        if (!mute.get() && sound != null){
+            highlightTransition.statusProperty().addListener((_, oldStatus, newStatus)->{
+                if (newStatus == Animation.Status.RUNNING && oldStatus == Animation.Status.STOPPED) {
+                    if (sound != null) sound.play();
+                }
+            });
+        }
+
         Transition restoreTransition = colorTransition(Duration.millis(animationDuration.get()),keyView.colorProperty(), highlightColor, originalColor);
 
         return new SequentialTransition(highlightTransition, restoreTransition);
 }
-    public SequentialTransition highlightData(Label data) {
+    public SequentialTransition highlightData(Label data, SoundType sound) {
 
         Paint highlightColor = Color.web("#bca20eff");
         Paint originalColor = data.getTextFill();
 
         Transition highlightText = colorTransition(Duration.millis(800),data.textFillProperty(), originalColor, highlightColor);
         
+         if (!mute.get() && sound != null){
+            highlightText.statusProperty().addListener((_, oldStatus, newStatus)->{
+                if (newStatus == Animation.Status.RUNNING && oldStatus == Animation.Status.STOPPED) {
+                    if (sound != null) sound.play();
+                }
+            });
+        }
         //ParallelTransition highlightTransition = new ParallelTransition(highlightText,scaleText);
         Transition pause = new PauseTransition(Duration.millis(100));
         Transition restoreText = colorTransition(Duration.millis(800),data.textFillProperty(), highlightColor, originalColor);
@@ -204,7 +195,7 @@ public class TreeAnimator {
     
 
 
-    public SequentialTransition highlightEdge(Edge edge) {
+    public SequentialTransition highlightEdge(Edge edge, SoundType sound) {
 
 
         Paint originalColor = edge.colorProperty().get();
@@ -212,6 +203,14 @@ public class TreeAnimator {
         Paint highlighColor = Color.web("#bca20eff");
 
         Transition highlightTransition = colorTransition(Duration.millis(animationDuration.get()),edge.colorProperty(), originalColor, highlighColor);
+
+         if (!mute.get() && sound != null){
+            highlightTransition.statusProperty().addListener((_, oldStatus, newStatus)->{
+                if (newStatus == Animation.Status.RUNNING && oldStatus == Animation.Status.STOPPED) {
+                    if (sound != null) sound.play();
+                }
+            });
+        }
 
         Transition restoreTransition = colorTransition(Duration.millis(animationDuration.get()),edge.colorProperty(), highlighColor, originalColor);
 
@@ -383,7 +382,7 @@ public class TreeAnimator {
         }
     }
 
-    public DoubleProperty getAnimationSpeedProperty() {
+    public DoubleProperty animationSpeedProperty() {
         return animationSpeed;
     }
 
@@ -394,6 +393,10 @@ public class TreeAnimator {
     public BooleanProperty darkModeProperty(){
         return darkMode;
     }
-}
 
- 
+    public BooleanProperty muteProperty(){
+        return mute;
+    }
+    
+     
+}
