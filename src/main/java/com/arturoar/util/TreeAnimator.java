@@ -3,14 +3,12 @@ package com.arturoar.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.arturoar.ui.BPlusTreeUI;
 import com.arturoar.view.Edge;
 import com.arturoar.view.KeyView;
 import javafx.scene.paint.Paint;
 
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
-import javafx.animation.FillTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -49,7 +47,9 @@ public class TreeAnimator {
     public List<Transition>  parallelList = new ArrayList<>();
     public List<Transition> transitionQueue = new ArrayList<>();
     public List<Transition> traversalList = new ArrayList<>();
-    
+
+    private List<Pair<Runnable, Integer>> scheduleTask = null;
+
     private static TreeAnimator instance = new TreeAnimator();
     
 
@@ -235,7 +235,7 @@ public class TreeAnimator {
                 parallelTransition.getChildren().add(transition);
             }
         }
-        transitionQueue.add(parallelTransition);
+        addTransitionToQueue(parallelTransition);
         parallelList.clear();
     }
 
@@ -243,6 +243,23 @@ public class TreeAnimator {
         if (transition != null) {
             transitionQueue.add(transition);
         }
+        if (scheduleTask != null && !scheduleTask.isEmpty()) {
+            List<Pair<Runnable, Integer>> tasksToRemove = new ArrayList<>();
+            for (Pair<Runnable, Integer> taskPair : scheduleTask) {
+                Runnable task = taskPair.getKey();
+                int delay = taskPair.getValue();
+                delay = delay - 1;
+
+                if (delay <= 0) {
+                    addListenerToLastTransition(() -> task.run());
+                    tasksToRemove.add(taskPair);
+                } else {
+                    taskPair = new Pair<>(task, delay);
+                }
+            }
+            scheduleTask.removeAll(tasksToRemove);
+        }
+
     }
 
 
@@ -324,6 +341,13 @@ public class TreeAnimator {
     });
 }
 
+    public void addScheduleTask(Runnable task, int delayTransitions) {
+        if (scheduleTask == null) {
+            scheduleTask = new ArrayList<>();
+        }
+        scheduleTask.add(new Pair<>(task, delayTransitions));
+    }
+
     /**
      * Creates a smooth transition for any property using a custom Transition
      */
@@ -396,6 +420,24 @@ public class TreeAnimator {
 
     public BooleanProperty muteProperty(){
         return mute;
+    }
+
+    public class Pair<K, V> {
+        private K key;
+        private V value;
+
+        public Pair(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public K getKey() {
+            return key;
+        }
+
+        public V getValue() {
+            return value;
+        }
     }
     
      
