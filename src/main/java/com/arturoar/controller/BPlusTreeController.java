@@ -8,8 +8,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.kordamp.ikonli.coreui.CoreUiFree;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.javafx.FontIcon;
 
+import com.arturoar.exceptions.BPlusTreeEmptyException;
 import com.arturoar.model.*;
 import com.arturoar.ui.BPlusTreeUI;
 import com.arturoar.util.BPlusTraversalResult;
@@ -38,6 +40,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -78,7 +81,7 @@ public class BPlusTreeController implements Initializable {
 
     
     
-    private InfoMessage notFound;
+    private InfoMessage infoMessage;
     private InfoMessage emptyTree;
     private SettingsDialogController settingsController;
     private InsertDialogController insertDialogController;
@@ -125,7 +128,7 @@ public class BPlusTreeController implements Initializable {
     private void initializeTree(){
         
         if(this.tree != null){
-            this.canvas.getChildren().clear();
+            this.canvas.getChildren().remove(this.treeView);
         }
         tree = new BPlusTree<>(m);
         treeView = new TreeView();
@@ -144,7 +147,33 @@ public class BPlusTreeController implements Initializable {
                 ), mParameter, treeView.depthProperty(), treeView.widthProperty()
         ));
 
+        isTreeEmptyProperty.unbind();
         isTreeEmptyProperty.bind(tree.emptyProperty());
+        
+
+        isTreeEmptyProperty.addListener((_,_,newVal)->{
+            FadeTransition transition = new FadeTransition(Duration.millis(1000),emptyTree);
+            if (newVal){
+                transition.setFromValue(0.0);
+                transition.setToValue(1.0);
+
+                if (TreeAnimator.getInstance().transitionQueue.isEmpty()){
+                    transition.play();
+                    return;
+                }
+
+                TreeAnimator.getInstance().addListenerToLastTransition(()->{
+                    transition.play();
+                });
+                
+            }else{
+                
+                transition.setFromValue(1.0);
+                transition.setToValue(0.0);
+                transition.play();
+                
+            }
+        });
         
         canvas.getChildren().add(treeView);
         treeView.canvasHeightProperty().bind(this.canvas.heightProperty());
@@ -192,24 +221,6 @@ public class BPlusTreeController implements Initializable {
         m = (int)mParameter.get();
         initializeTree();
         
-
-        isTreeEmptyProperty.addListener((_,_,newVal)->{
-            FadeTransition transition = new FadeTransition(Duration.millis(1000),emptyTree);
-            if (newVal){
-                transition.setFromValue(0.0);
-                transition.setToValue(1.0);
-                TreeAnimator.getInstance().addListenerToLastTransition(()->{
-                    
-                    transition.play();
-                });
-                
-            }else{
-                transition.setFromValue(1.0);
-                transition.setToValue(0.0);
-                transition.play();
-                
-            }
-        });
     }
 
     private void setupWindowControls() {
@@ -424,7 +435,6 @@ public class BPlusTreeController implements Initializable {
         dialogContent.addActions(
                 Map.entry(new MFXButton("Confirm"), event -> {
                     m = (int) mParameter.get();
-                    isTreeEmptyProperty.unbind();
                     initializeTree();
                     closeAllDialogs();
                     dialog.close();
@@ -480,19 +490,19 @@ public class BPlusTreeController implements Initializable {
         canvas.getChildren().add(emptyTree);
 
 
-        notFound = new InfoMessage();
-        notFound.setIcon(CoreUiFree.SAD);
-        notFound.setMessage("Key not Found!");
+        infoMessage = new InfoMessage();
+        infoMessage.setIcon(CoreUiFree.SAD);
+        infoMessage.setMessage("Key not Found!");
 
-        notFound.layoutXProperty().bind(
-           canvas.widthProperty().subtract(notFound.widthProperty()).divide(2)
+        infoMessage.layoutXProperty().bind(
+           canvas.widthProperty().subtract(infoMessage.widthProperty()).divide(2)
         );
-        notFound.layoutYProperty().bind(
-            canvas.heightProperty().subtract(notFound.heightProperty()).divide(2)
+        infoMessage.layoutYProperty().bind(
+            canvas.heightProperty().subtract(infoMessage.heightProperty()).divide(2)
         );
 
-        canvas.getChildren().add(notFound);
-        notFound.setOpacity(0.0);
+        canvas.getChildren().add(infoMessage);
+        infoMessage.setOpacity(0.0);
 
     }
 
@@ -510,75 +520,95 @@ public class BPlusTreeController implements Initializable {
 
         
         disableButtons();
-        BPlusTraversalResult<Boolean, Integer, String> result = this.tree.insert(key, data);
-        if (traversalAnimation.get()){
-            treeView.animateTraversal(result.getVisitedKeys());
-        }
-
-
-        if (!result.getResult()){
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 0.0, 1.0,SoundType.ERROR));
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1300));
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 1.0, 0.0,null));
-        }
-        animationExecutor.submit(() -> {
-           
-            TreeAnimator.getInstance().addListenerToLastTransition( () ->{
-                Platform.runLater(()->{
-                    enableButtons();
-                    if(!result.getResult()){        
-                        canvas.getChildren().remove(notFound);
-                        canvas.getChildren().add(notFound);    
-                        notFound.setIcon(CoreUiFree.REPORT_SLASH);
-                        notFound.setMessage("Key already on the Tree");
-                        notFound.getStyleClass().add("warning");
-                    }
-                });
-            });
-
-            Platform.runLater(() -> {
-                    TreeAnimator.getInstance().animateQueue(treeView.allowTranslationProperty());
-            });
+        try{
+            BPlusTraversalResult<Boolean, Integer, String> result = this.tree.insert(key, data);
             
-        });
+            if (traversalAnimation.get()){
+                treeView.animateTraversal(result.getVisitedKeys());
+            }
+
+
+            if (!result.getResult()){
+                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 0.0, 1.0,SoundType.ERROR));
+                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1300));
+                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 1.0, 0.0,null));
+            }
+            animationExecutor.submit(() -> {
+            
+                TreeAnimator.getInstance().addListenerToLastTransition( () ->{
+                    Platform.runLater(()->{
+                        enableButtons();
+                        if(!result.getResult()){        
+                            canvas.getChildren().remove(infoMessage);
+                            canvas.getChildren().add(infoMessage);    
+                            infoMessage.setIcon(CoreUiFree.REPORT_SLASH);
+                            infoMessage.setMessage("Key already on the Tree");
+                            infoMessage.getStyleClass().add("warning");
+                        }
+                    });
+                });
+
+                Platform.runLater(() -> {
+                        TreeAnimator.getInstance().animateQueue(treeView.allowTranslationProperty());
+                });
+                
+            });
+        }catch(BPlusTreeEmptyException e){
+
+                showInfoMessage( e);
+                enableButtons();
+                return;
+        }
+
+        
     }
 
     private void handleRemove(Integer key) {
 
-        BPlusTraversalResult<Key<Integer>, Integer, String> result = this.tree.remove(key);
-        
-        if (traversalAnimation.get()){
-            treeView.animateTraversal(result.getVisitedKeys());
-        }        
-
-        disableButtons();
-
-        if (result.getResult() == null) {
-            notFound.setMessage("Key not found");
-            notFound.getStyleClass().add("warning");
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 0.0, 1.0,SoundType.ERROR));
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 1.0, 0.0,null));
-        }
-        
-
-
-        animationExecutor.submit(() -> {
-           
-            TreeAnimator.getInstance().addListenerToLastTransition( () ->{
-                Platform.runLater(()->{
-                    canvas.getChildren().remove(notFound);
-                    canvas.getChildren().add(notFound);   
-                    enableButtons();
-                });
-            });
-
-            Platform.runLater(() -> {
-                    TreeAnimator.getInstance().animateQueue(treeView.allowTranslationProperty());
-            });
+        try{
+            BPlusTraversalResult<Key<Integer>, Integer, String> result = this.tree.remove(key);
             
-        });
+            if (traversalAnimation.get()){
+                treeView.animateTraversal(result.getVisitedKeys());
+            }        
 
+            disableButtons();
+
+            if (result.getResult() == null) {
+                infoMessage.setMessage("Key not found");
+                infoMessage.getStyleClass().add("warning");
+                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 0.0, 1.0,SoundType.ERROR));
+                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
+                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 1.0, 0.0,null));
+            }
+            
+
+
+            animationExecutor.submit(() -> {
+            
+                TreeAnimator.getInstance().addListenerToLastTransition( () ->{
+                    Platform.runLater(()->{
+                        canvas.getChildren().remove(infoMessage);
+                        canvas.getChildren().add(infoMessage);   
+                        enableButtons();
+                    });
+                });
+
+                Platform.runLater(() -> {
+                        TreeAnimator.getInstance().animateQueue(treeView.allowTranslationProperty());
+                });
+                
+            });
+
+
+        }catch(BPlusTreeEmptyException e){
+            showInfoMessage( e);
+            enableButtons();
+            return;
+
+        }
+
+        
 
 
 
@@ -586,43 +616,56 @@ public class BPlusTreeController implements Initializable {
 
     private void handleSearch(Integer key) {
 
-        
-        BPlusTraversalResult<BPlusLeafNode<Integer, String>, Integer, String>  result =  this.tree.search(key);
-        
-        if (result.getResult() == null) {
-            notFound.setMessage("Key not found");
-            notFound.getStyleClass().add("warning");
+        try{
+            BPlusTraversalResult<BPlusLeafNode<Integer, String>, Integer, String>  result =  this.tree.search(key);
             
-                canvas.getChildren().remove(notFound);
-                canvas.getChildren().add(notFound);   
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 0.0, 1.0,SoundType.ERROR));
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(notFound, 1.0, 0.0,null));
-        }else{
-            KeyView searchedKey = this.treeView.getKeyView( result.getVisitedKeys().getLast());
-            TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().highlightData(searchedKey.getData(),SoundType.SUCCESS));
+            if (result.getResult() == null) {
+                infoMessage.setMessage("Key not found");
+                infoMessage.getStyleClass().add("warning");
+                
+                    canvas.getChildren().remove(infoMessage);
+                    canvas.getChildren().add(infoMessage);   
+                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 0.0, 1.0,SoundType.ERROR));
+                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
+                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 1.0, 0.0,null));
+            }else{
+                KeyView searchedKey = this.treeView.getKeyView( result.getVisitedKeys().getLast());
+                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().highlightData(searchedKey.getData(),SoundType.SUCCESS));
+            }
+
+            if (traversalAnimation.get()){
+                treeView.animateTraversal(result.getVisitedKeys());
+            }        
+
+            disableButtons();
+
+        
+            TreeAnimator.getInstance().addListenerToLastTransition( () ->{
+                    enableButtons();
+            });
+
+            Platform.runLater(() -> {
+                    TreeAnimator.getInstance().animateQueue(treeView.allowTranslationProperty());
+            });
+            
+
+        }catch(BPlusTreeEmptyException e){
+            showInfoMessage( e);
+            enableButtons();
+            return;
         }
-
-        if (traversalAnimation.get()){
-            treeView.animateTraversal(result.getVisitedKeys());
-        }        
-
-        disableButtons();
-
-      
-        TreeAnimator.getInstance().addListenerToLastTransition( () ->{
-                enableButtons();
-        });
-
-        Platform.runLater(() -> {
-                TreeAnimator.getInstance().animateQueue(treeView.allowTranslationProperty());
-        });
         
-        
-     //   animationExecutor.submit(() -> { });
+    }
 
+    private void showInfoMessage( BPlusTreeEmptyException e) {
+        infoMessage.setIcon(FontAwesomeSolid.EXCLAMATION_TRIANGLE);
+        infoMessage.setMessage(e.getMessage());
 
+        TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 0.0, 1.0,SoundType.ERROR));
+        TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
+        TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 1.0, 0.0,null));
 
+        TreeAnimator.getInstance().animateQueue(treeView.allowTranslationProperty());
     }
 
     private void disableButtons() {
