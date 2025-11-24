@@ -491,8 +491,7 @@ public class BPlusTreeController implements Initializable {
 
 
         infoMessage = new InfoMessage();
-        infoMessage.setIcon(CoreUiFree.SAD);
-        infoMessage.setMessage("Key not Found!");
+        infoMessage.getStyleClass().add("warning");
 
         infoMessage.layoutXProperty().bind(
            canvas.widthProperty().subtract(infoMessage.widthProperty()).divide(2)
@@ -531,20 +530,18 @@ public class BPlusTreeController implements Initializable {
             if (!result.getResult()){
                 TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 0.0, 1.0,SoundType.ERROR));
                 TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1300));
-                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 1.0, 0.0,null));
+                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 1.0, 0.0,null)); 
+                infoMessage.setIcon(CoreUiFree.REPORT_SLASH);
+                infoMessage.setMessage("Key already on the Tree");
             }
+
+
             animationExecutor.submit(() -> {
             
                 TreeAnimator.getInstance().addListenerToLastTransition( () ->{
                     Platform.runLater(()->{
                         enableButtons();
-                        if(!result.getResult()){        
-                            canvas.getChildren().remove(infoMessage);
-                            canvas.getChildren().add(infoMessage);    
-                            infoMessage.setIcon(CoreUiFree.REPORT_SLASH);
-                            infoMessage.setMessage("Key already on the Tree");
-                            infoMessage.getStyleClass().add("warning");
-                        }
+                        
                     });
                 });
 
@@ -576,7 +573,6 @@ public class BPlusTreeController implements Initializable {
 
             if (result.getResult() == null) {
                 infoMessage.setMessage("Key not found");
-                infoMessage.getStyleClass().add("warning");
                 TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 0.0, 1.0,SoundType.ERROR));
                 TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
                 TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 1.0, 0.0,null));
@@ -621,10 +617,8 @@ public class BPlusTreeController implements Initializable {
             
             if (result.getResult() == null) {
                 infoMessage.setMessage("Key not found");
-                infoMessage.getStyleClass().add("warning");
-                
-                    canvas.getChildren().remove(infoMessage);
-                    canvas.getChildren().add(infoMessage);   
+                canvas.getChildren().remove(infoMessage);
+                canvas.getChildren().add(infoMessage);   
                 TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 0.0, 1.0,SoundType.ERROR));
                 TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
                 TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 1.0, 0.0,null));
