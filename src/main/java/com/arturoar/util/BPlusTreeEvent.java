@@ -9,7 +9,7 @@ public abstract class BPlusTreeEvent<K extends Comparable<K>, V> {
     public enum EventType { 
         NODE_SPLIT, KEY_BORROWED, KEY_INSERTED, 
         KEY_REMOVED, NODE_BORROWED, NODE_DELETED, 
-        NODE_CREATED, NEW_ROOT , KEY_CHANGED
+        NODE_CREATED, NEW_ROOT , KEY_CHANGED, KEY_BORROWED_FROM_INNER_NODE
     }
 
     private final EventType type;
@@ -45,6 +45,14 @@ public abstract class BPlusTreeEvent<K extends Comparable<K>, V> {
         public Key<K> getMiddleKey() {
             return middleKey;
         }
+    }
+
+    public static class KeyBorrowedFromInnerNode<K extends Comparable<K>, V> extends BPlusTreeEvent<K, V> {
+       
+        public KeyBorrowedFromInnerNode() {
+            super(EventType.KEY_BORROWED_FROM_INNER_NODE);
+        }
+
     }
 
     

@@ -504,6 +504,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
             BPlusNode<K,V> child = ((BPlusInnerNode<K,V>)leftNode).getChildren().removeLast();
             ((BPlusInnerNode<K,V>)rightNode).getChildren().addFirst(child);
             ((BPlusInnerNode<K,V>)rightNode).getFirstChild().setParent((BPlusInnerNode<K,V>)rightNode);
+            notifyObservers(new BPlusTreeEvent.KeyBorrowedFromInnerNode<>());
             notifyObservers(new BPlusTreeEvent.NodeBorrowed<>(leftNode, rightNode, child));
         }
     }
@@ -570,6 +571,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
             }
             System.out.print("\n\t\t");
             v.showKeys();
+          
             if (!v.isLeaf()){
                 nodes.addAll(((BPlusInnerNode<K,V>)v).getChildren());
             }
