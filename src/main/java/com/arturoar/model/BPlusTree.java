@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import com.arturoar.exceptions.BPlusTreeEmptyException;
 import com.arturoar.util.BPlusTraversalResult;
 import com.arturoar.util.BPlusTreeEvent;
 import com.arturoar.util.BPlusTreeObserver;
@@ -46,7 +47,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
         return emptyProperty;
     }
     
-    public BPlusTraversalResult<Boolean,K,V> insert(K key, V data){
+    public BPlusTraversalResult<Boolean,K,V> insert(K key, V data) throws BPlusTreeEmptyException {
         if (root == null){
             this.root = new BPlusLeafNode<K,V>(true, m, 0, null);
             this.nodes = new ArrayList<>(List.of(this.root));
@@ -76,7 +77,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
             return insertResult;
     } 
  
-    public BPlusTraversalResult<Key<K>, K, V> remove(K key){
+    public BPlusTraversalResult<Key<K>, K, V> remove(K key) throws BPlusTreeEmptyException {
 
         BPlusTraversalResult<BPlusLeafNode<K, V>, K, V> containsResult = this.contains(key);
         BPlusTraversalResult<Key<K>, K, V> removeResult = new BPlusTraversalResult<>( containsResult.getVisitedKeys());
@@ -148,11 +149,11 @@ public class BPlusTree<K extends Comparable<K>,V> {
      * @param key The key to search for.
      * @return A BPlusTraversalResult containing the data associated with the key if found.
      */
-    public BPlusTraversalResult<BPlusLeafNode<K, V>, K, V> search(K key) {
+    public BPlusTraversalResult<BPlusLeafNode<K, V>, K, V> search(K key) throws BPlusTreeEmptyException {
         BPlusTraversalResult<BPlusLeafNode<K, V>, K, V> result = new BPlusTraversalResult<>();
 
         if (this.root == null) {
-            throw new IllegalStateException("The B+ tree is empty.");
+            throw new BPlusTreeEmptyException();
         }
         
         ArrayDeque<BPlusNode<K,V>> nodesQueue = new ArrayDeque<>();
@@ -218,7 +219,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
 
 
 
-    public BPlusTraversalResult<BPlusLeafNode<K, V>, K, V> contains(K key){
+    public BPlusTraversalResult<BPlusLeafNode<K, V>, K, V> contains(K key) throws BPlusTreeEmptyException {
         return this.search(key);
 
     }
