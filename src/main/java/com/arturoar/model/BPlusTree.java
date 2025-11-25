@@ -101,6 +101,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
                 handleUnderFlow(leafNode);
             
             if (leafNode == root && root.isEmpty()){
+                notifyObservers(new BPlusTreeEvent.NodeDeleted<>(null, root));
                 root = null;
                 emptyProperty.set(true);
             }
@@ -380,7 +381,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
         if (leftNode.getParent() == root && root.isEmpty()){
 
             this.root = leftNode;
-            notifyObservers(new BPlusTreeEvent.NewRoot<>(leftNode));   
+            notifyObservers(new BPlusTreeEvent.NewRoot<>(leftNode));  
             this.nodes.remove(leftNode.getParent());
 
     
