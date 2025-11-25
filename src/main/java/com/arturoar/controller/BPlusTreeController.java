@@ -249,6 +249,9 @@ public class BPlusTreeController implements Initializable {
             ((SettingsDialogController)loader.getController()).setOnMSliderChange(()->{
                 if (!tree.emptyProperty().get()){
                     showDialog();
+                }else{
+                    m = (int) mParameter.get();
+                    initializeTree();
                 }
             });
 
