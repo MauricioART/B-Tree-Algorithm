@@ -348,22 +348,38 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         }
         );
         updateLevelLayout(e.getNode().getLevel());
-        
-        if (!e.getNode().isLeaf() && !e.getNode().isEmpty() && removeKeyIndex < e.getNode().size() - 1){
-            KeyView nextKey = node.getKey(removeKeyIndex);
-            Edge prevEdge = ((InnerNodeView)node).getEdge(removeKeyIndex);
-            prevEdge.originXProperty().unbind();
 
-            Transition readjustOrigin = animator.animateProperty(prevEdge.originXProperty(), prevEdge.originXProperty().get(), nextKey.getNewXOrigin());
-            readjustOrigin.setOnFinished(_ -> { 
+
+        if (!e.getNode().isLeaf() && e.getNode().size() > 0){
+            if (removeKeyIndex < e.getNode().size() ){
+                KeyView nextKey = node.getKey(removeKeyIndex);
+                Edge prevEdge = ((InnerNodeView)node).getEdge(removeKeyIndex);
+
+                prevEdge.originXProperty().unbind();
                 prevEdge.originYProperty().unbind();
-                prevEdge.originXProperty().bind(nextKey.translateXProperty());
-                prevEdge.originYProperty().bind(nextKey.translateYProperty().add(nextKey.getHeight()));
-            });
-            animator.addTransitionToQueue(readjustOrigin);
-            animator.combineLastsTransitionsOnQueue(2 );
+
+                Transition readjustOrigin = animator.animateProperty(prevEdge.originXProperty(), prevEdge.originXProperty().get(), nextKey.getNewXOrigin());
+                readjustOrigin.setOnFinished(_ -> { 
+                    prevEdge.originXProperty().bind(nextKey.translateXProperty());
+                    prevEdge.originYProperty().bind(nextKey.translateYProperty().add(nextKey.getHeight()));
+                });
+                
+                animator.addTransitionToQueue(readjustOrigin);
+                animator.combineLastsTransitionsOnQueue(2 );
+            
+            }else{
+                KeyView lastKey = node.getLast();
+                Edge lastEdge = ((InnerNodeView)node).getEdge(removeKeyIndex);
+                lastEdge.originXProperty().unbind();
+                lastEdge.originYProperty().unbind();
+                lastEdge.originXProperty().bind(lastKey.translateXProperty().add(lastKey.widthProperty()));
+                lastEdge.originYProperty().bind(lastKey.translateYProperty().add(lastKey.getHeight()));
+
+
+            }
+
         }
-        
+
         animator.combineLastsTransitionsOnQueue(2);
         
     }
