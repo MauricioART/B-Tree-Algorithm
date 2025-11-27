@@ -7,13 +7,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 
-import org.kordamp.ikonli.coreui.CoreUiFree;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import io.github.palexdev.materialfx.controls.MFXSlider;
 import io.github.palexdev.materialfx.controls.MFXToggleButton;
-import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
 
 
 
@@ -77,14 +75,14 @@ public class SettingsDialogController {
         mSlider.setMax(10);
         mSlider.setMin(4);
         mSlider.setDecimalPrecision(0);
-        mSlider.setValue(7);
+        mSlider.setValue(4);
         mLabel.textProperty().bind(Bindings.createStringBinding(() -> String.format("%d", (int)mSlider.getValue()), mSlider.valueProperty()));
     }
 
     private void setupSpeedSlider() {
-        speedSlider.setValue(1.0);
+        speedSlider.setValue(1.00);
         speedSlider.setMin(0.50);
-        speedSlider.setMax(2.0);
+        speedSlider.setMax(1.5);
         speedSlider.setDecimalPrecision(1);
         speedLabel.textProperty().bind(Bindings.createStringBinding(() -> String.format("%.2fx", speedSlider.getValue()),speedSlider.valueProperty()));
     }
