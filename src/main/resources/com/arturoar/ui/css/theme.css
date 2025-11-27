@@ -68,9 +68,26 @@
     -fx-border-color: #845ec2; /* Color primario de tu paleta */
     /*-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 2);
     -fx-border-color: #845ec2; /* Color primario de tu paleta */
-        
-   }
-   
+}
+
+.canvas {
+    -fx-cursor: hand;  /* Cursor por defecto - mano abierta */
+}
+
+/* Cuando se está haciendo scroll/zoom */
+.canvas:scrolling {
+    -fx-cursor: e-resize;  /* Resize horizontal */
+}
+
+/* Cuando se está presionando el click (pero sin drag aún) */
+.canvas:pressed {
+    -fx-cursor: closed_hand;  /* Mano cerrada */
+}
+
+/* Cuando se está arrastrando (dragging) */
+.canvas:dragging {
+    -fx-cursor: move;  /* Flechas en 4 direcciones */
+}
 
 .canvas *{
     
