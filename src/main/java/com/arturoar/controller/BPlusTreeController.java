@@ -578,6 +578,7 @@ public class BPlusTreeController implements Initializable {
             disableButtons();
 
             if (result.getResult() == null) {
+                infoMessage.setIcon(CoreUiFree.SAD);
                 infoMessage.setMessage("Key not found");
                 TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 0.0, 1.0,SoundType.ERROR));
                 TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
@@ -633,6 +634,7 @@ public class BPlusTreeController implements Initializable {
             
             if (result.getResult() == null) {
                 infoMessage.setMessage("Key not found");
+                infoMessage.setIcon(CoreUiFree.SAD);
                 canvas.getChildren().remove(infoMessage);
                 canvas.getChildren().add(infoMessage);   
                 TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 0.0, 1.0,SoundType.ERROR));
