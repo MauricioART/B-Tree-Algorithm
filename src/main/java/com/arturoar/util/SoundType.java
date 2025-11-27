@@ -5,10 +5,10 @@ import com.arturoar.ui.BPlusTreeUI;
 
 public enum SoundType {
     
-        HIGHLIGHTING("sounds/pop-402324.mp3", 0.7),
+        HIGHLIGHTING("sounds/pop-402324.mp3", 0.5),
         FADE_OUT("sounds/whoosh-09-410876.mp3", 0.5),
-        SUCCESS("sounds/successed-295058.mp3", 1.0),
-        ERROR("sounds/error-010-206498.mp3", 0.8);
+        SUCCESS("sounds/successed-295058.mp3", 0.5),
+        ERROR("sounds/error-010-206498.mp3", 0.5);
     
         private final String soundPath;
         private final double defaultVolume;
