@@ -1,12 +1,7 @@
-/*
-
-@import '../fonts/Fonts.css';*/
-@import 'colors.css';
 
 .rootPane {
     -fx-font-size: 14px;
     -fx-font-weight: normal;
-    /*-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0, 0, 0);*/
     -fx-padding: 0;
     -fx-border-radius: 20;
     -fx-border-width: 2;
@@ -29,7 +24,6 @@
     -fx-text-fill: #fff;
 }
 
-/* Botones de la barra de control con gradiente individual */
 .control-bar .buton {
     -fx-cursor: hand;
     -fx-opacity: 0.85;
@@ -41,7 +35,6 @@
 
 .control-bar .buton:hover {
     -fx-opacity: 1.0;
-    /*-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, 2);*/
 }
 
 .control-bar.lightup .control{
@@ -55,7 +48,6 @@
     -fx-text-fill: #fff;
     -fx-background-color: transparent;
 }
-/* Contenedores blancos */
 
 .canvas {
     -fx-font-size: 12px;
@@ -65,36 +57,29 @@
     -fx-border-width: 2;
     -fx-border-radius: 12;
     
-    -fx-border-color: #845ec2; /* Color primario de tu paleta */
-    /*-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 2);
-    -fx-border-color: #845ec2; /* Color primario de tu paleta */
+    -fx-border-color: #845ec2; 
 }
 
 .canvas {
-    -fx-cursor: hand;  /* Cursor por defecto - mano abierta */
+    -fx-cursor: hand; 
 }
 
-/* Cuando se está haciendo scroll/zoom */
 .canvas:scrolling {
-    -fx-cursor: e-resize;  /* Resize horizontal */
+    -fx-cursor: e-resize; 
 }
 
-/* Cuando se está presionando el click (pero sin drag aún) */
 .canvas:pressed {
-    -fx-cursor: closed_hand;  /* Mano cerrada */
+    -fx-cursor: closed_hand; 
 }
 
-/* Cuando se está arrastrando (dragging) */
 .canvas:dragging {
-    -fx-cursor: move;  /* Flechas en 4 direcciones */
+    -fx-cursor: move;
 }
 
 .canvas *{
     
     -fx-transition: none !important;
-    /* Desactiva cualquier transformación CSS automática */
     -fx-transform: none !important;
-    /* Desactiva efectos de sombra o brillo que puedan interferir */
     -fx-effect: none !important;
 }
 
@@ -105,7 +90,6 @@
     -fx-border-width: 2;
     -fx-border-color: transparent;
     -fx-background-radius: 25;
-    /*-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 20, 0, 0, 0);   */
 }
 
 .tree-info{
@@ -192,7 +176,6 @@
     -fx-background-radius: 20;
     -fx-border-radius: 12;
     -fx-border-size: 2;
-    /*-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0, 0, 0);*/
 }
 
 /* Efectos hover suaves */
@@ -239,7 +222,6 @@
 /* Diálogos */
 .rootPane.dark .settings-dialog {
     -fx-background-color: #2d3047;
-    /*-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 20, 0, 0, 0);*/
 }
 
 
@@ -302,7 +284,6 @@
 /* Efectos hover */
 .rootPane.dark .control-bar .buton:hover {
     -fx-opacity: 1.0;
-    /*-fx-effect: dropshadow(gaussian, rgba(255,255,255,0.2), 8, 0, 0, 2);*/
 }
 
 
