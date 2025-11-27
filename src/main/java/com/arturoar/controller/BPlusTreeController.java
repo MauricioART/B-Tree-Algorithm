@@ -40,7 +40,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -520,7 +519,6 @@ public class BPlusTreeController implements Initializable {
     
     private void handleInsert(Integer key, String data) {
 
-        
         disableButtons();
         try{
             BPlusTraversalResult<Boolean, Integer, String> result = this.tree.insert(key, data);
@@ -539,6 +537,12 @@ public class BPlusTreeController implements Initializable {
             }
 
 
+            
+            TreeAnimator.getInstance().setGlobalFinishCallback( () -> /*Platform.runLater(()->*/ enableButtons()/* )*/);
+            
+            //Platform.runLater(() -> TreeAnimator.getInstance().animateQueue());
+            TreeAnimator.getInstance().animateQueue();
+        /*
             animationExecutor.submit(() -> {
             
                 TreeAnimator.getInstance().addListenerToLastTransition( () ->{
@@ -552,9 +556,8 @@ public class BPlusTreeController implements Initializable {
                         TreeAnimator.getInstance().animateQueue(treeView.allowTranslationProperty());
                 });
                 
-            });
+            });*/
         }catch(BPlusTreeEmptyException e){
-
                 showInfoMessage( e);
                 enableButtons();
                 return;
@@ -582,7 +585,18 @@ public class BPlusTreeController implements Initializable {
             }
             
 
+            TreeAnimator.getInstance().setGlobalFinishCallback( () ->{
+                    //Platform.runLater(()->{
+                        canvas.getChildren().remove(infoMessage);
+                        canvas.getChildren().add(infoMessage);   
+                        enableButtons();
+                    //});
+                });
 
+            //Platform.runLater(() -> TreeAnimator.getInstance().animateQueue());
+
+            TreeAnimator.getInstance().animateQueue();
+/*
             animationExecutor.submit(() -> {
             
                 TreeAnimator.getInstance().addListenerToLastTransition( () ->{
@@ -597,8 +611,7 @@ public class BPlusTreeController implements Initializable {
                         TreeAnimator.getInstance().animateQueue(treeView.allowTranslationProperty());
                 });
                 
-            });
-
+            });*/
 
         }catch(BPlusTreeEmptyException e){
             showInfoMessage( e);
@@ -636,14 +649,14 @@ public class BPlusTreeController implements Initializable {
 
             disableButtons();
 
-        
-            TreeAnimator.getInstance().addListenerToLastTransition( () ->{
-                    enableButtons();
-            });
+            TreeAnimator.getInstance().setGlobalFinishCallback( () -> 
+            //Platform.runLater(()->
+            enableButtons()
+    //    )
+    );
 
-            Platform.runLater(() -> {
-                    TreeAnimator.getInstance().animateQueue(treeView.allowTranslationProperty());
-            });
+            //Platform.runLater(() -> TreeAnimator.getInstance().animateQueue());
+            TreeAnimator.getInstance().animateQueue();
             
 
         }catch(BPlusTreeEmptyException e){
@@ -662,7 +675,7 @@ public class BPlusTreeController implements Initializable {
         TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
         TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 1.0, 0.0,null));
 
-        TreeAnimator.getInstance().animateQueue(treeView.allowTranslationProperty());
+        TreeAnimator.getInstance().animateQueue();
     }
 
     private void disableButtons() {

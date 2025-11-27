@@ -30,6 +30,9 @@ import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
@@ -42,6 +45,8 @@ public class TreeAnimator {
     private BooleanProperty darkMode = new SimpleBooleanProperty();
     private Interpolator interpolator = Interpolator.EASE_BOTH;
     private BooleanProperty mute = new SimpleBooleanProperty(false);
+
+    private Runnable globalFinishCallback = null;
 
 
     public List<Transition>  parallelList = new ArrayList<>();
@@ -66,6 +71,10 @@ public class TreeAnimator {
         } catch (Exception exception) {
             System.err.println("Error loading sounds: " + exception);
         }
+    }
+
+    public void setGlobalFinishCallback(Runnable callback) {
+        this.globalFinishCallback = callback;
     }
 
     public Transition fadeNode(Node node, double from, double to, SoundType sound) {
@@ -169,30 +178,39 @@ public class TreeAnimator {
 
         return new SequentialTransition(highlightTransition, restoreTransition);
 }
-    public SequentialTransition highlightData(Label data, SoundType sound) {
 
-        Paint highlightColor = Color.web("#bca20eff");
-        Paint originalColor = data.getTextFill();
+public SequentialTransition highlightData(Label data, SoundType sound) {
+    Paint highlightColor = Color.web("#bca20eff");
+    Paint originalColor = data.getTextFill();
+    
+    // Transición de color
+    Transition highlightText = colorTransition(Duration.millis(800), data.textFillProperty(), originalColor, highlightColor);
+    
+   
+    Transition moveDownData = moveNode(data, 0, 10, 0.5);
+    Transition moveUpData = moveNode(data, 0, -10, 0.5);
+    
 
-        Transition highlightText = colorTransition(Duration.millis(800),data.textFillProperty(), originalColor, highlightColor);
-        
-         if (!mute.get() && sound != null){
-            highlightText.statusProperty().addListener((_, oldStatus, newStatus)->{
-                if (newStatus == Animation.Status.RUNNING && oldStatus == Animation.Status.STOPPED) {
-                    if (sound != null) sound.play();
-                }
-            });
-        }
-        //ParallelTransition highlightTransition = new ParallelTransition(highlightText,scaleText);
-        Transition pause = new PauseTransition(Duration.millis(100));
-        Transition restoreText = colorTransition(Duration.millis(800),data.textFillProperty(), highlightColor, originalColor);
-        
-        //ParallelTransition restoreTransition = new ParallelTransition(restoreText, rescaleText);
-
-        return new SequentialTransition(highlightText, pause, restoreText);
+    // Sonido
+    if (!mute.get() && sound != null) {
+        highlightText.statusProperty().addListener((_, oldStatus, newStatus) -> {
+            if (newStatus == Animation.Status.RUNNING && oldStatus == Animation.Status.STOPPED) {
+                sound.play();
+            }
+        });
+    }
+    
+    Transition pause = new PauseTransition(Duration.millis(100));
+    Transition restoreText = colorTransition(Duration.millis(800), data.textFillProperty(), highlightColor, originalColor);
+    
+    return new SequentialTransition(
+        new ParallelTransition(highlightText, moveDownData),
+        pause,
+        new ParallelTransition(restoreText, moveUpData)
+    );
 }
 
-    
+   
 
 
     public SequentialTransition highlightEdge(Edge edge, SoundType sound) {
@@ -287,22 +305,26 @@ public class TreeAnimator {
         parallelList.clear();
     }
 
-    public void animateQueue(BooleanProperty allowTranslation) {
+    public void animateQueue() {
         SequentialTransition traversal = new SequentialTransition();
         traversal.getChildren().addAll(traversalList);
+        traversalList.clear();
+
         SequentialTransition seqTransitions = new SequentialTransition();
         seqTransitions.getChildren().addAll(transitionQueue);
-        
-        if (allowTranslation != null){
-            allowTranslation.set(true);
-            seqTransitions.setOnFinished(_-> allowTranslation.set(false) );
-        }
-        
         clearQueue();
+
+         seqTransitions.setOnFinished(_ -> {
+            if (globalFinishCallback != null) {
+                globalFinishCallback.run(); // ¡Botones habilitados aquí!
+                globalFinishCallback = null; // Limpiar el estado
+            }
+        });
+        
         traversal.setOnFinished(_ -> {
-            traversalList.clear();
             seqTransitions.play();
         });
+
         traversal.play();
     }
 
@@ -325,7 +347,10 @@ public class TreeAnimator {
 
     public void addListenerToLastTransition(Runnable onFinished) {
     int size = transitionQueue.size();
-    if (size == 0) return;
+    if (size == 0) {
+        
+        return;
+    }
 
     Transition last = transitionQueue.get(size - 1);
     
@@ -440,5 +465,12 @@ public class TreeAnimator {
         }
     }
     
+    public long getTotalDuration(){
+        long totalDuration = 0;
+        for (Transition transition : transitionQueue) {
+            totalDuration += transition.getCycleDuration().toMillis();
+        }
+        return totalDuration;
+    }
      
 }
