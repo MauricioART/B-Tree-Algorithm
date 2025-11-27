@@ -547,41 +547,6 @@ public class BPlusTree<K extends Comparable<K>,V> {
         }
     }
 
-   
-    public void showTree(){
-        System.out.println("◆◆◆◆◆◆◆◆◆◆◆ Árbol ◆◆◆◆◆◆◆◆◆◆◆");
-        /*
-        if(((BPlusInternalNode<K,V>) this.root).getChildren().isEmpty()==true && this.root.getKeys().isEmpty()==true){
-            System.out.println("No hay elementos aun");
-            System.out.println(toString());
-            return ;
-        }*/
-        Queue<BPlusNode<K,V>> nodes = new LinkedList<>();
-        nodes.add(this.root);
-        BPlusNode<K,V> padre=null;
-        while( !nodes.isEmpty() ){
-            
-            BPlusNode<K,V> v = nodes.poll();
-            if(v.getParent()==null){
-                System.out.print("Nodo root: ");
-            }
-            if(padre!=v.getParent()){
-                System.out.print("\n\n\nNodo Padre: ");
-                v.getParent().showKeys();
-                padre=v.getParent();
-                System.out.print("\n\t\tNodos:");
-            }
-            System.out.print("\n\t\t");
-            v.showKeys();
-          
-            if (!v.isLeaf()){
-                nodes.addAll(((BPlusInnerNode<K,V>)v).getChildren());
-            }
-        }
-        System.out.println("\n");
-        System.out.println(toString());
-    }
-
 
     private ArrayList<BPlusTreeObserver<K, V>> observers = new ArrayList<>();
 

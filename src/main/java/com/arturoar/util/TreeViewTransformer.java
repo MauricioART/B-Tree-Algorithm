@@ -83,11 +83,6 @@ public class TreeViewTransformer {
             isDragging = true;
             event.consume();
         }
-        System.out.println("Pressed at: (" + event.getX() + ", " + event.getY() + ")");
-        System.out.println("Current translation: (" + translateTransform.getX()/currentScale + ", " + translateTransform.getY()/currentScale + ")");
-        System.out.println("Current scale: " + currentScale);
-        Point2D worldPoint = viewportToWorld2(event.getX(), event.getY());
-        System.out.println("World coords : (" + worldPoint.getX() + ", " + worldPoint.getY()+ ")");
     }
     
     private void handleMouseDragged(MouseEvent event) {

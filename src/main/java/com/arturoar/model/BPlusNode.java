@@ -124,10 +124,7 @@ abstract public class BPlusNode<K extends Comparable<K>, V> {
         }
     }
 
-    public void showKeys(){
-        for( int i = 0 ; i < this.keys.size() ; i++ )
-            System.out.print( this.keys.get(i).getKey() + " " );
-    }
+  
     
     public void increaseLevel() {
         level.set(level.get() + 1);

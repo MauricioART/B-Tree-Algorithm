@@ -42,7 +42,6 @@ public class SettingsDialogController {
     
     public void setOnMSliderChange(Runnable onMSliderChange){
         mSlider.setOnMouseReleased(_ -> { 
-            System.out.println("Done"); 
             onMSliderChange.run();
         });
     }
