@@ -20,13 +20,15 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 
 public class KeyView extends Group {
 
     private final Paint LIGHT_COLOR = Color.web("#008e9b");
-    private final Paint DARK_COLOR = Color.web("#ffffffff");
+
+    private final Paint DARK_COLOR = Color.web("#e4e4d7ff");
     
     private Rectangle nodeShape;
     private Text keyLabel;
@@ -86,6 +88,7 @@ public class KeyView extends Group {
 
         // LIMPIA cualquier transformación previa
         dataLabel.getTransforms().clear();
+        dataLabel.setFont(Font.font(keyLabel.getFont().getFamily(), FontWeight.BOLD, 12));
 
         // Aplicar rotación -90° desde la esquina superior izquierda
         Rotate rotate = new Rotate(90, 0, 0);
@@ -96,8 +99,7 @@ public class KeyView extends Group {
         dataLabel.setLayoutX(0);  // Alineado al borde izquierdo del contenedor
         dataLabel.setLayoutY(dataLabel.getHeight() + this.height + 10);  // 5 unidades por debajo del contenedor
         dataLabel.translateXProperty().bind(widthProperty.divide(2).add(11.0));
-        dataLabel.getStyleClass().add("rotated-label-modern");
-
+       
         
 
         getChildren().add(dataLabel);
@@ -151,7 +153,7 @@ public class KeyView extends Group {
             }
 
             TreeAnimator.getInstance().createParallelTransition();
-            TreeAnimator.getInstance().animateQueue(null);
+            TreeAnimator.getInstance().animateQueue();
 
             
         });
