@@ -91,12 +91,11 @@ public class TreeViewTransformer {
     }
     
     private void handleMouseDragged(MouseEvent event) {
-        if (isDragging && event.getButton() == MouseButton.PRIMARY) {
+        if (isDragging && event.getButton() == MouseButton.PRIMARY && treeView.scaleProperty().get() < 1.0) {
             double deltaX = event.getX() - lastMouseX;
             double deltaY = event.getY() - lastMouseY;
             
             pan(deltaX, deltaY);
-            
             lastMouseX = event.getX();
             lastMouseY = event.getY();
             event.consume();
