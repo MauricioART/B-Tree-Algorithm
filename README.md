@@ -40,7 +40,7 @@ A JavaFX application for visualizing and interacting with B+ Tree data structure
 1. **Clone the repository**
    ```bash
    git clone https://github.com/MauricioART/B-Tree-Algorithm.git
-   cd bplus-tree-visualizer
+   cd B-Tree-Algorithm
 
 2. **Build the project**
    ```bash
@@ -114,6 +114,7 @@ Learn more at: https://pixabay.com/
 #### ⭐ If you find this project helpful, please give it a star on GitHub!
 
 For questions or support, please open an issue in the GitHub repository.
+
 
 
 
