@@ -1,124 +1,64 @@
-﻿# B+ Tree Visualization Tool 🌳
+# B+ Tree Visualizer
 
-![Main Interface](app-screenshot.png)
+A JavaFX desktop application for exploring B+ trees. Insert, find, and remove integer keys while the canvas shows search paths, node splits, redistribution, and merges. The inspector displays the value and leaf for a successful search.
 
-A JavaFX application for visualizing and interacting with B+ Tree data structures in real-time. This tool provides an intuitive graphical interface to understand B+ Tree operations through smooth animations and interactive controls.
+**JDK 22+ · JavaFX 22.0.1 · Maven**
 
-![Java](https://img.shields.io/badge/Java-22%2B-orange)
-![JavaFX](https://img.shields.io/badge/JavaFX-22.0.1-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
+![Amber Terminal showing the search result for key 24 and its leaf in the inspector](app-screenshot.png)
 
+## Quick start
 
-## ✨ Features
+Install a **JDK 22 or later** and make sure the terminal uses that JDK. Maven downloads JavaFX and the project dependencies.
 
-### 🌟 Core Functionality
-- **Interactive B+ Tree Operations**: Insert, delete, and search with real-time visualization
-- **Animated Transitions**: Smooth animations for tree operations and node transformations
-- **Customizable Parameters**: Adjust tree order (m-value) and animation speed
-- **Traversal Visualization**: Optional highlighting of key traversal paths
+```bash
+git clone https://github.com/MauricioART/B-Tree-Algorithm.git
+cd B-Tree-Algorithm
+```
 
-### 🎨 User Experience
-- **Dark/Light Theme**: Toggle between themes for comfortable viewing
-- **Responsive Design**: Adaptive layout that works across different window sizes
-- **Modal Dialogs**: Clean interface with contextual popup dialogs
-- **Sound Feedback**: Audio cues for different operations and events
-- **Real-time Statistics**: Live tree metrics (depth, width, m-parameter)
+| Environment | Run the application |
+| --- | --- |
+| Windows PowerShell | `.\mvnw.cmd javafx:run` |
+| Linux or macOS | `sh ./mvnw javafx:run` |
+| Installed Maven | `mvn javafx:run` |
 
-### 🛠 Technical Features
-- **Custom Controls**: Material-inspired UI components using MFX library
-- **Scalable Canvas**: Zoom and pan capabilities for large tree structures
+To compile the project and run Maven’s test phase, use `mvn clean test` or the corresponding wrapper command.
 
-## 🚀 Getting Started
+## Explore the tree
 
-### Prerequisites
-- **JDK 22** or higher
-- **Maven** or the included Maven Wrapper. Maven downloads JavaFX and the other dependencies.
+| Control | What it does |
+| --- | --- |
+| **Insertar** | Adds an integer key and its text value. The inspector reports duplicate keys. |
+| **Buscar** | Highlights the search path when traversal animation is enabled. A successful search keeps the key highlighted and shows its leaf and value. |
+| **Borrar** | Removes the key and animates any redistribution or merge. |
+| **Centrar vista** | Restores the default zoom and position. Scroll to zoom and drag to pan. |
+| **Ajustes** | Select the tree order (4–10), animation speed (0.5×–1.5×), traversal animation, sound, or the light theme. Changing the order prompts for confirmation when the tree contains keys. |
 
-### Installation
+To see the first split at order 4, insert `4`, `9`, `18`, and `24`. Then search for `24` to follow the route from the root to its leaf.
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/MauricioART/B-Tree-Algorithm.git
-   cd B-Tree-Algorithm
-   ```
+### Light theme
 
-2. **Build the project**
-   ```bash
-   mvn clean compile
-   ```
+Enable **Tema claro** in **Ajustes** to use the warm light palette.
 
-3. **Run the application**
-   ```bash
-   mvn javafx:run
-   ```
+![Light theme in a compact window with the B+ tree fitted to the canvas](docs/images/terminal-light.png)
 
-To use the Maven Wrapper, replace `mvn` with `sh ./mvnw` on Linux or macOS, or `./mvnw.cmd` on Windows.
+## Project structure
 
-### Dependencies
+| Area | Responsibility |
+| --- | --- |
+| [Model](src/main/java/com/arturoar/model) | B+ tree operations, linked leaves, and structural events. |
+| [Controller](src/main/java/com/arturoar/controller/BPlusTreeController.java) | Inspector, settings, and operation lifecycle. |
+| [View](src/main/java/com/arturoar/view) | Node and edge rendering, layout, and traversal highlights. |
+| [Animation queue](src/main/java/com/arturoar/util/TreeAnimator.java) | Playback of traversal and structural transitions. |
+| [FXML and CSS](src/main/resources/com/arturoar/ui) | Interface layout, theme, and packaged resources. |
 
-The project uses these main libraries:
+### Animation performance
 
-- **JavaFX 22.0.1: Modern UI framework**
-- **MaterialFX: Enhanced UI components**
-- **Ikonli: Icon library (FontAwesome, CoreUI)**
+The view batches resize layout, skips movement animations for stationary elements, and binds arrowhead positions to their endpoints. In a JavaFX comparison with 40 ascending inserts, traversal enabled, order 4, and an 880 × 540 canvas, the queue contained **2,158 animation objects**, down from **4,716** at commit `d926419` (54% fewer). The count includes nested animations scheduled before playback.
 
-### 🎮 How to Use
+## License and credits
 
-## Basic Operations
+The project uses the [MIT License](LICENSE). Sound effects are from [Pixabay](https://pixabay.com/).
 
-1. Insert Key-Value Pairs
-
-   - Click the insert button (➕)
-   
-   - Enter integer key and string value
-   
-   - Watch the tree restructure with smooth animations
-
-2. Search for Keys
-
-   - Use the search button (🔍)
-
-   - Enter key to locate
-
-   - Visual highlighting shows traversal path
-
-3. Delete Keys
-
-   - Click the remove button (🗑️)
-   
-   - Enter key to delete
-   
-   - Observe tree rebalancing
-
-### Configuration
-
-- Tree Order: Adjust m-parameter in settings (3+ recommended)
-- Animation Speed: Control transition timing (instant to slow-motion)
-- Theme: Switch between dark and light modes
-- Sound: Toggle audio feedback for operations
-
-### 📝 License
-This project is licensed under the [MIT License](LICENSE).
-
-### 🙏 Acknowledgments
-- JavaFX Team for the excellent UI framework
-- MaterialFX Contributors for the beautiful UI components
-- Ikonli Project for the comprehensive icon set
-- B+ Tree Algorithm creators for the fundamental data structure
-
-### Sound Atributtion
-
-Sound effects from Pixabay:
-- Pop & Whoosh sounds by DRAGON-STUDIO
-- Success sound by u_3bsnvt0dsu  
-- Error sound by Universfield
-
-Learn more at: https://pixabay.com/
-
-#### ⭐ If you find this project helpful, please give it a star on GitHub!
-
-For questions or support, please open an issue in the GitHub repository.
-
-
-
-
+- Pop and whoosh by **DRAGON-STUDIO**
+- Success by **u_3bsnvt0dsu**
+- Error by **Universfield**
