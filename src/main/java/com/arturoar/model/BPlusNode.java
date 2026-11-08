@@ -43,14 +43,19 @@ abstract public class BPlusNode<K extends Comparable<K>, V> {
         return this.keys;
     }
 
-    public Key<K> deleteKey(K key){
-        for (Key<K> storedKey : this.keys) {
-            if (storedKey.getKey().equals(key)) {
-                this.keys.remove(storedKey);
-                return storedKey;
+    int indexOfKey(K key) {
+        if (key == null) return -1;
+        for (int i = 0; i < keys.size(); i++) {
+            if (key.compareTo(getKey(i)) == 0) {
+                return i;
             }
         }
-        return null;
+        return -1;
+    }
+
+    public Key<K> deleteKey(K key){
+        int index = indexOfKey(key);
+        return index < 0 ? null : deleteKey(index);
     }
     public Key<K> deleteKey(int index){
         return this.keys.remove(index);
@@ -100,12 +105,16 @@ abstract public class BPlusNode<K extends Comparable<K>, V> {
     }
 
     public boolean isUnderFlow() {
-        return this.keys.size() < Math.ceil(m / 2) - 1;
+        return size() < minimumKeyCount();
     }
 
     public boolean wouldBeUnderFlow() {
-    return (this.size() - 1) < Math.ceil(m / 2) - 1;
-}
+        return size() <= minimumKeyCount();
+    }
+
+    private int minimumKeyCount() {
+        return isLeaf ? m / 2 : (m - 1) / 2;
+    }
 
     public int size() {
         return this.keys.size();

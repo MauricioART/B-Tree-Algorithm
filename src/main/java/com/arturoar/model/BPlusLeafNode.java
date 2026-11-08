@@ -19,12 +19,8 @@ public class BPlusLeafNode<K extends Comparable<K>, V> extends BPlusNode<K,V>{
     }
 
     public V getData(K key){
-        for (int i = 0; i < super.keys.size(); i++) {
-            if (super.keys.get(i).getKey().equals(key)) {
-                return this.data.get(i);
-            }
-        }
-        return null;
+        int index = indexOfKey(key);
+        return index < 0 ? null : getData(index);
     }
     
     public V getData(int index){
@@ -32,12 +28,7 @@ public class BPlusLeafNode<K extends Comparable<K>, V> extends BPlusNode<K,V>{
     }
 
     public V getData(Key<K> key){
-        for (int i = 0; i < super.keys.size(); i++) {
-            if (super.keys.get(i).getKey().equals(key.getKey())) {
-                return this.data.get(i);
-            }
-        }
-        return null;
+        return getData(key.getKey());
     }
 
     public BPlusLeafNode<K, V> getNextLeafNode(){

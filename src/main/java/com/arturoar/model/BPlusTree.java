@@ -86,9 +86,8 @@ public class BPlusTree<K extends Comparable<K>,V> {
             
             BPlusLeafNode<K,V> leafNode =  containsResult.getResult();
 
-            int keyIndex = leafNode.getKeyValues().indexOf(key);
-
-            Key<K> deletedKey =  leafNode.deleteKey(key);
+            int keyIndex = leafNode.indexOfKey(key);
+            Key<K> deletedKey = leafNode.deleteKey(keyIndex);
             leafNode.getData().remove(keyIndex);
 
             
@@ -102,6 +101,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
             
             if (leafNode == root && root.isEmpty()){
                 notifyObservers(new BPlusTreeEvent.NodeDeleted<>(null, root));
+                this.nodes.remove(root);
                 root = null;
                 emptyProperty.set(true);
             }
@@ -359,13 +359,13 @@ public class BPlusTree<K extends Comparable<K>,V> {
             
             Key<K> newKey = new Key<K>(leftNode.getParent().getKey(nodeIndex));
             leftNode.getKeys().add(newKey);
-            notifyObservers(new BPlusTreeEvent.KeyInserted<>(leftNode, newKey));
             
             for (BPlusNode<K,V> child : ((BPlusInnerNode<K,V>)rightNode).getChildren()) {
                 child.setParent((BPlusInnerNode<K,V>)leftNode);
                 ((BPlusInnerNode<K,V>)leftNode).getChildren().add(child);
                 notifyObservers(new BPlusTreeEvent.NodeBorrowed<>(rightNode, leftNode, child));
             }
+            notifyObservers(new BPlusTreeEvent.KeyInserted<>(leftNode, newKey));
         }
 
         leftNode.getKeys().addAll(rightKeys);
@@ -376,6 +376,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
         notifyObservers(new BPlusTreeEvent.KeyRemoved<>(leftNode.getParent(), keyRemoved));
         
         BPlusNode<K,V> nodeDeleted = leftNode.getParent().getChildren().remove(nodeIndex+1);
+        this.nodes.remove(nodeDeleted);
         notifyObservers(new BPlusTreeEvent.NodeDeleted<>(leftNode.getParent(), nodeDeleted));
 
         if (leftNode.getParent() == root && root.isEmpty()){
@@ -543,6 +544,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
             BPlusNode<K,V> child = ((BPlusInnerNode<K,V>)rightNode).getChildren().removeFirst();
             ((BPlusInnerNode<K,V>)leftNode).getChildren().addLast(child);
             ((BPlusInnerNode<K,V>)leftNode).getLastChild().setParent((BPlusInnerNode<K,V>)leftNode);
+            notifyObservers(new BPlusTreeEvent.KeyBorrowedFromInnerNode<>());
             notifyObservers(new BPlusTreeEvent.NodeBorrowed<>(rightNode, leftNode, child));
         }
     }
