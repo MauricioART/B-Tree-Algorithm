@@ -4,8 +4,8 @@
 
 A JavaFX application for visualizing and interacting with B+ Tree data structures in real-time. This tool provides an intuitive graphical interface to understand B+ Tree operations through smooth animations and interactive controls.
 
-![Java](https://img.shields.io/badge/Java-17%2B-orange)
-![JavaFX](https://img.shields.io/badge/JavaFX-17-blue)
+![Java](https://img.shields.io/badge/Java-22%2B-orange)
+![JavaFX](https://img.shields.io/badge/JavaFX-22.0.1-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 
@@ -31,9 +31,8 @@ A JavaFX application for visualizing and interacting with B+ Tree data structure
 ## 🚀 Getting Started
 
 ### Prerequisites
-- **Java 17** or higher
-- **JavaFX 17** SDK
-- **Maven** for dependency management
+- **JDK 22** or higher
+- **Maven** or the included Maven Wrapper. Maven downloads JavaFX and the other dependencies.
 
 ### Installation
 
@@ -41,20 +40,25 @@ A JavaFX application for visualizing and interacting with B+ Tree data structure
    ```bash
    git clone https://github.com/MauricioART/B-Tree-Algorithm.git
    cd B-Tree-Algorithm
+   ```
 
 2. **Build the project**
    ```bash
    mvn clean compile
+   ```
 
 3. **Run the application**
    ```bash
    mvn javafx:run
+   ```
+
+To use the Maven Wrapper, replace `mvn` with `sh ./mvnw` on Linux or macOS, or `./mvnw.cmd` on Windows.
 
 ### Dependencies
 
 The project uses these main libraries:
 
-- **JavaFX 17: Modern UI framework**
+- **JavaFX 22.0.1: Modern UI framework**
 - **MaterialFX: Enhanced UI components**
 - **Ikonli: Icon library (FontAwesome, CoreUI)**
 
@@ -94,7 +98,7 @@ The project uses these main libraries:
 - Sound: Toggle audio feedback for operations
 
 ### 📝 License
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the [MIT License](LICENSE).
 
 ### 🙏 Acknowledgments
 - JavaFX Team for the excellent UI framework
