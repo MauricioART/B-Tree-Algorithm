@@ -1,6 +1,6 @@
 package com.arturoar.view;
 
-import javafx.beans.value.ChangeListener;
+import javafx.beans.binding.DoubleBinding;
 import javafx.scene.shape.CubicCurve;
 
 public class TreeEdge extends Edge {
@@ -11,7 +11,7 @@ public class TreeEdge extends Edge {
         super();
         edgeType = EdgeType.TREE_EDGE;
         body = new CubicCurve();
-        body.setStrokeWidth(2);
+        body.setStrokeWidth(1.4);
         body.strokeProperty().bind(colorProperty);
         body.setFill(null);
         initialize();
@@ -24,33 +24,14 @@ public class TreeEdge extends Edge {
         body.endXProperty().bind(endX);
         body.endYProperty().bind(endY);
 
+        DoubleBinding midpoint = originY.add(endY).divide(2);
+        body.controlX1Property().bind(originX);
+        body.controlX2Property().bind(endX);
+        body.controlY1Property().bind(midpoint);
+        body.controlY2Property().bind(midpoint);
+
+        configureArrowHead(edgeType.getAngle());
         getChildren().addAll(body, head);
-        updateControlPoints();
-        updateArrowHead(edgeType.getAngle());
-
-        // Update control points + arrowhead when coords change
-        ChangeListener<Number> listener = (_, _, _) -> {
-            updateControlPoints();
-            updateArrowHead(edgeType.getAngle());
-        };
-
-        originX.addListener(listener);
-        originY.addListener(listener);
-        endX.addListener(listener);
-        endY.addListener(listener);
-
-     
-    }
-
-    
-    private void updateControlPoints() {  
-        // Puntos de control para garantizar tangentes verticales
-        double midY = (originY.get() + endY.get()) / 2;
-
-        ((CubicCurve)body).setControlX1(originX.get());
-        ((CubicCurve)body).setControlY1(midY);
-        ((CubicCurve)body).setControlX2(endX.get());
-        ((CubicCurve)body).setControlY2(midY);
     }
 
     public CubicCurve getBody() {

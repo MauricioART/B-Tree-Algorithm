@@ -43,7 +43,9 @@ public class TreeAnimator {
     private Interpolator interpolator = Interpolator.EASE_BOTH;
     private BooleanProperty mute = new SimpleBooleanProperty(false);
 
-    private Runnable globalFinishCallback = null;
+    private static final Color HIGHLIGHT_COLOR = Color.web("#ffc36a");
+    private Runnable globalFinishCallback;
+    private boolean animating;
 
 
     public List<Transition>  parallelList = new ArrayList<>();
@@ -94,6 +96,7 @@ public class TreeAnimator {
     }
 
     public Transition moveNode(Node node, double byX, double byY, SoundType sound) {
+        if (Math.abs(byX) < 0.001 && Math.abs(byY) < 0.001) return null;
         
         double distance = Math.sqrt(Math.pow(byX, 2) + Math.pow(byY,2));
         int duration = calculateDuration(distance);
@@ -157,26 +160,10 @@ public class TreeAnimator {
     }
 
     public SequentialTransition highlightKeyView(KeyView keyView, SoundType sound) {
+        return pulse(keyView.colorProperty(), sound);
+    }
 
-        Paint highlightColor = Color.web("#bca20eff");
-        Paint originalColor = keyView.colorProperty().get();
-
-        Transition highlightTransition = colorTransition(Duration.millis(animationDuration.get()),keyView.colorProperty(), originalColor, highlightColor);
-
-        if (!mute.get() && sound != null){
-            highlightTransition.statusProperty().addListener((_, oldStatus, newStatus)->{
-                if (newStatus == Animation.Status.RUNNING && oldStatus == Animation.Status.STOPPED) {
-                    if (sound != null) sound.play();
-                }
-            });
-        }
-
-        Transition restoreTransition = colorTransition(Duration.millis(animationDuration.get()),keyView.colorProperty(), highlightColor, originalColor);
-
-        return new SequentialTransition(highlightTransition, restoreTransition);
-}
-
-public SequentialTransition highlightData(Label data, SoundType sound) {
+    public SequentialTransition highlightData(Label data, SoundType sound) {
     Paint highlightColor = Color.web("#bca20eff");
     Paint originalColor = data.getTextFill();
     
@@ -211,25 +198,21 @@ public SequentialTransition highlightData(Label data, SoundType sound) {
 
 
     public SequentialTransition highlightEdge(Edge edge, SoundType sound) {
+        return pulse(edge.colorProperty(), sound);
+    }
 
-
-        Paint originalColor = edge.colorProperty().get();
-
-        Paint highlighColor = Color.web("#bca20eff");
-
-        Transition highlightTransition = colorTransition(Duration.millis(animationDuration.get()),edge.colorProperty(), originalColor, highlighColor);
-
-         if (!mute.get() && sound != null){
-            highlightTransition.statusProperty().addListener((_, oldStatus, newStatus)->{
-                if (newStatus == Animation.Status.RUNNING && oldStatus == Animation.Status.STOPPED) {
-                    if (sound != null) sound.play();
-                }
-            });
-        }
-
-        Transition restoreTransition = colorTransition(Duration.millis(animationDuration.get()),edge.colorProperty(), highlighColor, originalColor);
-
-        return new SequentialTransition(highlightTransition, restoreTransition);
+    private SequentialTransition pulse(ObjectProperty<Paint> color, SoundType sound) {
+        Paint original = color.get();
+        Color highlight = original instanceof Color shade && shade.getBrightness() > 0.55
+                ? HIGHLIGHT_COLOR : Color.web("#a35c05");
+        Duration peak = Duration.millis(animationDuration.get() * 0.45);
+        Timeline pulse = new Timeline(
+                new KeyFrame(Duration.ZERO, _ -> {
+                    if (!mute.get() && sound != null) sound.play();
+                }, new KeyValue(color, original)),
+                new KeyFrame(peak, new KeyValue(color, highlight, interpolator)),
+                new KeyFrame(peak.multiply(2), new KeyValue(color, original, interpolator)));
+        return new SequentialTransition(pulse);
     }
 
     public void addParallelTransition(List<Transition> transitions) {
@@ -302,45 +285,40 @@ public SequentialTransition highlightData(Label data, SoundType sound) {
         parallelList.clear();
     }
 
+    public boolean isAnimating() {
+        return animating;
+    }
+
     public void animateQueue() {
-        SequentialTransition traversal = new SequentialTransition();
-        traversal.getChildren().addAll(traversalList);
-        traversalList.clear();
-
-        SequentialTransition seqTransitions = new SequentialTransition();
-        seqTransitions.getChildren().addAll(transitionQueue);
-        clearQueue();
-
-         seqTransitions.setOnFinished(_ -> {
-            if (globalFinishCallback != null) {
-                globalFinishCallback.run(); // ¡Botones habilitados aquí!
-                globalFinishCallback = null; // Limpiar el estado
-            }
-        });
-        
-        traversal.setOnFinished(_ -> {
-            seqTransitions.play();
-        });
-
-        traversal.play();
-    }
-
-
-
-    public void combineLastsTransitionsOnQueue(int numOfTransitions) {
-        int size = transitionQueue.size();
-        if (size < numOfTransitions) return;
-
-        Transition lastTransition, secondLast;
-        for (int i = 1; i < numOfTransitions; i++){
-            lastTransition = transitionQueue.removeLast();
-            secondLast = transitionQueue.removeLast();
-            ParallelTransition combinedTransitions = new ParallelTransition(lastTransition,secondLast);
-            transitionQueue.add(combinedTransitions);
+        if (animating) return;
+        Runnable onFinished = globalFinishCallback;
+        globalFinishCallback = null;
+        if (traversalList.isEmpty() && transitionQueue.isEmpty()) {
+            if (onFinished != null) onFinished.run();
+            return;
         }
-
+        SequentialTransition sequence = new SequentialTransition();
+        sequence.getChildren().addAll(traversalList);
+        sequence.getChildren().addAll(transitionQueue);
+        traversalList.clear();
+        clearQueue();
+        sequence.setOnFinished(_ -> {
+            animating = false;
+            if (onFinished != null) onFinished.run();
+        });
+        animating = true;
+        sequence.play();
     }
-    
+
+    public void combineLastsTransitionsOnQueue(int count) {
+        if (count < 2 || transitionQueue.size() < count) return;
+        int start = transitionQueue.size() - count;
+        List<Transition> batch = transitionQueue.subList(start, transitionQueue.size());
+        ParallelTransition combined = new ParallelTransition();
+        combined.getChildren().addAll(batch.reversed());
+        batch.clear();
+        transitionQueue.add(combined);
+    }
 
     public void addListenerToLastTransition(Runnable onFinished) {
     int size = transitionQueue.size();
@@ -380,10 +358,6 @@ public SequentialTransition highlightData(Label data, SoundType sound) {
             int duration = calculateDuration(toValue - fromValue);
             {
                 setCycleDuration(Duration.millis(duration));
-                //setCycleDuration(ANIMATION_DURATION);
-                
-                // Set initial value
-                property.setValue(fromValue);
             }
             
             @Override

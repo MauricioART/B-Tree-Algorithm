@@ -13,8 +13,8 @@ import javafx.scene.paint.Paint;
 
 public abstract class Edge extends Group {
 
-    protected final Paint LIGHT_COLOR = Color.web("#000");
-    protected final Paint DARK_COLOR = Color.web("#FFF");
+    protected static final Paint LIGHT_COLOR = Color.web("#756956");
+    protected static final Paint DARK_COLOR = Color.web("#929b88");
 
     protected Polygon head;
     protected EdgeType edgeType;
@@ -52,24 +52,15 @@ public abstract class Edge extends Group {
 
     protected abstract void initialize();
 
-    protected void updateArrowHead(double angle) {
-
-        double arrowSize = 8.0;
-        double ex = endX.get();
-        double ey = endY.get();
-
-        double x1 = ex - arrowSize * Math.cos(angle - Math.PI / 6);
-        double y1 = ey - arrowSize * Math.sin(angle - Math.PI / 6);
-        double x2 = ex - arrowSize * Math.cos(angle + Math.PI / 6);
-        double y2 = ey - arrowSize * Math.sin(angle + Math.PI / 6);
-
+    protected void configureArrowHead(double angle) {
+        double size = 6;
         head.getPoints().setAll(
-                ex, ey,
-                x1, y1,
-                x2, y2
-        );
+                0.0, 0.0,
+                -size * Math.cos(angle - Math.PI / 6), -size * Math.sin(angle - Math.PI / 6),
+                -size * Math.cos(angle + Math.PI / 6), -size * Math.sin(angle + Math.PI / 6));
+        head.translateXProperty().bind(endX);
+        head.translateYProperty().bind(endY);
     }
-
 
     // Getters/Setters/Properties
 

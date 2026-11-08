@@ -1,713 +1,288 @@
 package com.arturoar.controller;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import org.kordamp.ikonli.coreui.CoreUiFree;
-import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
-import org.kordamp.ikonli.javafx.FontIcon;
+import java.util.List;
 
 import com.arturoar.exceptions.BPlusTreeEmptyException;
-import com.arturoar.model.*;
-import com.arturoar.ui.BPlusTreeUI;
+import com.arturoar.model.BPlusLeafNode;
+import com.arturoar.model.BPlusTree;
+import com.arturoar.model.Key;
 import com.arturoar.util.BPlusTraversalResult;
+import com.arturoar.util.SoundType;
 import com.arturoar.util.TreeAnimator;
 import com.arturoar.util.TreeViewTransformer;
-import com.arturoar.view.KeyView;
 import com.arturoar.view.TreeView;
-import com.arturoar.util.SoundType;
 
-import javafx.animation.FadeTransition;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.value.ChangeListener;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
-import javafx.scene.Parent;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.scene.shape.Rectangle;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.util.Duration;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import io.github.palexdev.materialfx.controls.MFXButton;
-import io.github.palexdev.materialfx.dialogs.MFXGenericDialog;
-import io.github.palexdev.materialfx.dialogs.MFXGenericDialogBuilder;
-import io.github.palexdev.materialfx.dialogs.MFXStageDialog;
-import io.github.palexdev.materialfx.enums.ScrimPriority;
-import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
+import javafx.scene.control.Slider;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.scene.shape.LineTo;
+import javafx.scene.shape.MoveTo;
+import javafx.scene.shape.Path;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
 
+public class BPlusTreeController {
 
-public class BPlusTreeController implements Initializable {
+    private static final PseudoClass LIGHT = PseudoClass.getPseudoClass("light");
+    private static final PseudoClass ERROR = PseudoClass.getPseudoClass("error");
 
-    @FXML private AnchorPane rootPane;
+    private enum Operation { SEARCH, INSERT, DELETE }
+
+    @FXML private BorderPane rootPane;
     @FXML private Pane canvas;
-    @FXML private StackPane settingsSP;
-    @FXML private StackPane searchSP;
-    @FXML private StackPane insertSP;
-    @FXML private StackPane deleteSP;
-    @FXML private FontIcon insertIcon;
-    @FXML private FontIcon removeIcon;
-    @FXML private FontIcon searchIcon;
-    @FXML private FontIcon homeIcon;
-    @FXML private FontIcon settingsIcon;
-    @FXML private MFXFontIcon minimizeBtn;
-    @FXML private MFXFontIcon maximizeBtn;
-    @FXML private MFXFontIcon closeBtn;
-    @FXML private VBox searchBtnBox;
-    @FXML private VBox insertBtnBox;
-    @FXML private VBox removeBtnBox;
-    @FXML private VBox homeBtnBox;
-    @FXML private VBox settingsBtnBox;
-    @FXML private HBox headerBox;
-    @FXML private HBox controlBar;
-    @FXML private Pane dialogOverlay;
+    @FXML private VBox emptyState;
+    @FXML private VBox operationPane;
+    @FXML private VBox valuePane;
+    @FXML private VBox resultPane;
+    @FXML private VBox settingsPane;
+    @FXML private HBox toolbar;
+    @FXML private TextField keyField;
+    @FXML private TextField valueField;
+    @FXML private Button submitButton;
+    @FXML private ToggleButton searchButton;
+    @FXML private ToggleButton insertButton;
+    @FXML private ToggleButton deleteButton;
+    @FXML private ToggleButton settingsButton;
+    @FXML private ComboBox<Integer> orderChoice;
+    @FXML private Slider speedSlider;
+    @FXML private Label speedLabel;
     @FXML private Label treeInfoLabel;
+    @FXML private Label keyCountLabel;
+    @FXML private Label resultTitle;
+    @FXML private Label resultDetail;
+    @FXML private CheckBox traversalToggle;
+    @FXML private CheckBox soundToggle;
+    @FXML private CheckBox lightThemeToggle;
 
-    
-    
-    private InfoMessage infoMessage;
-    private InfoMessage emptyTree;
-    private SettingsDialogController settingsController;
-    private InsertDialogController insertDialogController;
-    private RemoveDialogController removeDialogController;
-    private SearchDialogController searchDialogController;
-
-
-    private BooleanProperty darkMode = new SimpleBooleanProperty();
-    private DoubleProperty animationSpeed = new SimpleDoubleProperty(1.0);
-    private DoubleProperty mParameter = new SimpleDoubleProperty();
-    private BooleanProperty traversalAnimation = new SimpleBooleanProperty();
-    private BooleanProperty isTreeEmptyProperty = new SimpleBooleanProperty();
-    private BooleanProperty mute = new SimpleBooleanProperty();
-
-
-    private int m;
-
-    private final ExecutorService animationExecutor = Executors.newSingleThreadExecutor();
-
-
-    // BPlusTree model instance
+    private final Stage stage;
+    private final TreeAnimator animator = TreeAnimator.getInstance();
+    private Operation operation = Operation.SEARCH;
     private BPlusTree<Integer, String> tree;
-    private TreeViewTransformer transformer;
-    
     private TreeView treeView;
-
-
-    private double xOffset = 0;
-    private double yOffset = 0;
-
-    private BooleanProperty isDialogActive = new SimpleBooleanProperty(false);
-
-    private Stage stage;
-    private MFXGenericDialog dialogContent;
-    private MFXStageDialog dialog;
-    
+    private TreeViewTransformer transformer;
 
     public BPlusTreeController(Stage stage) {
         this.stage = stage;
-        TreeAnimator.getInstance().animationSpeedProperty().bind(this.animationSpeed);
-        TreeAnimator.getInstance().muteProperty().bind(this.mute.not());
     }
 
-    private void initializeTree(){
-        
-        if(this.tree != null){
-            this.canvas.getChildren().remove(this.treeView);
+    @FXML
+    private void initialize() {
+        for (VBox pane : List.of(operationPane, valuePane, resultPane, settingsPane)) {
+            pane.managedProperty().bind(pane.visibleProperty());
         }
-        tree = new BPlusTree<>(m);
-        treeView = new TreeView();
-        tree.addObserver(this.treeView);
-        transformer = new TreeViewTransformer(canvas, treeView);
-
-        treeView.darkModeProperty().bind(darkMode);
-
-        treeInfoLabel.textProperty().bind(
-            Bindings.createStringBinding(() -> 
-                String.format("Tree m parameter: %d\nTree depth: %d\n" + //
-                                        "Tree width: %d", 
-                    (int)mParameter.get(),
-                    treeView.depthProperty().get(), 
-                    treeView.widthProperty().get()
-                ), mParameter, treeView.depthProperty(), treeView.widthProperty()
-        ));
-
-        isTreeEmptyProperty.unbind();
-        isTreeEmptyProperty.bind(tree.emptyProperty());
-        
-
-        isTreeEmptyProperty.addListener((_,_,newVal)->{
-            FadeTransition transition = new FadeTransition(Duration.millis(1000),emptyTree);
-            if (newVal){
-                transition.setFromValue(0.0);
-                transition.setToValue(1.0);
-
-                if (TreeAnimator.getInstance().transitionQueue.isEmpty()){
-                    transition.play();
-                    return;
-                }
-
-                TreeAnimator.getInstance().addListenerToLastTransition(()->{
-                    transition.play();
-                });
-                
-            }else{
-                
-                transition.setFromValue(1.0);
-                transition.setToValue(0.0);
-                transition.play();
-                
-            }
-        });
-        
-        canvas.getChildren().add(treeView);
-        treeView.canvasHeightProperty().bind(this.canvas.heightProperty());
-        treeView.canvasWidthProperty().bind(this.canvas.widthProperty());
-        
-    }
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        setupWindowControls();
-        setupResponsiveLayout();
-        makeStageDraggable();
-        setupButtonActions();
-        Platform.runLater(() -> {
-            setupPopupPositions();
-        });
-        loadDialogs();
-        
-        ChangeListener<Boolean> dialogActiveListener = (_,_, isActive ) -> {
-            if (isActive){
-                controlBar.getStyleClass().add("lightup");
-                dialogOverlay.setVisible(true);
-                
-            }else{
-                controlBar.getStyleClass().remove("lightup");
-                dialogOverlay.setVisible(false);
-            }
-        };
-        
-        isDialogActive.addListener(dialogActiveListener);
-        
-        
-        
-        darkMode.addListener((_,_,newVal)->{
-            if (newVal){
-                rootPane.getStyleClass().add("dark");
-                
-            }else{
-                rootPane.getStyleClass().remove("dark");
-            }
-        });
-        
-        setupDialog();
-        setupCanvas();
-        m = (int)mParameter.get();
-        initializeTree();
-        
-    }
-
-    private void setupWindowControls() {
-        closeBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, _ -> Platform.exit());
-		minimizeBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, _ ->  ((Stage) rootPane.getScene().getWindow()).setIconified(true));
-		maximizeBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, _ -> { ((Stage) rootPane.getScene().getWindow()).setMaximized( !((Stage) rootPane.getScene().getWindow()).isMaximized() );});
-    }
-
-    private void loadDialogs() {
-        try {
-            FXMLLoader loader = new FXMLLoader(BPlusTreeUI.class.getResource("fxml/SettingsDialog.fxml"));
-            Parent settingsContent = loader.load();
-            settingsController = (SettingsDialogController)loader.getController();
-
-            mute.bind(settingsController.soundToggleProperty());
-
-            darkMode.bind(settingsController.themeToggleProperty());
-            
-            animationSpeed.bind(Bindings.createDoubleBinding(() -> {
-                double speedValue = settingsController.speedSliderValueProperty().get();
-                return speedValue != 0 ? 1.0 / speedValue : 1.0; 
-            }, settingsController.speedSliderValueProperty()));
-            mParameter.bind(settingsController.mProperty());
-            traversalAnimation.bind(settingsController.traversalToggleProperty());
-            
-            ((SettingsDialogController)loader.getController()).setOnMSliderChange(()->{
-                if (!tree.emptyProperty().get()){
-                    showDialog();
-                }else{
-                    m = (int) mParameter.get();
-                    initializeTree();
-                }
-            });
-
-            settingsSP.getChildren().clear();
-            settingsSP.getChildren().add(settingsContent);
-            settingsSP.setVisible(false); 
-           
-
-            FXMLLoader insertLoader = new FXMLLoader(BPlusTreeUI.class.getResource("fxml/InsertDialog.fxml"));
-            Parent insertContent = insertLoader.load();
-            insertDialogController = (InsertDialogController)insertLoader.getController();
-            insertDialogController.setOnCancelCallback(this::closeAllDialogs);
-            insertDialogController.setOnInsertCallback(pair -> handleInsert(pair.getKey(), pair.getValue()));
-
-            insertSP.getChildren().clear();
-            insertSP.getChildren().add(insertContent);
-            insertSP.setVisible(false); 
-
-            
-            FXMLLoader removeLoader = new FXMLLoader(BPlusTreeUI.class.getResource("fxml/RemoveDialog.fxml"));
-            Parent removeContent = removeLoader.load();
-            removeDialogController = (RemoveDialogController)removeLoader.getController();
-            removeDialogController.setOnCancelCallback(this::closeAllDialogs);
-            removeDialogController.setOnRemoveCallback(key -> handleRemove(key));
-            
-            deleteSP.getChildren().clear();
-            deleteSP.getChildren().add(removeContent);
-            deleteSP.setVisible(false); 
-            
-            FXMLLoader searchLoader = new FXMLLoader(BPlusTreeUI.class.getResource("fxml/SearchDialog.fxml"));
-            Parent searchContent = searchLoader.load();
-            searchDialogController = (SearchDialogController)searchLoader.getController();
-            searchDialogController.setOnCancelCallback(this::closeAllDialogs);
-            searchDialogController.setOnSearchCallback(key -> handleSearch(key));
-            
-            searchSP.getChildren().clear();
-            searchSP.getChildren().add(searchContent);
-            searchSP.setVisible(false); 
-            
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void toggleSettingsDialog() {
-        boolean isVisible = settingsSP.isVisible();
-        settingsSP.setVisible(!isVisible);
-        
-        // Ocultar otros popups si están visibles
-        searchSP.setVisible(false);
-        insertSP.setVisible(false);
-        deleteSP.setVisible(false);
-        
-        isDialogActive.set(!isVisible);
-    }
-
-    private void toggleInsertDialog() {
-        boolean isVisible = insertSP.isVisible();
-        insertSP.setVisible(!isVisible);
-        
-        // Ocultar otros popups si están visibles
-        searchSP.setVisible(false);
-        settingsSP.setVisible(false);
-        deleteSP.setVisible(false);
-        isDialogActive.set(!isVisible);
-    }
-
-    private void toggleDeleteDialog() {
-        boolean isVisible = deleteSP.isVisible();
-        deleteSP.setVisible(!isVisible);
-        
-        // Ocultar otros popups si están visibles
-        searchSP.setVisible(false);
-        settingsSP.setVisible(false);
-        insertSP.setVisible(false);
-        isDialogActive.set(!isVisible);
-    }
-
-    private void toggleSearchDialog() {
-        boolean isVisible = searchSP.isVisible();
-        searchSP.setVisible(!isVisible);
-        
-        // Ocultar otros popups si están visibles
-        insertSP.setVisible(false);
-        settingsSP.setVisible(false);
-        deleteSP.setVisible(false);
-        isDialogActive.set(!isVisible);
-    }
-
-    private void closeAllDialogs(){
-        
-        insertSP.setVisible(false);
-        settingsSP.setVisible(false);
-        deleteSP.setVisible(false);
-        searchSP.setVisible(false);   
-        
-        isDialogActive.set(false);
-    }
-
-
-    private void setupResponsiveLayout() {
-        // Header - anclado arriba
-        AnchorPane.setTopAnchor(headerBox, 0.0);
-        AnchorPane.setLeftAnchor(headerBox, 0.0);
-        AnchorPane.setRightAnchor(headerBox, 0.0);
-        
-        // Control bar - posición fija desde arriba
-        AnchorPane.setTopAnchor(controlBar, 67.0);
-        AnchorPane.setLeftAnchor(controlBar, 0.0);
-        AnchorPane.setRightAnchor(controlBar, 0.0);
-        
-        // Canvas - ocupa espacio restante
-        
-        AnchorPane.setTopAnchor(canvas, 159.0);
-        AnchorPane.setBottomAnchor(canvas, 11.0);
-        AnchorPane.setLeftAnchor(canvas, 10.0);
-        AnchorPane.setRightAnchor(canvas, 10.0);
-
-
-        AnchorPane.setBottomAnchor(dialogOverlay, 0.0);
-        AnchorPane.setTopAnchor(dialogOverlay, 0.0);
-        AnchorPane.setLeftAnchor(dialogOverlay, 0.0);
-        AnchorPane.setRightAnchor(dialogOverlay, 0.0);
-
-    }
-
-    private void setupPopupPositions() {
-        ChangeListener<Number> positionListener = (_, _, _) -> updatePopupPositions();
-
-        searchBtnBox.layoutXProperty().addListener(positionListener);
-        insertBtnBox.layoutXProperty().addListener(positionListener);
-        removeBtnBox.layoutXProperty().addListener(positionListener);
-        settingsBtnBox.layoutXProperty().addListener(positionListener);
-
-        updatePopupPositions();
-    
-    }
-
-    private void updatePopupPositions() {
-
-        AnchorPane.setTopAnchor(searchSP, 159.0);
-        AnchorPane.setLeftAnchor(searchSP, searchBtnBox.getLayoutX()+ searchBtnBox.getWidth()/2-(searchSP.getPrefWidth()/2));
-        
-        AnchorPane.setTopAnchor(insertSP, 159.0);
-        AnchorPane.setLeftAnchor(insertSP, insertBtnBox.getLayoutX()+ insertBtnBox.getWidth()/2-(insertSP.getPrefWidth()/2));
-
-        AnchorPane.setTopAnchor(deleteSP, 159.0);
-        AnchorPane.setLeftAnchor(deleteSP, removeBtnBox.getLayoutX()+ removeBtnBox.getWidth()/2-(deleteSP.getPrefWidth()/2));
-
-        AnchorPane.setTopAnchor(settingsSP, 159.0);
-        AnchorPane.setLeftAnchor(settingsSP, settingsBtnBox.getLayoutX()+ settingsBtnBox.getWidth()/2-(settingsSP.getPrefWidth()/2));
-
-        AnchorPane.setTopAnchor(treeInfoLabel, 170.0);
-        AnchorPane.setLeftAnchor(treeInfoLabel, 20.0);
-
-
-
-    }
-
-    private void setupDialog() {
-    Platform.runLater(() -> {
-        // Crear icono de advertencia para el header
-        FontIcon warningIcon = new FontIcon(CoreUiFree.WARNING);
-        warningIcon.getStyleClass().add("warning-icon");
-
-        this.dialogContent = MFXGenericDialogBuilder.build()
-                .setHeaderIcon(warningIcon)
-                .setHeaderText("Warning")
-                .setContentText("The current Tree would reset. Are you sure you want to continue?")
-                .makeScrollable(true)
-                .get();
-
-        this.dialog = MFXGenericDialogBuilder.build(dialogContent)
-                .toStageDialogBuilder()
-                .initOwner(stage)
-                .initModality(Modality.WINDOW_MODAL)
-                .setDraggable(true)
-                .setTitle("Reset Tree Confirmation")
-                .setOwnerNode(rootPane)
-                .setScrimPriority(ScrimPriority.WINDOW)
-                .setScrimOwner(true)
-                .get();
-
-        dialogContent.addActions(
-                Map.entry(new MFXButton("Confirm"), event -> {
-                    m = (int) mParameter.get();
-                    initializeTree();
-                    closeAllDialogs();
-                    dialog.close();
-                }),
-                Map.entry(new MFXButton("Cancel"), event -> {
-                    settingsController.getMSlider().setValue(m);
-                    dialog.close();
-                })
-        );
-    });
-}
-    public void showDialog() {
-        Platform.runLater(() -> {
-            if (dialog != null) {
-                dialog.showDialog(); 
-
-            }
-        });
-    }
-
-    // Método para cerrar
-    public void closeDialog() {
-        Platform.runLater(() -> {
-            if (dialog != null) {
-                dialog.close();
-            }
-        });
-    }
-
-    private void setupCanvas() {
-
-        // Crear un Rectangle para el clip
         Rectangle clip = new Rectangle();
-        
-        // Bind del clip al tamaño del Pane
         clip.widthProperty().bind(canvas.widthProperty());
         clip.heightProperty().bind(canvas.heightProperty());
-        
-        // Aplicar el clip al Pane
         canvas.setClip(clip);
-        
-        emptyTree = new InfoMessage();
-        emptyTree.setIcon(CoreUiFree.SITEMAP);
-        emptyTree.setMessage("Empty tree");
-        emptyTree.getStyleClass().add("message");
+        addGrid();
 
-        emptyTree.layoutXProperty().bind(
-            canvas.widthProperty().subtract(emptyTree.widthProperty()).divide(2)
-        );
-        emptyTree.layoutYProperty().bind(
-            canvas.heightProperty().subtract(emptyTree.heightProperty()).divide(2).subtract(100)
-        );
-        canvas.getChildren().add(emptyTree);
+        animator.animationSpeedProperty().bind(Bindings.divide(1.0, speedSlider.valueProperty()));
+        animator.muteProperty().bind(soundToggle.selectedProperty().not());
+        speedLabel.textProperty().bind(speedSlider.valueProperty().asString("Velocidad · %.1fx"));
+        lightThemeToggle.selectedProperty().addListener((_, _, light) ->
+                rootPane.pseudoClassStateChanged(LIGHT, light));
 
-
-        infoMessage = new InfoMessage();
-        infoMessage.getStyleClass().add("warning");
-
-        infoMessage.layoutXProperty().bind(
-           canvas.widthProperty().subtract(infoMessage.widthProperty()).divide(2)
-        );
-        infoMessage.layoutYProperty().bind(
-            canvas.heightProperty().subtract(infoMessage.heightProperty()).divide(2)
-        );
-
-        canvas.getChildren().add(infoMessage);
-        infoMessage.setOpacity(0.0);
-
+        orderChoice.getItems().addAll(4, 5, 6, 7, 8, 9, 10);
+        orderChoice.setValue(4);
+        initializeTree(4);
+        selectOperation(Operation.SEARCH, "Buscar");
     }
 
-    private void setupButtonActions() {
-        dialogOverlay.setVisible(false);
-        homeBtnBox.setOnMouseClicked(_ -> transformer.resetView());
-        insertBtnBox.setOnMouseClicked(_ -> toggleInsertDialog());
-        removeBtnBox.setOnMouseClicked(_ -> toggleDeleteDialog());
-        searchBtnBox.setOnMouseClicked(_ -> toggleSearchDialog());
-        settingsBtnBox.setOnMouseClicked(_ -> toggleSettingsDialog());
-        dialogOverlay.setOnMouseClicked(_ ->  closeAllDialogs());
+    private void addGrid() {
+        Path grid = new Path();
+        grid.getStyleClass().add("board-grid");
+        grid.setManaged(false);
+        grid.setMouseTransparent(true);
+        canvas.getChildren().add(grid);
+        canvas.layoutBoundsProperty().addListener((_, _, bounds) -> {
+            grid.getElements().clear();
+            double width = bounds.getWidth();
+            double height = bounds.getHeight();
+            for (double x = 20.5; x < width; x += 20) {
+                grid.getElements().addAll(new MoveTo(x, 0), new LineTo(x, height));
+            }
+            for (double y = 20.5; y < height; y += 20) {
+                grid.getElements().addAll(new MoveTo(0, y), new LineTo(width, y));
+            }
+        });
     }
-    
-    private void handleInsert(Integer key, String data) {
 
-        disableButtons();
-        try{
-            BPlusTraversalResult<Boolean, Integer, String> result = this.tree.insert(key, data);
-            
-            if (traversalAnimation.get()){
-                treeView.animateTraversal(result.getVisitedKeys());
+    private void initializeTree(int order) {
+        if (treeView != null) {
+            tree.removeObserver(treeView);
+            treeView.canvasWidthProperty().unbind();
+            treeView.canvasHeightProperty().unbind();
+            treeView.darkModeProperty().unbind();
+            canvas.getChildren().remove(treeView);
+        }
+
+        tree = new BPlusTree<>(order);
+        treeView = new TreeView();
+        treeView.setManaged(false);
+        tree.addObserver(treeView);
+        transformer = new TreeViewTransformer(canvas, treeView);
+        treeView.darkModeProperty().bind(lightThemeToggle.selectedProperty().not());
+        treeView.canvasWidthProperty().bind(canvas.widthProperty());
+        treeView.canvasHeightProperty().bind(canvas.heightProperty());
+        canvas.getChildren().add(treeView);
+
+        emptyState.visibleProperty().bind(tree.emptyProperty());
+        treeInfoLabel.textProperty().bind(treeView.depthProperty().asString("Orden " + order + " · %d niveles"));
+        keyCountLabel.textProperty().bind(treeView.widthProperty().asString("%d claves"));
+        showResult("Sin selección", "Busca una clave para consultar su valor.", false);
+    }
+
+    @FXML private void showSearch() { selectOperation(Operation.SEARCH, "Buscar"); }
+    @FXML private void showInsert() { selectOperation(Operation.INSERT, "Insertar"); }
+    @FXML private void showDelete() { selectOperation(Operation.DELETE, "Borrar"); }
+    @FXML private void resetViewport() { transformer.resetView(); }
+
+    private void selectOperation(Operation selected, String label) {
+        operation = selected;
+        searchButton.setSelected(selected == Operation.SEARCH);
+        insertButton.setSelected(selected == Operation.INSERT);
+        deleteButton.setSelected(selected == Operation.DELETE);
+        settingsButton.setSelected(false);
+        operationPane.setVisible(true);
+        resultPane.setVisible(true);
+        settingsPane.setVisible(false);
+        valuePane.setVisible(selected == Operation.INSERT);
+        submitButton.setText(label);
+        keyField.requestFocus();
+    }
+
+    @FXML
+    private void showSettings() {
+        if (settingsPane.isVisible()) {
+            switch (operation) {
+                case SEARCH -> showSearch();
+                case INSERT -> showInsert();
+                case DELETE -> showDelete();
             }
+            return;
+        }
+        searchButton.setSelected(false);
+        insertButton.setSelected(false);
+        deleteButton.setSelected(false);
+        settingsButton.setSelected(true);
+        operationPane.setVisible(false);
+        resultPane.setVisible(false);
+        settingsPane.setVisible(true);
+    }
 
-
-            if (!result.getResult()){
-                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 0.0, 1.0,SoundType.ERROR));
-                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1300));
-                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 1.0, 0.0,null)); 
-                infoMessage.setIcon(CoreUiFree.REPORT_SLASH);
-                infoMessage.setMessage("Key already on the Tree");
-            }
-
-
-            
-            TreeAnimator.getInstance().setGlobalFinishCallback( () -> /*Platform.runLater(()->*/ enableButtons()/* )*/);
-            
-            //Platform.runLater(() -> TreeAnimator.getInstance().animateQueue());
-            TreeAnimator.getInstance().animateQueue();
-        /*
-            animationExecutor.submit(() -> {
-            
-                TreeAnimator.getInstance().addListenerToLastTransition( () ->{
-                    Platform.runLater(()->{
-                        enableButtons();
-                        
-                    });
-                });
-
-                Platform.runLater(() -> {
-                        TreeAnimator.getInstance().animateQueue(treeView.allowTranslationProperty());
-                });
-                
-            });*/
-        }catch(BPlusTreeEmptyException e){
-                showInfoMessage( e);
-                enableButtons();
+    @FXML
+    private void changeOrder() {
+        Integer order = orderChoice.getValue();
+        if (tree == null || order == null || order == tree.getM()) return;
+        if (!tree.emptyProperty().get()) {
+            Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION,
+                    "Cambiar el orden vaciará el árbol actual.", ButtonType.OK, ButtonType.CANCEL);
+            confirmation.setTitle("Cambiar orden");
+            confirmation.setHeaderText(null);
+            confirmation.initOwner(stage);
+            confirmation.getDialogPane().getStylesheets().setAll(rootPane.getStylesheets());
+            confirmation.getDialogPane().getStyleClass().add("terminal");
+            confirmation.getDialogPane().pseudoClassStateChanged(LIGHT, lightThemeToggle.isSelected());
+            if (confirmation.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
+                orderChoice.setValue(tree.getM());
                 return;
+            }
         }
-
-        
+        initializeTree(order);
     }
 
-    private void handleRemove(Integer key) {
-
-        try{
-            BPlusTraversalResult<Key<Integer>, Integer, String> result = this.tree.remove(key);
-            
-            if (traversalAnimation.get()){
-                treeView.animateTraversal(result.getVisitedKeys());
-            }        
-
-            disableButtons();
-
-            if (result.getResult() == null) {
-                infoMessage.setIcon(CoreUiFree.SAD);
-                infoMessage.setMessage("Key not found");
-                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 0.0, 1.0,SoundType.ERROR));
-                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
-                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 1.0, 0.0,null));
-            }
-            
-
-            TreeAnimator.getInstance().setGlobalFinishCallback( () ->{
-                    //Platform.runLater(()->{
-                        canvas.getChildren().remove(infoMessage);
-                        canvas.getChildren().add(infoMessage);   
-                        enableButtons();
-                    //});
-                });
-
-            //Platform.runLater(() -> TreeAnimator.getInstance().animateQueue());
-
-            TreeAnimator.getInstance().animateQueue();
-/*
-            animationExecutor.submit(() -> {
-            
-                TreeAnimator.getInstance().addListenerToLastTransition( () ->{
-                    Platform.runLater(()->{
-                        canvas.getChildren().remove(infoMessage);
-                        canvas.getChildren().add(infoMessage);   
-                        enableButtons();
-                    });
-                });
-
-                Platform.runLater(() -> {
-                        TreeAnimator.getInstance().animateQueue(treeView.allowTranslationProperty());
-                });
-                
-            });*/
-
-        }catch(BPlusTreeEmptyException e){
-            showInfoMessage( e);
-            enableButtons();
-            return;
-
-        }
-
-        
-
-
-
-    }
-
-    private void handleSearch(Integer key) {
-
-        try{
-            BPlusTraversalResult<BPlusLeafNode<Integer, String>, Integer, String>  result =  this.tree.search(key);
-            
-            if (result.getResult() == null) {
-                infoMessage.setMessage("Key not found");
-                infoMessage.setIcon(CoreUiFree.SAD);
-                canvas.getChildren().remove(infoMessage);
-                canvas.getChildren().add(infoMessage);   
-                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 0.0, 1.0,SoundType.ERROR));
-                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
-                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 1.0, 0.0,null));
-            }else{
-                KeyView searchedKey = this.treeView.getKeyView( result.getVisitedKeys().getLast());
-                TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().highlightData(searchedKey.getData(),SoundType.SUCCESS));
-            }
-
-            if (traversalAnimation.get()){
-                treeView.animateTraversal(result.getVisitedKeys());
-            }        
-
-            disableButtons();
-
-            TreeAnimator.getInstance().setGlobalFinishCallback( () -> 
-            //Platform.runLater(()->
-            enableButtons()
-    //    )
-    );
-
-            //Platform.runLater(() -> TreeAnimator.getInstance().animateQueue());
-            TreeAnimator.getInstance().animateQueue();
-            
-
-        }catch(BPlusTreeEmptyException e){
-            showInfoMessage( e);
-            enableButtons();
+    @FXML
+    private void submitOperation() {
+        if (operationPane.isDisabled()) return;
+        int key;
+        try {
+            key = Integer.parseInt(keyField.getText().strip());
+        } catch (NumberFormatException exception) {
+            showResult("Clave no válida", "Escribe un entero de 32 bits.", true);
             return;
         }
-        
+
+        toolbar.setDisable(true);
+        operationPane.setDisable(true);
+        treeView.clearSelection();
+        try {
+            List<Key<Integer>> visited = switch (operation) {
+                case SEARCH -> search(key);
+                case INSERT -> insert(key);
+                case DELETE -> remove(key);
+            };
+            if (traversalToggle.isSelected()) {
+                treeView.animateTraversal(visited);
+            }
+        } catch (BPlusTreeEmptyException exception) {
+            showResult("Árbol vacío", "Inserta una clave para empezar.", true);
+        }
+
+        animator.setGlobalFinishCallback(() -> {
+            treeView.updateKeyViews();
+            toolbar.setDisable(false);
+            operationPane.setDisable(false);
+            keyField.selectAll();
+            keyField.requestFocus();
+        });
+        animator.animateQueue();
     }
 
-    private void showInfoMessage( BPlusTreeEmptyException e) {
-        infoMessage.setIcon(FontAwesomeSolid.EXCLAMATION_TRIANGLE);
-        infoMessage.setMessage(e.getMessage());
-
-        TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 0.0, 1.0,SoundType.ERROR));
-        TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().pauseTransition(1000));
-        TreeAnimator.getInstance().addTransitionToQueue(TreeAnimator.getInstance().fadeNode(infoMessage, 1.0, 0.0,null));
-
-        TreeAnimator.getInstance().animateQueue();
+    private List<Key<Integer>> search(int key) throws BPlusTreeEmptyException {
+        var result = tree.search(key);
+        BPlusLeafNode<Integer, String> leaf = result.getResult();
+        if (leaf == null) {
+            showResult("Clave " + key + " ausente", "No hay un valor asociado.", true);
+        } else {
+            String value = leaf.getData(Integer.valueOf(key));
+            showResult("Clave " + key + " encontrada",
+                    "Hoja " + leaf.getKeyValues() + "\nValor · " + value, false);
+            treeView.highlightResult(result.getVisitedKeys().getLast());
+        }
+        return result.getVisitedKeys();
     }
 
-    private void disableButtons() {
-        this.insertBtnBox.setDisable(true);
-        this.removeBtnBox.setDisable(true);
-        this.searchBtnBox.setDisable(true);
-        this.homeBtnBox.setDisable(true);
-        this.settingsBtnBox.setDisable(true);
+    private List<Key<Integer>> insert(int key) throws BPlusTreeEmptyException {
+        String value = valueField.getText();
+        BPlusTraversalResult<Boolean, Integer, String> result = tree.insert(key, value);
+        if (result.getResult()) {
+            showResult("Clave " + key + " insertada", "Valor · " + value, false);
+            valueField.clear();
+        } else {
+            showResult("La clave " + key + " ya existe", "El valor original se conserva.", true);
+        }
+        return result.getVisitedKeys();
     }
 
-    private void enableButtons() {
-        this.insertBtnBox.setDisable(false);
-        this.removeBtnBox.setDisable(false);
-        this.searchBtnBox.setDisable(false);
-        this.homeBtnBox.setDisable(false);
-        this.settingsBtnBox.setDisable(false);
-        this.treeView.updateKeyViews();
+    private List<Key<Integer>> remove(int key) throws BPlusTreeEmptyException {
+        var result = tree.remove(key);
+        if (result.getResult() == null) {
+            showResult("Clave " + key + " ausente", "No se eliminó ninguna entrada.", true);
+        } else {
+            showResult("Clave " + key + " borrada", "", false);
+        }
+        return result.getVisitedKeys();
     }
 
-
-    private void makeStageDraggable() {
-    headerBox.setOnMousePressed(event -> {
-        xOffset = event.getSceneX();
-        yOffset = event.getSceneY();
-    });
-    
-    headerBox.setOnMouseDragged(event -> {
-        Stage stage = (Stage) headerBox.getScene().getWindow();
-        stage.setX(event.getScreenX() - xOffset);
-        stage.setY(event.getScreenY() - yOffset);
-    });
-}
+    private void showResult(String title, String detail, boolean error) {
+        resultTitle.setText(title);
+        resultTitle.pseudoClassStateChanged(ERROR, error);
+        resultDetail.setText(detail);
+        if (error && soundToggle.isSelected()) {
+            SoundType.ERROR.play();
+        }
+    }
 }

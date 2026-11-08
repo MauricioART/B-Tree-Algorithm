@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.arturoar.model.BPlusInnerNode;
-import com.arturoar.model.BPlusLeafNode;
 import com.arturoar.model.BPlusNode;
 import com.arturoar.model.Key;
 import com.arturoar.util.BPlusTreeEvent;
@@ -21,16 +20,14 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.Group;
+import javafx.application.Platform;
 
 public class TreeView extends Group implements BPlusTreeObserver<Integer, String> {
 
     private final Double X_PADDING = 20.0;
     private final Double Y_PADDING = 50.0;
     private final Double MIN_NODE_SPACING = 15.0;
-    private final Double MAX_NODE_SPACING = 50.0;
 
     private final Map<Key<Integer>, KeyView> keyToKeyView = new HashMap<>();
     private final Map<BPlusNode<Integer, String>, NodeView> nodeToNodeView = new HashMap<>();
@@ -52,26 +49,38 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
 
     private boolean isBorrowingFromInnerNode = false;
-    
+    private boolean viewportLayoutPending;
+    private boolean labelWidthChanged;
+    private KeyView selectedKey;
 
     public TreeView() {
+        animator = TreeAnimator.getInstance();
+        canvasWidth.addListener(_ -> requestViewportLayout());
+    }
 
-        ChangeListener<Number> listener = new ChangeListener<>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> obs, Number oldValue, Number newValue) {
-                for (int level = 0; level < treeLevels.size(); level++) {
-                    updateLevelLayout(level);
-                }
-                animator.combineLastsTransitionsOnQueue(treeLevels.size());
-                animator.animateQueue();
+    private void requestViewportLayout() {
+        if (viewportLayoutPending) return;
+        viewportLayoutPending = true;
+        Platform.runLater(() -> {
+            if (viewportLayoutPending && !animator.isAnimating()) {
+                layoutViewport();
             }
+        });
+    }
 
-        };
-
-        this.canvasWidth.addListener(listener);
-        this.canvasHeight.addListener(listener);
-        this.animator = TreeAnimator.getInstance();
-        
+    private void layoutViewport() {
+        viewportLayoutPending = false;
+        double width = canvasWidth.get();
+        if (width <= 0) return;
+        double requiredWidth = width;
+        for (List<NodeView> nodes : treeLevels) {
+            requiredWidth = Math.max(requiredWidth, nodes.stream().mapToDouble(NodeView::getWidth).sum()
+                    + 2 * X_PADDING + MIN_NODE_SPACING * (nodes.size() + 1));
+        }
+        scaleProperty.set(width / requiredWidth);
+        for (int level = 0; level < treeLevels.size(); level++) {
+            updateLevelLayout(level, false);
+        }
     }
 
     @Override
@@ -129,7 +138,6 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
             animator.addTransitionToQueue(animator.fadeNode(oldRootEdge, 1, 0, null));
             animator.combineLastsTransitionsOnQueue(2);
             updateYLayout();
-            animator.addListenerToLastTransition(()->{ depthProperty.set(treeLevels.size());});
             
         }else{
             NodeView newNode = NodeFactory.createNode(e.getNewRoot().isLeaf(), this.canvasWidth.get()/2, Y_PADDING);
@@ -147,9 +155,6 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                 updateYLayout();
             }
             animator.combineLastsTransitionsOnQueue(2);
-            animator.addScheduleTask(() -> {
-                depthProperty.set(treeLevels.size());
-            },0);
         }
     }
     
@@ -187,9 +192,7 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
                     previousNodeEdge.originYProperty().bind(splitNode.getLast().translateYProperty().add(splitNode.getLast().getHeight()/2));
                     previousNode.setNextLeaf(newNodeEdge);
                     
-                    animator.addScheduleTask(()->{ 
-                        newLeafNode.setNextLeaf(previousNodeEdge);
-                    },  1);
+                    afterAnimation.add(() -> newLeafNode.setNextLeaf(previousNodeEdge));
 
                     
                 }
@@ -284,7 +287,6 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
         KeyView newKey = createKeyView(event);
 
-        newKey.setOnWidthChangeCallback(level ->{updateLevelLayout(level);});
         newKey.darkModeProperty().bind(darkModeProperty);
 
         BPlusTreeEvent.KeyInserted<Integer,String> e = (BPlusTreeEvent.KeyInserted<Integer,String>) event;
@@ -317,16 +319,11 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
 
     }
 
-    private KeyView createKeyView(BPlusTreeEvent<Integer, String> event){
-        BPlusTreeEvent.KeyInserted<Integer,String> e = (BPlusTreeEvent.KeyInserted<Integer,String>) event;
-        KeyView newKey;
-        if (e.getNode().isLeaf()){
-           newKey = new KeyView(e.getKey().key, String.valueOf(((BPlusLeafNode<Integer, String>)e.getNode()).getData(e.getKey().getKey())));
-        }else {
-            newKey = new KeyView(e.getKey().key);
-        }
-        newKey.setOpacity(0);
-        return newKey;
+    private KeyView createKeyView(BPlusTreeEvent<Integer, String> event) {
+        var inserted = (BPlusTreeEvent.KeyInserted<Integer, String>) event;
+        KeyView keyView = new KeyView(inserted.getKey().getKey(), inserted.getNode().isLeaf());
+        keyView.setOpacity(0);
+        return keyView;
     }
 
     private void handleKeyRemoved(BPlusTreeEvent<Integer, String> event) {
@@ -552,7 +549,14 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     private void handleKeyChanged(BPlusTreeEvent<Integer, String> event) {
         BPlusTreeEvent.KeyChanged<Integer,String> e = (BPlusTreeEvent.KeyChanged<Integer,String>) event;
         KeyView changedKeyView = keyToKeyView.get(e.getKey());
+        changedKeyView.setKey(e.getNewKey());
         animator.addTransitionToQueue(animator.animateTextChange(changedKeyView.getKeyLabel(), String.valueOf(e.getNewKey())));
+        afterAnimation.add(() -> {
+            if (changedKeyView.refreshLabelWidth()) {
+                changedKeyView.getNode().refreshWidth();
+                labelWidthChanged = true;
+            }
+        });
     }
 
     private int findChildIndex(BPlusNode<Integer, String> parent, BPlusNode<Integer, String> child) {
@@ -564,49 +568,36 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         return 0;
     }
     
-    public void updateLevelLayout(int level){
-
-        if (level < 0 || level >= treeLevels.size()) {
-            return; 
-        }
-
-        double nodesTotalWidth = this.treeLevels.get(level).stream()
-                                                        .mapToDouble(NodeView::getWidth)
-                                                        .sum() ;
-
-        
-        double nodeSpacing = ((canvasWidth.get()/scaleProperty.get()) - nodesTotalWidth - 2 * X_PADDING) / (treeLevels.get(level).size() + 1);
-
-        if (nodeSpacing < MIN_NODE_SPACING){
-
-            double blankSpaceNeeded = MIN_NODE_SPACING * (treeLevels.get(level).size() + 1) + 2 * X_PADDING;
-            scaleProperty.set( canvasWidth.get() / (blankSpaceNeeded + nodesTotalWidth) );
-            nodeSpacing = MIN_NODE_SPACING;
-            //TO DO: Scale down the tree view
-
-        }else if (nodeSpacing > MAX_NODE_SPACING){
-            //TODO: Scale up the tree view
-            //nodeSpacing = MAX_NODE_SPACING;
-        }
-
-        double startX = X_PADDING + nodeSpacing;
-
-    
-        for (NodeView node : this.treeLevels.get(level)) {
-
-            double deltaX = startX - node.xOriginProperty().get() ;
-            if ( nodeToNodeView.size() == 1 && node.keys.size() == 1){
-                animator.addParallelTransition(animator.moveNode(node, deltaX, 0, 0.1));
-            }else{
-                animator.addParallelTransition(animator.moveNode(node, deltaX, 0,null));
-            }
-            node.updateLayout(deltaX);
-            startX += node.getWidth() + nodeSpacing;
-        }
-        animator.createParallelTransition();
-
+    public void updateLevelLayout(int level) {
+        updateLevelLayout(level, true);
     }
 
+    private void updateLevelLayout(int level, boolean animate) {
+        if (level < 0 || level >= treeLevels.size() || canvasWidth.get() <= 0) return;
+
+        List<NodeView> nodes = treeLevels.get(level);
+        double nodesTotalWidth = nodes.stream().mapToDouble(NodeView::getWidth).sum();
+        double spacing = (canvasWidth.get() / scaleProperty.get() - nodesTotalWidth - 2 * X_PADDING)
+                / (nodes.size() + 1);
+        if (spacing < MIN_NODE_SPACING) {
+            double requiredWidth = nodesTotalWidth + 2 * X_PADDING + MIN_NODE_SPACING * (nodes.size() + 1);
+            scaleProperty.set(canvasWidth.get() / requiredWidth);
+            spacing = MIN_NODE_SPACING;
+        }
+
+        double startX = X_PADDING + spacing;
+        for (NodeView node : nodes) {
+            double deltaX = startX - node.getXOrigin();
+            if (animate) {
+                animator.addParallelTransition(animator.moveNode(node, deltaX, 0, null));
+            } else {
+                node.setTranslateX(startX);
+            }
+            node.updateLayout(deltaX, animate);
+            startX += node.getWidth() + spacing;
+        }
+        if (animate) animator.createParallelTransition();
+    }
 
     private void updateYLayout(){
 
@@ -649,25 +640,32 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
     }
 
     public void animateTraversal(List<Key<Integer>> visitedKeys) {
-        
-        if (visitedKeys.size() == 0) return;
-
-        NodeView currentNode = null;
-
-        while( !visitedKeys.isEmpty()){
-
-            KeyView currentKey = keyToKeyView.get(visitedKeys.remove(0));
-            
-            if (currentNode == null) {
-                currentNode = currentKey.getNode();
-            }else{
-                if (currentNode != currentKey.getNode()){
-                    currentNode = currentKey.getNode();
-                    animator.addToTraversalList(animator.highlightEdge(childrenToEdge.get(currentNode),SoundType.HIGHLIGHTING));
-                }
+        NodeView previousNode = null;
+        for (Key<Integer> key : visitedKeys) {
+            KeyView keyView = keyToKeyView.get(key);
+            NodeView node = keyView.getNode();
+            if (previousNode != null && previousNode != node) {
+                Edge edge = childrenToEdge.get(node);
+                if (edge != null) animator.addToTraversalList(animator.highlightEdge(edge, SoundType.HIGHLIGHTING));
             }
+            animator.addToTraversalList(animator.highlightKeyView(keyView, SoundType.HIGHLIGHTING));
+            previousNode = node;
+        }
+    }
 
-            animator.addToTraversalList(animator.highlightKeyView(currentKey,SoundType.HIGHLIGHTING));
+    public void highlightResult(Key<Integer> key) {
+        KeyView keyView = keyToKeyView.get(key);
+        animator.addTransitionToQueue(animator.highlightKeyView(keyView, SoundType.SUCCESS));
+        afterAnimation.add(() -> {
+            selectedKey = keyView;
+            selectedKey.setSelected(true);
+        });
+    }
+
+    public void clearSelection() {
+        if (selectedKey != null) {
+            selectedKey.setSelected(false);
+            selectedKey = null;
         }
     }
 
@@ -678,6 +676,11 @@ public class TreeView extends Group implements BPlusTreeObserver<Integer, String
         borrowedKeys.clear();
         afterAnimation.forEach(Runnable::run);
         afterAnimation.clear();
+        depthProperty.set(treeLevels.size());
+        if (viewportLayoutPending || labelWidthChanged) {
+            labelWidthChanged = false;
+            layoutViewport();
+        }
     }
 
     public KeyView getKeyView(Key<Integer> key){

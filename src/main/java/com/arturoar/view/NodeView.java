@@ -1,6 +1,5 @@
 package com.arturoar.view;
 
-import javafx.animation.Transition;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -20,6 +19,7 @@ public abstract class NodeView extends Group {
     protected DoubleProperty xOrigin = new SimpleDoubleProperty();
     protected DoubleProperty yOrigin = new SimpleDoubleProperty();
 
+    private double plannedWidth;
     protected DoubleProperty animatedWidth = new SimpleDoubleProperty(0.0);
     protected DoubleProperty centerX = new SimpleDoubleProperty(0.0);
     protected IntegerProperty levelProperty = new SimpleIntegerProperty();
@@ -42,24 +42,10 @@ public abstract class NodeView extends Group {
         // Bind centerX to smoothly follow the animated width
         this.centerX.bind(this.translateXProperty().add(this.animatedWidth.divide(2)));
         
-        // Animate width changes
-        this.width.addListener((_, oldVal, newVal) -> {
-            Transition widthTransition = TreeAnimator.getInstance().animateProperty(
-                this.animatedWidth, oldVal.doubleValue(), newVal.doubleValue());
-            TreeAnimator.getInstance().addParallelTransition(widthTransition);
-        });
-
-
     }
 
-    public void onWidthChange(KeyView keyView, double deltaWidth){
-        for (KeyView storedKeyView: keys){
-            if (storedKeyView.getKey() > keyView.getKey()){
-                double lastXOrigin = storedKeyView.getCurrentXOrigin();
-                storedKeyView.setNewOriginX(lastXOrigin + deltaWidth);
-            }
-        }
-        width.set(width.get() + deltaWidth);
+    void refreshWidth() {
+        width.set(keys.stream().mapToDouble(KeyView::getWidthProperty).sum());
     }
 
     public int getNumberOfKeys(){
@@ -169,25 +155,34 @@ public abstract class NodeView extends Group {
 
     
     public void updateLayout(double deltaX) {
-      
-        this.keys.forEach(key -> {
-            double byX = key.getDeltaX() + deltaX;
-
-            //if (byX == 0.0) return;
-
-            // Create a transition for the key movement
-            Transition movingKey = TreeAnimator.getInstance().moveNode(key, byX, 0.0,null);
-            TreeAnimator.getInstance().addParallelTransition(movingKey);
-            // Update the new origin for the key
-            key.setNewOriginX(key.getNewXOrigin() + deltaX);
-            key.setCurrentXOrigin(key.getNewXOrigin());
-
-        });
-
-        this.setXOrigin(getXOrigin() + deltaX);
+        updateLayout(deltaX, true);
     }
- 
-   
+
+    void updateLayout(double deltaX, boolean animate) {
+        TreeAnimator animator = TreeAnimator.getInstance();
+        double targetWidth = width.get();
+        if (!animate) {
+            animatedWidth.set(targetWidth);
+        } else if (plannedWidth != targetWidth) {
+            animator.addParallelTransition(animator.animateProperty(animatedWidth, plannedWidth, targetWidth));
+        }
+        plannedWidth = targetWidth;
+
+        double startX = getXOrigin() + deltaX;
+        double keyX = startX;
+        for (KeyView key : keys) {
+            if (animate) {
+                animator.addParallelTransition(animator.moveNode(key, keyX - key.getCurrentXOrigin(), 0, null));
+            } else {
+                key.setTranslateX(keyX);
+            }
+            key.setNewOriginX(keyX);
+            key.setCurrentXOrigin(keyX);
+            keyX += key.getWidthProperty();
+        }
+        setXOrigin(startX);
+    }
+
     public Double getWidth() {
         return this.width.get();
     }

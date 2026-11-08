@@ -1,10 +1,5 @@
 package com.arturoar.view;
 
-import java.util.function.Consumer;
-
-import com.arturoar.util.TreeAnimator;
-
-import javafx.animation.Transition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.BooleanProperty;
@@ -12,7 +7,6 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.control.Label;
@@ -26,10 +20,12 @@ import javafx.scene.transform.Rotate;
 
 public class KeyView extends Group {
 
-    private final Paint LIGHT_COLOR = Color.web("#008e9b");
+    private static final Paint LIGHT_COLOR = Color.web("#755121");
+    private static final Paint DARK_COLOR = Color.web("#dec9a6");
+    private static final Paint LIGHT_SELECTION = Color.web("#a35c05");
+    private static final Paint DARK_SELECTION = Color.web("#ffc36a");
+    private static final Font KEY_FONT = Font.font("Consolas", 14);
 
-    private final Paint DARK_COLOR = Color.web("#e4e4d7ff");
-    
     private Rectangle nodeShape;
     private Text keyLabel;
     private Label dataLabel;
@@ -48,33 +44,30 @@ public class KeyView extends Group {
     private ObjectProperty<Paint> colorProperty = new SimpleObjectProperty<>(LIGHT_COLOR);
     private BooleanProperty darkModeProperty = new SimpleBooleanProperty(false);
 
-    private Consumer<Integer> onWidthChangeCallback;
+    private final boolean leaf;
+    private boolean selected;
 
     public KeyView(Integer key) {
+        this(key, false);
+    }
+
+    public KeyView(Integer key, boolean leaf) {
         this.key = key;
+        this.leaf = leaf;
         keyLabel = new Text(this.key.toString());
-        //keyLabel.setFont(Font.font(13));
+        keyLabel.setFont(KEY_FONT);
         widthProperty = new SimpleDoubleProperty (keyLabel.getLayoutBounds().getWidth() + 2 * paddingX);
         height = keyLabel.getLayoutBounds().getHeight() + 2 * paddingY;
         isNew = true;
         setupNode();
         darkModeProperty.addListener((_,_,newVal)->{
-            if (newVal){
-                colorProperty.set(DARK_COLOR);
-                if(dataLabel != null) {
-                    dataLabel.setTextFill(DARK_COLOR);
-                }
-            }else{
-                colorProperty.set(LIGHT_COLOR);
-                if (dataLabel != null){
-                    dataLabel.setTextFill(Color.BLACK);
-                } 
-            }
+            updateColor();
+            if (dataLabel != null) dataLabel.setTextFill(newVal ? DARK_COLOR : LIGHT_COLOR);
         });
         
     }
     public KeyView(Integer key, String nodeData ) {
-        this(key);
+        this(key, true);
         dataLabel = new Label(nodeData);
         
         // Configuración básica del Label
@@ -116,15 +109,14 @@ public class KeyView extends Group {
             Paint originalColor = colorProperty.get();
             if (originalColor instanceof Color) {
                 Color color = (Color) originalColor;
-                return new Color(color.getRed(), color.getGreen(), color.getBlue(), 0.2);
+                return new Color(color.getRed(), color.getGreen(), color.getBlue(), leaf ? 0.16 : 0.06);
             }
             return originalColor;
         }, colorProperty));
 
-        nodeShape.setStrokeWidth(2);      
         nodeShape.widthProperty().bind(widthProperty);
-        nodeShape.setArcWidth(10.0);
-        nodeShape.setArcHeight(10.0);   
+        nodeShape.setArcWidth(3.0);
+        nodeShape.setArcHeight(3.0);
 
         nodeShape.getStyleClass().clear();
         nodeShape.getStyleClass().add("keyview");
@@ -136,33 +128,28 @@ public class KeyView extends Group {
         
         getChildren().addAll(this.nodeShape, this.keyLabel);
 
-        ChangeListener<String> strListener = (_, _, newValue) -> {
-            this.setKey(Integer.valueOf(newValue));
-
-        };
-
-        keyLabel.layoutBoundsProperty().addListener((_, oldVal, newVal)->{
-            double oldWidth = oldVal.getWidth() + 2 * paddingX;
-            double newWidth = newVal.getWidth() + 2 * paddingX;
-            Transition widthChangeTransition = TreeAnimator.getInstance().animateProperty(widthProperty, oldWidth, newWidth);
-            TreeAnimator.getInstance().addParallelTransition(widthChangeTransition);
-            node.onWidthChange(this, newWidth - oldWidth);
-            if (onWidthChangeCallback != null){
-                int level = node.getLevel();
-                onWidthChangeCallback.accept(level);
-            }
-
-            TreeAnimator.getInstance().createParallelTransition();
-            TreeAnimator.getInstance().animateQueue();
-
-            
-        });
-
-        this.keyLabel.textProperty().addListener(strListener);
     }
 
-    public void setOnWidthChangeCallback(Consumer<Integer> updateLevel){
-        onWidthChangeCallback = updateLevel;
+    boolean refreshLabelWidth() {
+        keyLabel.setText(key.toString());
+        keyLabel.setOpacity(1);
+        double newWidth = keyLabel.getLayoutBounds().getWidth() + 2 * paddingX;
+        if (newWidth == widthProperty.get()) return false;
+        widthProperty.set(newWidth);
+        return true;
+    }
+
+    void setSelected(boolean selected) {
+        this.selected = selected;
+        updateColor();
+    }
+
+    private void updateColor() {
+        if (darkModeProperty.get()) {
+            colorProperty.set(selected ? DARK_SELECTION : DARK_COLOR);
+        } else {
+            colorProperty.set(selected ? LIGHT_SELECTION : LIGHT_COLOR);
+        }
     }
 
     public NodeView getNode() {
