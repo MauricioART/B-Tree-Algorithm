@@ -364,7 +364,7 @@ public class BPlusTree<K extends Comparable<K>,V> {
             for (BPlusNode<K,V> child : ((BPlusInnerNode<K,V>)rightNode).getChildren()) {
                 child.setParent((BPlusInnerNode<K,V>)leftNode);
                 ((BPlusInnerNode<K,V>)leftNode).getChildren().add(child);
-                notifyObservers(new BPlusTreeEvent.NodeBorrowed<>(leftNode, rightNode, child));
+                notifyObservers(new BPlusTreeEvent.NodeBorrowed<>(rightNode, leftNode, child));
             }
         }
 
